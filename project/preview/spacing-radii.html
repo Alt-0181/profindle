@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-family); background: #F4F5F7; padding: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .item { background: white; padding: 16px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .swatch { width: 56px; height: 56px; background: #0F6F73; }
+  .label { font-size: 12px; font-weight: 600; color: #171A21; text-align: center; }
+  .val { font-size: 11px; color: #9AA0AE; font-family: monospace; }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div class="item"><div class="swatch" style="border-radius:4px;"></div><div class="label">radius-sm</div><div class="val">4px</div></div>
+    <div class="item"><div class="swatch" style="border-radius:8px;"></div><div class="label">radius-md</div><div class="val">8px</div></div>
+    <div class="item"><div class="swatch" style="border-radius:12px;"></div><div class="label">radius-btn / card</div><div class="val">12px</div></div>
+    <div class="item"><div class="swatch" style="border-radius:20px;"></div><div class="label">radius-card-lg</div><div class="val">20px</div></div>
+    <div class="item"><div class="swatch" style="border-radius:999px;"></div><div class="label">radius-pill</div><div class="val">999px</div></div>
+  </div>
+</body>
+</html>

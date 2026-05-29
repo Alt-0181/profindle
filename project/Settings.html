@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — Profindle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ds.css">
+<link rel="stylesheet" href="i18n.css">
+<style>
+.settings-layout { display: grid; grid-template-columns: 220px 1fr; gap: 24px; align-items: start; }
+.settings-nav { background: white; border-radius: 16px; border: 1px solid rgba(15,111,115,0.10); padding: 8px; position: sticky; top: 24px; }
+.settings-nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 10px; font-size: 14px; font-weight: 500;
+  color: #6B7385; cursor: pointer; border: none; background: none; width: 100%;
+  text-align: left; font-family: inherit; transition: all 150ms; text-decoration: none;
+}
+.settings-nav-item:hover { background: #F4F5F7; color: #171A21; text-decoration: none; }
+.settings-nav-item.active { background: #F0F9F9; color: #0F6F73; font-weight: 600; }
+.settings-nav-item svg { flex-shrink: 0; }
+
+.settings-section { background: white; border-radius: 16px; border: 1px solid rgba(15,111,115,0.10); padding: 28px; margin-bottom: 20px; }
+.settings-section-title { font-size: 16px; font-weight: 700; color: #171A21; margin-bottom: 4px; }
+.settings-section-sub   { font-size: 13px; color: #9AA0AE; margin-bottom: 24px; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 14px 0; border-bottom: 1px solid #F4F5F7; }
+.settings-row:last-child { border-bottom: none; padding-bottom: 0; }
+.settings-row:first-child { padding-top: 0; }
+.settings-row-label { font-size: 14px; font-weight: 600; color: #171A21; }
+.settings-row-sub   { font-size: 13px; color: #9AA0AE; margin-top: 2px; }
+
+/* Toggle switch */
+.toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0; background: #C8CDD7; border-radius: 999px; cursor: pointer;
+  transition: background 200ms;
+}
+.toggle-slider::before {
+  content: ''; position: absolute;
+  width: 18px; height: 18px; border-radius: 999px; background: white;
+  left: 3px; top: 3px; transition: transform 200ms;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.toggle input:checked + .toggle-slider { background: #0F6F73; }
+.toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+/* LINE connect card */
+.line-card { background: linear-gradient(135deg,#06C755 0%,#04a544 100%); border-radius: 14px; padding: 20px; display: flex; align-items: center; gap: 16px; }
+.line-logo { width: 44px; height: 44px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+/* LINE Connect — stepped flow */
+.lc-step { border:1px solid #E4E7ED; border-radius:14px; padding:18px 20px; margin-bottom:16px; background:white; }
+.lc-step-head { display:flex; align-items:center; gap:14px; }
+.lc-step-num { width:30px; height:30px; border-radius:50%; background:#F4F5F7; color:#9AA0AE; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 200ms; }
+.lc-step-num-active { background:linear-gradient(135deg,#06C755,#04a544); color:white; }
+.lc-step-title { font-size:14px; font-weight:700; color:#171A21; }
+.lc-step-sub { font-size:12px; color:#6B7385; margin-top:2px; line-height:1.5; }
+.lc-step-body { margin-top:16px; }
+
+.lc-add-card { display:flex; gap:20px; align-items:center; padding:18px; background:#F9FBFB; border-radius:12px; flex-wrap:wrap; }
+.lc-qr { background:white; padding:10px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.06); flex-shrink:0; }
+.lc-add-meta { flex:1; min-width:180px; }
+.lc-add-handle { font-size:13px; color:#06C755; font-weight:700; }
+.lc-add-name { font-size:16px; font-weight:700; color:#171A21; margin-top:2px; }
+.lc-add-desc { font-size:12px; color:#9AA0AE; margin-top:2px; margin-bottom:14px; }
+.lc-add-hint { font-size:11px; color:#9AA0AE; margin-top:8px; }
+.btn-line { background:#06C755 !important; color:white !important; border:none !important; }
+.btn-line:hover { background:#04a544 !important; }
+
+.lc-status { display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:12px; }
+.lc-status-waiting { background:#FFF8F0; border:1.5px dashed #F77F00; }
+.lc-status-connected { background:rgba(6,199,85,0.08); border:1.5px solid rgba(6,199,85,0.3); }
+.lc-status-spinner { width:20px; height:20px; border:2.5px solid #F77F00; border-top-color:transparent; border-radius:50%; animation:lc-spin 800ms linear infinite; flex-shrink:0; }
+@keyframes lc-spin { to { transform:rotate(360deg); } }
+.lc-status-check { width:28px; height:28px; border-radius:50%; background:#06C755; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.lc-status-title { font-size:13px; font-weight:600; color:#171A21; }
+.lc-status-sub { font-size:12px; color:#6B7385; margin-top:2px; }
+
+.lc-preview { background:#7B97B5; border-radius:14px; padding:14px; }
+.lc-preview-label { font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:rgba(255,255,255,0.85); margin-bottom:8px; text-align:center; }
+.lc-chat { background:#7B97B5; border-radius:8px; overflow:hidden; }
+.lc-chat-header { display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.95); }
+.lc-chat-avatar { width:32px; height:32px; border-radius:50%; background:#06C755; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.lc-chat-name { font-size:13px; font-weight:700; color:#171A21; }
+.lc-chat-sub { font-size:10px; color:#6B7385; }
+.lc-chat-body { padding:14px 10px 16px; min-height:220px; }
+.lc-chat-day { text-align:center; font-size:10px; color:rgba(255,255,255,0.85); background:rgba(0,0,0,0.15); padding:3px 10px; border-radius:10px; width:max-content; margin:0 auto 12px; }
+.lc-chat-msg-in { display:flex; flex-direction:column; align-items:flex-start; max-width:85%; }
+.lc-chat-bubble { background:white; border-radius:4px 14px 14px 14px; padding:10px 12px; font-size:12.5px; line-height:1.55; color:#171A21; white-space:pre-wrap; box-shadow:0 1px 2px rgba(0,0,0,0.08); }
+.lc-chat-time { font-size:9px; color:rgba(255,255,255,0.85); margin-top:3px; padding-left:4px; }
+.line-text .title { font-size: 15px; font-weight: 700; color: white; }
+.line-text .sub   { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+
+/* Danger zone */
+.danger-zone { border: 1.5px solid rgba(255,90,95,0.25); border-radius: 16px; padding: 28px; background: #FFF8F8; }
+.danger-zone .settings-section-title { color: #E04347; }
+</style>
+</head>
+<body>
+<div class="main-with-sidebar">
+  <div class="page-body">
+    <div class="settings-layout">
+
+      <!-- Left nav -->
+      <div class="settings-nav">
+        <a class="settings-nav-item active" href="#account" onclick="showSection('account',this)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span data-i18n-en="Account" data-i18n-th="บัญชี">Account</span>
+        </a>
+        <a class="settings-nav-item" href="#line" onclick="showSection('line',this)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 12 19.79 19.79 0 0 1 1.92 3.38C1.86 2.58 2.42 2 3.22 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.15 6.15l1.48-1.48a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span data-i18n-en="LINE Connect" data-i18n-th="เชื่อม LINE">LINE Connect</span>
+        </a>
+        <a class="settings-nav-item" href="#notifications" onclick="showSection('notifications',this)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span data-i18n-en="Notifications" data-i18n-th="การแจ้งเตือน">Notifications</span>
+        </a>
+        <a class="settings-nav-item" href="#password" onclick="showSection('password',this)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span data-i18n-en="Password" data-i18n-th="รหัสผ่าน">Password</span>
+        </a>
+        <a class="settings-nav-item" href="#danger" onclick="showSection('danger',this)" style="color:#E04347;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <span data-i18n-en="Delete Account" data-i18n-th="ลบบัญชี">Delete Account</span>
+        </a>
+      </div>
+
+      <!-- Right content -->
+      <div>
+
+        <!-- Account -->
+        <div class="settings-section" id="section-account">
+          <div class="settings-section-title" data-i18n-en="Account Settings" data-i18n-th="ตั้งค่าบัญชี">Account Settings</div>
+          <div class="settings-section-sub" data-i18n-en="Manage your personal account details" data-i18n-th="จัดการข้อมูลบัญชีส่วนตัวของคุณ">Manage your personal account details</div>
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div class="field">
+                <label class="field-label" data-i18n-en="First name" data-i18n-th="ชื่อจริง">First name</label>
+                <input type="text" class="input" id="st-firstname" value="">
+              </div>
+              <div class="field">
+                <label class="field-label" data-i18n-en="Last name" data-i18n-th="นามสกุล">Last name</label>
+                <input type="text" class="input" id="st-lastname" value="">
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label" data-i18n-en="Email address" data-i18n-th="อีเมล">Email address</label>
+              <input type="email" class="input" id="st-email" value="" readonly style="background:#F4F5F7;color:#9AA0AE;">
+              <span class="field-hint" data-i18n-en="Contact support to change your email address" data-i18n-th="ติดต่อฝ่ายช่วยเหลือเพื่อเปลี่ยนอีเมล">Contact support to change your email address</span>
+            </div>
+            <div style="display:flex;justify-content:flex-end;">
+              <button class="btn btn-primary" onclick="showToast(window.profindleI18n.t('Account updated successfully.','บันทึกข้อมูลบัญชีสำเร็จแล้ว'))" data-i18n-en="Save changes" data-i18n-th="บันทึกการเปลี่ยนแปลง">Save changes</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- LINE Connect -->
+        <div class="settings-section" id="section-line" style="display:none;">
+          <div class="settings-section-title" data-i18n-en="LINE Connect" data-i18n-th="เชื่อม LINE">LINE Connect</div>
+          <div class="settings-section-sub" data-i18n-en="Add the Profindle bot to receive broadcast alerts and let clients message you instantly." data-i18n-th="เพิ่มบอท Profindle เพื่อรับการแจ้งเตือนคำขอ และให้ลูกค้าทักหาคุณได้ทันที">Add the Profindle bot to receive broadcast alerts and let clients message you instantly.</div>
+
+          <!-- Purpose explainer -->
+          <div style="background:linear-gradient(135deg,rgba(6,199,85,0.08),rgba(6,199,85,0.04));border:1.5px solid rgba(6,199,85,0.25);border-radius:14px;padding:14px 18px;margin-bottom:24px;display:flex;align-items:flex-start;gap:14px;">
+            <div style="width:32px;height:32px;border-radius:10px;background:#06C755;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.04 2 11c0 3.31 1.86 6.22 4.72 8.05L6 22l3.18-1.67C10.03 20.77 11 21 12 21c5.52 0 10-4.04 10-9S17.52 2 12 2z"/></svg>
+            </div>
+            <div style="font-size:13px;color:#444B5A;line-height:1.65;">
+              When a client broadcasts a request matching your services, our bot pushes the brief straight to your LINE chat. Clients clicking the LINE button on your profile also land in this same chat — your <strong style="color:#171A21;">Welcome Message</strong> below is what they see first.
+            </div>
+          </div>
+
+          <!-- ── STEP 1 — Add bot as friend ──────────────────── -->
+          <div class="lc-step">
+            <div class="lc-step-head">
+              <div class="lc-step-num lc-step-num-active">1</div>
+              <div>
+                <div class="lc-step-title">Add the Profindle bot as a friend</div>
+                <div class="lc-step-sub">Scan the QR or tap the button — takes 5 seconds.</div>
+              </div>
+            </div>
+            <div class="lc-step-body">
+              <div class="lc-add-card">
+                <div class="lc-qr">
+                  <!-- Mock QR -->
+                  <svg width="140" height="140" viewBox="0 0 21 21" shape-rendering="crispEdges">
+                    <rect width="21" height="21" fill="white"/>
+                    <g fill="#171A21">
+                      <!-- Finder patterns (3 corners) -->
+                      <rect x="0" y="0" width="7" height="7"/>
+                      <rect x="14" y="0" width="7" height="7"/>
+                      <rect x="0" y="14" width="7" height="7"/>
+                      <rect x="1" y="1" width="5" height="5" fill="white"/>
+                      <rect x="15" y="1" width="5" height="5" fill="white"/>
+                      <rect x="1" y="15" width="5" height="5" fill="white"/>
+                      <rect x="2" y="2" width="3" height="3"/>
+                      <rect x="16" y="2" width="3" height="3"/>
+                      <rect x="2" y="16" width="3" height="3"/>
+                      <!-- Pseudo-random data dots -->
+                      <rect x="8" y="0" width="1" height="1"/><rect x="10" y="0" width="1" height="1"/><rect x="12" y="0" width="1" height="1"/>
+                      <rect x="9" y="2" width="1" height="1"/><rect x="11" y="3" width="1" height="1"/><rect x="13" y="2" width="1" height="1"/>
+                      <rect x="8" y="4" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="12" y="6" width="1" height="1"/>
+                      <rect x="0" y="8" width="1" height="1"/><rect x="2" y="9" width="1" height="1"/><rect x="4" y="8" width="1" height="1"/><rect x="6" y="9" width="1" height="1"/>
+                      <rect x="8" y="8" width="1" height="1"/><rect x="9" y="9" width="1" height="1"/><rect x="11" y="8" width="1" height="1"/><rect x="13" y="9" width="1" height="1"/><rect x="15" y="8" width="1" height="1"/><rect x="17" y="9" width="1" height="1"/><rect x="19" y="8" width="1" height="1"/>
+                      <rect x="8" y="10" width="1" height="1"/><rect x="12" y="10" width="1" height="1"/><rect x="14" y="11" width="1" height="1"/><rect x="16" y="10" width="1" height="1"/><rect x="18" y="11" width="1" height="1"/><rect x="20" y="10" width="1" height="1"/>
+                      <rect x="8" y="12" width="1" height="1"/><rect x="10" y="13" width="1" height="1"/><rect x="14" y="13" width="1" height="1"/><rect x="16" y="12" width="1" height="1"/><rect x="18" y="13" width="1" height="1"/>
+                      <rect x="8" y="14" width="1" height="1"/><rect x="9" y="15" width="1" height="1"/><rect x="10" y="16" width="1" height="1"/><rect x="11" y="17" width="1" height="1"/><rect x="12" y="14" width="1" height="1"/><rect x="13" y="15" width="1" height="1"/>
+                      <rect x="8" y="18" width="1" height="1"/><rect x="10" y="19" width="1" height="1"/><rect x="12" y="20" width="1" height="1"/>
+                      <rect x="14" y="16" width="1" height="1"/><rect x="15" y="17" width="1" height="1"/><rect x="16" y="18" width="1" height="1"/><rect x="17" y="19" width="1" height="1"/><rect x="18" y="20" width="1" height="1"/><rect x="19" y="16" width="1" height="1"/><rect x="20" y="17" width="1" height="1"/>
+                    </g>
+                    <!-- LINE logo center cap -->
+                    <rect x="8" y="8" width="5" height="5" fill="white"/>
+                    <rect x="9" y="9" width="3" height="3" fill="#06C755" rx="0.5"/>
+                  </svg>
+                </div>
+                <div class="lc-add-meta">
+                  <div class="lc-add-handle">@profindle</div>
+                  <div class="lc-add-name">Profindle Official</div>
+                  <div class="lc-add-desc">Verified Business Account · Thailand</div>
+                  <a class="btn btn-line" href="#" onclick="event.preventDefault();simulateLineAdd()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.04 2 11c0 3.31 1.86 6.22 4.72 8.05L6 22l3.18-1.67C10.03 20.77 11 21 12 21c5.52 0 10-4.04 10-9S17.52 2 12 2z"/></svg>
+                    Add on LINE
+                  </a>
+                  <div class="lc-add-hint">Or scan the QR code with your phone's LINE app.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── STEP 2 — Link your account ─────────────────── -->
+          <div class="lc-step">
+            <div class="lc-step-head">
+              <div class="lc-step-num" id="lc-step2-num">2</div>
+              <div>
+                <div class="lc-step-title">Link your LINE account</div>
+                <div class="lc-step-sub">Click below — if you're logged into LINE on this device, we'll link instantly via LINE Login.</div>
+              </div>
+            </div>
+            <div class="lc-step-body">
+              <!-- Not-yet-linked state -->
+              <div class="lc-status lc-status-waiting" id="lc-status-waiting" style="background:#F4F8F8;border:1px dashed rgba(15,111,115,0.25);">
+                <div style="width:36px;height:36px;border-radius:10px;background:#06C755;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.04 2 11c0 3.31 1.86 6.22 4.72 8.05L6 22l3.18-1.67C10.03 20.77 11 21 12 21c5.52 0 10-4.04 10-9S17.52 2 12 2z"/></svg>
+                </div>
+                <div style="flex:1;min-width:0;">
+                  <div class="lc-status-title">Not linked yet</div>
+                  <div class="lc-status-sub">Once linked, you'll receive broadcast alerts and clients can message you.</div>
+                </div>
+                <button class="btn btn-line btn-sm" onclick="simulateLineAdd()" style="white-space:nowrap;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.04 2 11c0 3.31 1.86 6.22 4.72 8.05L6 22l3.18-1.67C10.03 20.77 11 21 12 21c5.52 0 10-4.04 10-9S17.52 2 12 2z"/></svg>
+                  Connect via LINE
+                </button>
+              </div>
+              <!-- Connected state -->
+              <div class="lc-status lc-status-connected" id="lc-status-connected" style="display:none;">
+                <div class="lc-status-check">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div style="flex:1;min-width:0;">
+                  <div class="lc-status-title" style="color:#0F6F73;">Connected as <strong id="lc-status-name">—</strong></div>
+                  <div class="lc-status-sub">Linked <span id="lc-status-when">just now</span> · LINE ID <code style="background:#E4E7ED;padding:1px 6px;border-radius:4px;font-size:11px;">U•••••••8c2a</code></div>
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="simulateLineDisconnect()">Disconnect</button>
+              </div>
+
+              <!-- Manual fallback (collapsed) -->
+              <details style="margin-top:14px;border:1px solid #E4E7ED;border-radius:10px;overflow:hidden;" id="lc-manual-fallback">
+                <summary style="padding:12px 14px;cursor:pointer;font-size:13px;font-weight:600;color:#0F6F73;list-style:none;display:flex;align-items:center;gap:8px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  Having trouble? Link manually with your LINE User ID
+                  <svg style="margin-left:auto;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </summary>
+                <div style="padding:0 16px 16px;border-top:1px solid #F4F5F7;background:#FAFBFC;">
+                  <ol style="font-size:12.5px;color:#444B5A;line-height:1.7;margin:14px 0;padding-left:20px;">
+                    <li>Add <strong>@profindle</strong> as a friend on LINE (Step 1 above).</li>
+                    <li>Open the chat and send the message <code style="background:white;border:1px solid #E4E7ED;padding:1px 6px;border-radius:4px;font-size:12px;">สถานะ</code> (or <code style="background:white;border:1px solid #E4E7ED;padding:1px 6px;border-radius:4px;font-size:12px;">status</code>).</li>
+                    <li>The bot will reply with your LINE User ID — it starts with <code style="background:white;border:1px solid #E4E7ED;padding:1px 6px;border-radius:4px;font-size:12px;">U…</code></li>
+                    <li>Copy that ID and paste it below.</li>
+                  </ol>
+                  <div style="display:flex;gap:8px;align-items:stretch;">
+                    <input type="text" id="lc-manual-uid" placeholder="U1a2b3c4d5e6f7g8h9..." style="flex:1;padding:10px 12px;border:1px solid #E4E7ED;border-radius:8px;font-size:13px;font-family:monospace;">
+                    <button class="btn btn-secondary btn-sm" onclick="submitManualUid()" style="white-space:nowrap;">Save &amp; link</button>
+                  </div>
+                  <div id="lc-manual-error" style="display:none;font-size:11.5px;color:#D33;margin-top:6px;">LINE User IDs start with "U" and are 33 characters long. Double-check what the bot replied.</div>
+                </div>
+              </details>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Notifications -->
+        <div class="settings-section" id="section-notifications" style="display:none;">
+          <div class="settings-section-title" data-i18n-en="Notification Preferences" data-i18n-th="ตั้งค่าการแจ้งเตือน">Notification Preferences</div>
+          <div class="settings-section-sub" data-i18n-en="Choose how and when you hear from Profindle" data-i18n-th="เลือกรูปแบบและช่วงเวลาที่ต้องการรับข่าวจาก Profindle">Choose how and when you hear from Profindle</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n-en="New broadcast requests" data-i18n-th="คำขอใหม่จากผู้ซื้อ">New broadcast requests</div>
+              <div class="settings-row-sub" data-i18n-en="When a buyer posts a matching service request" data-i18n-th="เมื่อลูกค้าโพสต์คำขอที่ตรงกับบริการของคุณ">When a buyer posts a matching service request</div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n-en="Profile views" data-i18n-th="การเข้าชมโปรไฟล์">Profile views</div>
+              <div class="settings-row-sub" data-i18n-en="Weekly digest of who viewed your profile" data-i18n-th="สรุปรายสัปดาห์ของผู้ที่เข้ามาดูโปรไฟล์">Weekly digest of who viewed your profile</div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n-en="Platform updates" data-i18n-th="ข่าวสารเกี่ยวกับแพลตฟอร์ม">Platform updates</div>
+              <div class="settings-row-sub" data-i18n-en="New features, tips, and product announcements" data-i18n-th="ฟีเจอร์ใหม่ เคล็ดลับ และประกาศเกี่ยวกับผลิตภัณฑ์">New features, tips, and product announcements</div>
+            </div>
+            <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n-en="Marketing emails" data-i18n-th="อีเมลการตลาด">Marketing emails</div>
+              <div class="settings-row-sub" data-i18n-en="Occasional offers and case studies" data-i18n-th="ข้อเสนอพิเศษและ case study เป็นครั้งคราว">Occasional offers and case studies</div>
+            </div>
+            <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n-en="Verification status updates" data-i18n-th="อัปเดตสถานะการยืนยันตัวตน">Verification status updates</div>
+              <div class="settings-row-sub" data-i18n-en="When your documents are approved or need resubmission" data-i18n-th="เมื่อเอกสารของคุณได้รับการอนุมัติหรือต้องส่งใหม่">When your documents are approved or need resubmission</div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+            <button class="btn btn-primary" onclick="showToast(window.profindleI18n.t('Notification preferences saved.','บันทึกตั้งค่าการแจ้งเตือนแล้ว'))" data-i18n-en="Save preferences" data-i18n-th="บันทึกตั้งค่า">Save preferences</button>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="settings-section" id="section-password" style="display:none;">
+          <div class="settings-section-title" data-i18n-en="Change Password" data-i18n-th="เปลี่ยนรหัสผ่าน">Change Password</div>
+          <div class="settings-section-sub" data-i18n-en="Use a strong password with at least 8 characters" data-i18n-th="ใช้รหัสผ่านที่คาดเดายากอย่างน้อย 8 ตัวอักษร">Use a strong password with at least 8 characters</div>
+          <div style="display:flex;flex-direction:column;gap:16px;max-width:420px;">
+            <div class="field">
+              <label class="field-label" data-i18n-en="Current password" data-i18n-th="รหัสผ่านปัจจุบัน">Current password</label>
+              <input type="password" class="input" placeholder="••••••••">
+            </div>
+            <div class="field">
+              <label class="field-label" data-i18n-en="New password" data-i18n-th="รหัสผ่านใหม่">New password</label>
+              <input type="password" class="input" placeholder="••••••••">
+              <span class="field-hint" data-i18n-en="Minimum 8 characters, include a number" data-i18n-th="ยาวอย่างน้อย 8 ตัวอักษร มีตัวเลขอย่างน้อย 1 ตัว">Minimum 8 characters, include a number</span>
+            </div>
+            <div class="field">
+              <label class="field-label" data-i18n-en="Confirm new password" data-i18n-th="ยืนยันรหัสผ่านใหม่">Confirm new password</label>
+              <input type="password" class="input" placeholder="••••••••">
+            </div>
+            <div>
+              <button class="btn btn-primary" onclick="showToast(window.profindleI18n.t('Password changed successfully.','เปลี่ยนรหัสผ่านสำเร็จแล้ว'))" data-i18n-en="Update password" data-i18n-th="อัปเดตรหัสผ่าน">Update password</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danger zone -->
+        <div class="danger-zone" id="section-danger" style="display:none;">
+          <div class="settings-section-title" data-i18n-en="Delete Account" data-i18n-th="ลบบัญชี">Delete Account</div>
+          <div class="settings-section-sub" style="color:#E04347;opacity:0.7;" data-i18n-en="This action is permanent and cannot be undone" data-i18n-th="การลบถาวรและไม่สามารถย้อนกลับได้">This action is permanent and cannot be undone</div>
+          <div style="background:white;border-radius:12px;padding:20px;border:1px solid rgba(255,90,95,0.15);margin-bottom:20px;">
+            <p style="font-size:14px;color:#6B7385;line-height:1.65;margin-bottom:12px;" data-i18n-en="Deleting your account will permanently remove:" data-i18n-th="การลบบัญชีจะลบข้อมูลต่อไปนี้ถาวร:">Deleting your account will permanently remove:</p>
+            <ul style="font-size:14px;color:#6B7385;line-height:2;padding-left:20px;">
+              <li data-i18n-en="Your company profile and all listings" data-i18n-th="โปรไฟล์บริษัทและรายการทั้งหมด">Your company profile and all listings</li>
+              <li data-i18n-en="All portfolio items and images" data-i18n-th="ผลงานและรูปภาพทั้งหมด">All portfolio items and images</li>
+              <li data-i18n-en="Your broadcast request history" data-i18n-th="ประวัติคำขอของคุณ">Your broadcast request history</li>
+              <li data-i18n-en="All subscription data" data-i18n-th="ข้อมูลการสมัครสมาชิกทั้งหมด">All subscription data</li>
+            </ul>
+          </div>
+          <div class="field" style="margin-bottom:16px;max-width:380px;">
+            <label class="field-label" data-i18n-en-html="Type <strong>DELETE</strong> to confirm" data-i18n-th-html="พิมพ์ <strong>DELETE</strong> เพื่อยืนยัน">Type <strong>DELETE</strong> to confirm</label>
+            <input type="text" class="input" placeholder="DELETE" id="delete-confirm">
+          </div>
+          <button class="btn btn-danger" onclick="confirmDelete()" data-i18n-en="Delete my account permanently" data-i18n-th="ลบบัญชีของฉันถาวร">Delete my account permanently</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" style="display:none;position:fixed;bottom:32px;right:32px;z-index:999;background:white;border-radius:12px;padding:14px 18px;box-shadow:0 8px 32px rgba(15,111,115,0.18);border:1px solid rgba(15,111,115,0.2);display:none;align-items:center;gap:10px;font-size:14px;font-weight:600;color:#0F6F73;">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toast-msg"></span>
+</div>
+
+<script src="i18n.js"></script>
+<script src="dashboard-shell.js"></script>
+<script>
+initDashboard('settings', window.profindleI18n.t('Settings','ตั้งค่า'));
+window.addEventListener('profindle:lang-change', () => {
+  const h = document.querySelector('.page-title');
+  if (h) h.textContent = window.profindleI18n.t('Settings','ตั้งค่า');
+});
+
+// Prefill the Account section from the demo user. In production these
+// come from GET /api/me — the prototype reads window.profindleDemoUser
+// (see "Demo user & seed data" in HANDOFF_NOTES.md).
+(function hydrateSettings() {
+  const u = window.profindleDemoUser;
+  if (!u) return;
+  const parts = (u.fullName || '').split(' ');
+  const first = u.firstName || parts[0] || '';
+  const last  = parts.slice(1).join(' ');
+  const set = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+  set('st-firstname', first);
+  set('st-lastname',  last);
+  set('st-email',     u.email);
+  // LINE-connected state — use first name as the display name
+  const nameEl = document.getElementById('lc-status-name');
+  if (nameEl) nameEl.textContent = first || '—';
+})();
+
+const sections = ['account','line','notifications','password','danger'];
+
+function showSection(id, el) {
+  sections.forEach(s => {
+    document.getElementById('section-' + s).style.display = 'none';
+  });
+  document.getElementById('section-' + id).style.display = 'block';
+  document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.style.display = 'flex';
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+// ── LINE Connect bot flow ─────────────────────────────────
+function simulateLineAdd() {
+  document.getElementById('lc-status-waiting').style.display = 'none';
+  document.getElementById('lc-status-connected').style.display = 'flex';
+  document.getElementById('lc-step2-num').classList.add('lc-step-num-active');
+  showToast('LINE account connected.');
+}
+function simulateLineDisconnect() {
+  document.getElementById('lc-status-waiting').style.display = 'flex';
+  document.getElementById('lc-status-connected').style.display = 'none';
+  document.getElementById('lc-step2-num').classList.remove('lc-step-num-active');
+  showToast('LINE account disconnected.');
+}
+
+function submitManualUid() {
+  const input = document.getElementById('lc-manual-uid');
+  const errEl = document.getElementById('lc-manual-error');
+  const val = input.value.trim();
+  // LINE User IDs: "U" + 32 hex chars (33 total)
+  const valid = /^U[a-f0-9]{32}$/i.test(val);
+  if (!valid) {
+    errEl.style.display = 'block';
+    input.style.borderColor = '#D33';
+    return;
+  }
+  errEl.style.display = 'none';
+  input.style.borderColor = '#E4E7ED';
+  document.getElementById('lc-manual-fallback').open = false;
+  simulateLineAdd();
+  showToast('LINE account linked manually.');
+}
+
+function confirmDelete() {
+  const val = document.getElementById('delete-confirm').value;
+  if (val === 'DELETE') {
+    window.location.href = 'Landing Page.html';
+  } else {
+    const inp = document.getElementById('delete-confirm');
+    inp.classList.add('input-error');
+    setTimeout(() => inp.classList.remove('input-error'), 2000);
+  }
+}
+</script>
+</body>
+</html>

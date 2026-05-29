@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Package — Profindle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ds.css">
+<link rel="stylesheet" href="i18n.css">
+<style>
+/* Early bird banner */
+.earlybird-banner {
+  background: linear-gradient(135deg,#171A21 0%,#0F4F52 100%);
+  border-radius: 20px; padding: 24px 28px;
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 32px; position: relative; overflow: hidden;
+  border: 1px solid rgba(247,127,0,0.3);
+}
+.earlybird-banner::before {
+  content:''; position:absolute; inset:0;
+  background: radial-gradient(ellipse 40% 80% at 90% 50%, rgba(247,127,0,0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+.earlybird-icon { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg,#F77F00,#E06B00); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.earlybird-text { flex: 1; }
+.earlybird-text h3 { font-size: 16px; font-weight: 700; color: white; margin-bottom: 3px; }
+.earlybird-text p { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.5; }
+
+/* Early bird grid */
+.earlybird-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+.eb-card {
+  background: white; border-radius: 20px; padding: 28px;
+  border: 2px solid #E4E7ED; position: relative;
+  transition: box-shadow 200ms;
+}
+.eb-card.available { border-color: #0F6F73; box-shadow: 0 4px 24px rgba(15,111,115,0.15); }
+.eb-card.coming-soon { opacity: 0.7; }
+.eb-card-badge {
+  position: absolute; top: -12px; right: 20px;
+  font-size: 11px; font-weight: 700; padding: 4px 14px;
+  border-radius: 999px; white-space: nowrap;
+}
+.eb-card-badge.avail { background: linear-gradient(135deg,#0F6F73,#1A9DA3); color: white; }
+.eb-card-badge.soon  { background: linear-gradient(135deg,#F77F00,#E06B00); color: white; }
+
+.eb-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.eb-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.eb-icon.avail { background: linear-gradient(135deg,#0F6F73,#1A9DA3); }
+.eb-icon.soon  { background: #F4F5F7; }
+.eb-title { font-size: 16px; font-weight: 700; color: #171A21; }
+.eb-sub { font-size: 12px; color: #9AA0AE; margin-top: 2px; }
+.coming-pill { display: inline-block; background: #FFF6EC; color: #E06B00; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; margin-top: 4px; }
+
+/* Seats progress */
+.seats-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.seats-label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6B7385; }
+.seats-count { font-size: 12px; font-weight: 600; color: #0F6F73; background: #F0F9F9; padding: 2px 8px; border-radius: 999px; }
+.seats-track { width: 100%; height: 8px; background: #F4F5F7; border-radius: 999px; overflow: hidden; margin-bottom: 16px; }
+.seats-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg,#0F6F73,#1A9DA3); transition: width 800ms cubic-bezier(0.4,0,0.2,1); }
+
+/* Price block */
+.price-block { text-align: center; margin: 16px 0; }
+.price-free { font-size: 42px; font-weight: 700; letter-spacing: -0.04em; color: #0F6F73; line-height: 1; }
+.price-free.muted { background: none; -webkit-text-fill-color: #C8CDD7; color: #C8CDD7; }
+.price-date { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #9AA0AE; font-weight: 500; margin-top: 6px; background: #F4F5F7; padding: 5px 12px; border-radius: 999px; }
+.price-date.avail { background: rgba(15,111,115,0.08); color: #0F6F73; }
+
+/* Feature list */
+.eb-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 16px 0 20px; }
+.eb-features li { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #444B5A; }
+.eb-features li .feat-check { width: 18px; height: 18px; border-radius: 999px; background: linear-gradient(135deg,#0F6F73,#1A9DA3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.eb-features li .feat-check-muted { width: 18px; height: 18px; border-radius: 999px; background: #F4F5F7; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.eb-card.coming-soon .eb-features li { color: #9AA0AE; }
+
+/* How to get */
+.howto-section { background: white; border-radius: 20px; padding: 28px; border: 1px solid rgba(15,111,115,0.10); margin-bottom: 32px; }
+.howto-title { font-size: 16px; font-weight: 700; color: #171A21; margin-bottom: 20px; }
+.howto-steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+.howto-step { display: flex; gap: 14px; align-items: flex-start; }
+.howto-step-num { width: 32px; height: 32px; border-radius: 999px; background: linear-gradient(135deg,#0F6F73,#1A9DA3); color: white; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.howto-step-title { font-size: 14px; font-weight: 600; color: #171A21; margin-bottom: 4px; }
+.howto-step-desc { font-size: 13px; color: #6B7385; line-height: 1.6; }
+
+/* Standard plans (below fold) */
+.plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 760px; margin: 0 auto 32px; }
+.plan-card { background: white; border-radius: 20px; padding: 32px; border: 2px solid #E4E7ED; position: relative; }
+.plan-card.current { border-color: rgba(15,111,115,0.3); box-shadow: 0 4px 24px rgba(15,111,115,0.10); }
+.plan-card.featured { background: linear-gradient(135deg,#171A21 0%,#0F6F73 100%); border-color: transparent; box-shadow: 0 8px 40px rgba(15,111,115,0.25); }
+.plan-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+.plan-name  { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA0AE; margin-bottom: 8px; }
+.plan-price { font-size: 44px; font-weight: 700; letter-spacing: -0.03em; color: #171A21; line-height: 1; }
+.plan-price sup { font-size: 20px; vertical-align: top; margin-top: 8px; }
+.plan-price .period { font-size: 16px; font-weight: 400; color: #9AA0AE; }
+.plan-card.featured .plan-name  { color: rgba(255,255,255,0.45); }
+.plan-card.featured .plan-price { color: white; }
+.plan-features { list-style: none; margin-top: 24px; display: flex; flex-direction: column; gap: 12px; }
+.plan-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: #444B5A; line-height: 1.5; }
+.plan-features li .check { width: 20px; height: 20px; border-radius: 999px; background: linear-gradient(135deg,#0F6F73,#1A9DA3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.plan-features li .cross { width: 20px; height: 20px; border-radius: 999px; background: #F4F5F7; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.plan-card.featured .plan-features li { color: rgba(255,255,255,0.8); }
+.plan-card.featured .plan-features li .cross { background: rgba(255,255,255,0.1); }
+
+/* ── Mobile responsive ───────────────────────────────────── */
+@media (max-width: 900px) {
+  .earlybird-grid { grid-template-columns: 1fr; }
+  .plan-grid      { grid-template-columns: 1fr; }
+  .howto-steps    { grid-template-columns: 1fr; gap: 16px; }
+}
+@media (max-width: 560px) {
+  .earlybird-banner { padding: 18px; flex-direction: column; align-items: flex-start; gap: 12px; }
+  .earlybird-banner > div:last-child { align-self: flex-start; }
+  .eb-card { padding: 22px; }
+  .plan-card { padding: 24px; }
+}
+</style>
+</head>
+<body>
+<div class="main-with-sidebar">
+  <div class="page-body">
+
+    <!-- Early bird banner -->
+    <div class="earlybird-banner">
+      <div class="earlybird-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <div class="earlybird-text">
+        <h3 data-i18n-en="Early Bird Launch Offer — Premium Features FREE!" data-i18n-th="ข้อเสนอเปิดตัว Early Bird — รับฟีเจอร์ Premium ฟรี!">Early Bird Launch Offer — Premium Features FREE!</h3>
+        <p data-i18n-en="We're in trial phase. Join now and get all premium features at no cost for early members." data-i18n-th="ระบบอยู่ในช่วงทดลอง สมัครตอนนี้รับฟีเจอร์ Premium ทั้งหมดฟรีสำหรับสมาชิกรุ่นแรก">We're in trial phase. Join now and get all premium features at no cost for early members.</p>
+      </div>
+      <div style="background:linear-gradient(135deg,#F77F00,#E06B00);color:white;font-size:11px;font-weight:700;padding:6px 16px;border-radius:999px;white-space:nowrap;flex-shrink:0;position:relative;z-index:1;" data-i18n-en="Trial Phase" data-i18n-th="ช่วงทดลอง">Trial Phase</div>
+    </div>
+
+    <!-- Early bird cards -->
+    <div class="earlybird-grid">
+
+      <!-- 1st Early Bird -->
+      <div class="eb-card available">
+        <div class="eb-card-badge avail" data-i18n-en="Registration Open" data-i18n-th="เปิดให้ลงทะเบียนแล้ว">Registration Open</div>
+        <div class="eb-header">
+          <div class="eb-icon avail">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div>
+            <div class="eb-title">1st Early Bird</div>
+            <div class="eb-sub" data-i18n-en="Limited Launch Offer" data-i18n-th="ข้อเสนอเปิดตัวจำนวนจำกัด">Limited Launch Offer</div>
+          </div>
+        </div>
+
+        <!-- Seats -->
+        <div class="seats-row">
+          <div class="seats-label">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span data-i18n-en="Available Seats" data-i18n-th="สิทธิ์คงเหลือ">Available Seats</span>
+          </div>
+          <span class="seats-count">47 / 100</span>
+        </div>
+        <div class="seats-track"><div class="seats-fill" style="width:47%;"></div></div>
+
+        <!-- Price -->
+        <div class="price-block">
+          <div class="price-free" data-i18n-en="FREE" data-i18n-th="ฟรี">FREE</div>
+          <div style="margin-top:8px;">
+            <span class="price-date avail">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span data-i18n-en="Free until Dec 31, 2026" data-i18n-th="ฟรีถึง 31 ธ.ค. 2026">Free until Dec 31, 2026</span>
+            </span>
+          </div>
+        </div>
+
+        <ul class="eb-features">
+          <li><div class="feat-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><span data-i18n-en="Top placement in search results" data-i18n-th="จัดอันดับต้นในผลการค้นหา">Top placement in search results</span></li>
+          <li><div class="feat-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><span data-i18n-en="Unlimited project showcases" data-i18n-th="นำเสนอผลงานได้ไม่จำกัด">Unlimited project showcases</span></li>
+          <li><div class="feat-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><span data-i18n-en="Unlimited client showcases" data-i18n-th="นำเสนอลูกค้าได้ไม่จำกัด">Unlimited client showcases</span></li>
+          <li><div class="feat-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><span data-i18n-en="LINE push notifications" data-i18n-th="แจ้งเตือนผ่าน LINE">LINE push notifications</span></li>
+        </ul>
+
+        <a class="btn btn-primary btn-block" href="https://lin.ee/VjYhQQ0" target="_blank" rel="noopener" style="text-decoration:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 6.04 2 11c0 3.31 1.86 6.22 4.72 8.05L6 22l3.18-1.67C10.03 20.77 11 21 12 21c5.52 0 10-4.04 10-9S17.52 2 12 2z"/></svg>
+          <span data-i18n-en="Contact us on LINE" data-i18n-th="ติดต่อเราทาง LINE">Contact us on LINE</span>
+        </a>
+        <div style="text-align:center;font-size:12px;color:#9AA0AE;margin-top:10px;" data-i18n-en="Limited to 100 companies only" data-i18n-th="จำกัดเพียง 100 บริษัทเท่านั้น">Limited to 100 companies only</div>
+      </div>
+
+      <!-- 2nd Early Bird -->
+      <div class="eb-card coming-soon">
+        <div class="eb-card-badge soon" data-i18n-en="Coming Soon" data-i18n-th="เร็วๆนี้">Coming Soon</div>
+        <div class="eb-header">
+          <div class="eb-icon soon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C8CDD7" stroke-width="2.5" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div>
+            <div class="eb-title" style="color:#9AA0AE;">2nd Early Bird</div>
+            <div class="coming-pill" data-i18n-en="Coming Soon" data-i18n-th="เร็วๆนี้">Coming Soon</div>
+          </div>
+        </div>
+
+        <div class="seats-row">
+          <div class="seats-label" style="color:#C8CDD7;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span data-i18n-en="Available Seats" data-i18n-th="สิทธิ์คงเหลือ">Available Seats</span>
+          </div>
+          <span style="font-size:12px;color:#C8CDD7;background:#F4F5F7;padding:2px 8px;border-radius:999px;font-weight:600;">0 / 100</span>
+        </div>
+        <div class="seats-track"><div class="seats-fill" style="width:0%;background:#C8CDD7;"></div></div>
+
+        <div class="price-block">
+          <div class="price-free muted" data-i18n-en="FREE" data-i18n-th="ฟรี">FREE</div>
+          <div style="margin-top:8px;">
+            <span class="price-date">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span data-i18n-en="Free until Sep 30, 2026" data-i18n-th="ฟรีถึง 30 ก.ย. 2026">Free until Sep 30, 2026</span>
+            </span>
+          </div>
+        </div>
+
+        <ul class="eb-features">
+          <li><div class="feat-check-muted"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#C8CDD7" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><span data-i18n-en="Top placement in search results" data-i18n-th="จัดอันดับต้นในผลการค้นหา">Top placement in search results</span></li>
+          <li><div class="feat-check-muted"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#C8CDD7" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><span data-i18n-en="Unlimited project showcases" data-i18n-th="นำเสนอผลงานได้ไม่จำกัด">Unlimited project showcases</span></li>
+          <li><div class="feat-check-muted"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#C8CDD7" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><span data-i18n-en="Unlimited client showcases" data-i18n-th="นำเสนอลูกค้าได้ไม่จำกัด">Unlimited client showcases</span></li>
+          <li><div class="feat-check-muted"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#C8CDD7" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><span data-i18n-en="LINE push notifications" data-i18n-th="แจ้งเตือนผ่าน LINE">LINE push notifications</span></li>
+        </ul>
+
+        <button class="btn btn-block" style="background:#F4F5F7;color:#9AA0AE;border:none;cursor:not-allowed;font-family:inherit;font-size:14px;font-weight:600;padding:12px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span data-i18n-en="Not Available Yet" data-i18n-th="ยังไม่เปิดรับสมัคร">Not Available Yet</span>
+        </button>
+        <div style="text-align:center;font-size:12px;color:#C8CDD7;margin-top:10px;" data-i18n-en="Limited to 100 companies only" data-i18n-th="จำกัดเพียง 100 บริษัทเท่านั้น">Limited to 100 companies only</div>
+      </div>
+    </div>
+
+    <!-- How to get premium -->
+    <div class="howto-section">
+      <div class="howto-title" data-i18n-en="How to Get Premium" data-i18n-th="วิธีอัปเกรดเป็น Premium">How to Get Premium</div>
+      <div class="howto-steps">
+        <div class="howto-step">
+          <div class="howto-step-num">1</div>
+          <div>
+            <div class="howto-step-title" data-i18n-en="Contact us on LINE" data-i18n-th="ติดต่อเราทาง LINE">Contact us on LINE</div>
+            <div class="howto-step-desc" data-i18n-en="Click the LINE button to open our official account and send us a message" data-i18n-th="คลิกปุ่ม LINE เพื่อเปิดบัญชี Official และส่งข้อความหาเรา">Click the LINE button to open our official account and send us a message</div>
+          </div>
+        </div>
+        <div class="howto-step">
+          <div class="howto-step-num">2</div>
+          <div>
+            <div class="howto-step-title" data-i18n-en="Verify your company" data-i18n-th="ยืนยันบริษัทของคุณ">Verify your company</div>
+            <div class="howto-step-desc" data-i18n-en="Complete your profile and upload verification documents" data-i18n-th="กรอกข้อมูลโปรไฟล์ให้ครบและอัปโหลดเอกสารยืนยัน">Complete your profile and upload verification documents</div>
+          </div>
+        </div>
+        <div class="howto-step">
+          <div class="howto-step-num">3</div>
+          <div>
+            <div class="howto-step-title" data-i18n-en="Get activated" data-i18n-th="รอรับการเปิดใช้งาน">Get activated</div>
+            <div class="howto-step-desc" data-i18n-en="We'll activate your Premium access within 24 hours" data-i18n-th="เราจะเปิดใช้ Premium ของคุณภายใน 24 ชั่วโมง">We'll activate your Premium access within 24 hours</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Standard plans — hidden during trial phase, shown automatically after TRIAL_END_DATE -->
+    <div id="standard-pricing-section" style="display:none;">
+      <div style="text-align:center;max-width:520px;margin:0 auto 28px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#9AA0AE;margin-bottom:8px;" data-i18n-en="Standard Pricing (After Trial)" data-i18n-th="ราคาปกติ (หลังหมดช่วงทดลอง)">Standard Pricing (After Trial)</div>
+        <p style="font-size:13px;color:#9AA0AE;line-height:1.65;" data-i18n-en="Once the early bird phase ends, these are the regular subscription tiers. Early bird members are protected from price changes until their free period expires." data-i18n-th="เมื่อช่วง Early Bird สิ้นสุด นี่คือราคาสมาชิกปกติ สมาชิก Early Bird ไม่ได้รับผลกระทบจนกว่าช่วงฟรีของตนจะสิ้นสุด">Once the early bird phase ends, these are the regular subscription tiers. Early bird members are protected from price changes until their free period expires.</p>
+      </div>
+
+    <div class="plan-grid">
+      <div class="plan-card current">
+        <span class="badge badge-teal plan-badge" style="top:-12px;" data-i18n-en="Current plan" data-i18n-th="แพ็กเกจปัจจุบัน">Current plan</span>
+        <div class="plan-name" data-i18n-en="Free" data-i18n-th="ฟรี">Free</div>
+        <div class="plan-price"><sup>฿</sup>0<span class="period" data-i18n-en=" / month" data-i18n-th=" / เดือน"> / month</span></div>
+        <ul class="plan-features">
+          <li><span class="check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span><span data-i18n-en="Company profile listing" data-i18n-th="แสดงโปรไฟล์บริษัท">Company profile listing</span></li>
+          <li><span class="check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span><span data-i18n-en="Search provider directory" data-i18n-th="ค้นหาผู้ให้บริการ">Search provider directory</span></li>
+          <li><span class="check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span><span data-i18n-en="4 broadcast requests / month" data-i18n-th="ส่งคำขอประกาศ 4 ครั้ง / เดือน">4 broadcast requests / month</span></li>
+          <li><span class="check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span><span data-i18n-en="Basic portfolio (up to 3 items)" data-i18n-th="ผลงานพื้นฐาน (สูงสุด 3 รายการ)">Basic portfolio (up to 3 items)</span></li>
+          <li><span class="cross"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#C8CDD7" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span><span style="color:#9AA0AE;" data-i18n-en="Receive broadcast requests" data-i18n-th="รับคำขอประกาศ">Receive broadcast requests</span></li>
+          <li><span class="cross"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#C8CDD7" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span><span style="color:#9AA0AE;" data-i18n-en="Priority search placement" data-i18n-th="จัดลำดับการค้นหาระดับพรีเมียม">Priority search placement</span></li>
+          <li><span class="cross"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#C8CDD7" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span><span style="color:#9AA0AE;" data-i18n-en="Verified badge" data-i18n-th="เครื่องหมาย Verified">Verified badge</span></li>
+        </ul>
+        <button class="btn btn-ghost btn-block" style="margin-top:28px;" disabled data-i18n-en="Current plan" data-i18n-th="แพ็กเกจปัจจุบัน">Current plan</button>
+      </div>
+
+      <div class="plan-card featured">
+        <span class="badge badge-amber plan-badge" data-i18n-en="✦ Recommended" data-i18n-th="✦ แนะนำ">✦ Recommended</span>
+        <div class="plan-name" data-i18n-en="Premium" data-i18n-th="Premium">Premium</div>
+        <div class="plan-price" style="color:white"><sup>฿</sup>990<span class="period" style="color:rgba(255,255,255,0.45);" data-i18n-en=" / month" data-i18n-th=" / เดือน"> / month</span></div>
+        <ul class="plan-features">
+          <li><span class="check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span><span data-i18n-en="Everything in Free" data-i18n-th="ทุกอย่างในแพ็กเกจฟรี">Everything in Free</span></li>
+          <li><span class="check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span><span data-i18n-en="Receive matching broadcast requests" data-i18n-th="รับคำขอประกาศที่ตรงกับบริการของคุณ">Receive matching broadcast requests</span></li>
+          <li><span class="check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span><span data-i18n-en="Priority search placement" data-i18n-th="จัดลำดับการค้นหาระดับพรีเมียม">Priority search placement</span></li>
+          <li><span class="check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span><span data-i18n-en="Unlimited portfolio items" data-i18n-th="ผลงานได้ไม่จำกัด">Unlimited portfolio items</span></li>
+          <li><span class="check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span><span data-i18n-en="Unlimited broadcast requests sent" data-i18n-th="ส่งคำขอประกาศได้ไม่จำกัด">Unlimited broadcast requests sent</span></li>
+          <li><span class="check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span><span data-i18n-en="Verified badge on profile" data-i18n-th="เครื่องหมาย Verified บนโปรไฟล์">Verified badge on profile</span></li>
+          <li><span class="check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span><span data-i18n-en="Advanced analytics &amp; KPIs" data-i18n-th="รายงานวิเคราะห์ขั้นสูง &amp; KPIs">Advanced analytics &amp; KPIs</span></li>
+        </ul>
+        <a class="btn btn-premium btn-block" href="https://lin.ee/VjYhQQ0" target="_blank" rel="noopener" style="margin-top:28px;text-decoration:none;" data-i18n-en="Contact us on LINE to Upgrade" data-i18n-th="ติดต่อทาง LINE เพื่ออัปเกรด">Contact us on LINE to Upgrade</a>
+        <div style="text-align:center;font-size:12px;color:rgba(255,255,255,0.35);margin-top:12px;" data-i18n-en="After trial phase ends · Cancel anytime" data-i18n-th="หลังสิ้นสุดช่วงทดลอง · ยกเลิกได้ทุกเมื่อ">After trial phase ends · Cancel anytime</div>
+      </div>
+    </div>
+    </div> <!-- /#standard-pricing-section -->
+
+  </div>
+</div>
+
+<!-- LINE contact modal -->
+<div id="line-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(14,16,23,0.55);align-items:center;justify-content:center;z-index:1000;padding:24px;">
+  <div style="background:white;border-radius:20px;width:100%;max-width:400px;padding:36px;box-shadow:0 24px 64px rgba(14,16,23,0.3);text-align:center;">
+    <div style="width:56px;height:56px;border-radius:999px;background:#06C755;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.04 2 11c0 3.31 1.86 6.22 4.72 8.05L6 22l3.18-1.67C10.03 20.77 11 21 12 21c5.52 0 10-4.04 10-9S17.52 2 12 2z"/></svg>
+    </div>
+    <h3 style="font-size:18px;font-weight:700;color:#171A21;margin-bottom:8px;" data-i18n-en="Contact us on LINE" data-i18n-th="ติดต่อเราทาง LINE">Contact us on LINE</h3>
+    <p style="font-size:14px;color:#6B7385;margin-bottom:8px;line-height:1.65;" data-i18n-en="Add our official account and send a message to claim your Early Bird spot." data-i18n-th="เพิ่ม Official Account ของเราและส่งข้อความเพื่อขอรับสิทธิ์ Early Bird">Add our official account and send a message to claim your Early Bird spot.</p>
+    <div style="background:#F4F5F7;border-radius:10px;padding:10px 16px;margin-bottom:24px;font-size:15px;font-weight:700;color:#171A21;">@profindle</div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost btn-block" onclick="closeLineModal()" data-i18n-en="Close" data-i18n-th="ปิด">Close</button>
+      <button class="btn btn-block" style="background:#06C755;color:white;font-family:inherit;font-size:14px;font-weight:700;border:none;border-radius:12px;padding:10px;cursor:pointer;" onclick="closeLineModal()" data-i18n-en="Open LINE" data-i18n-th="เปิด LINE">Open LINE</button>
+    </div>
+  </div>
+</div>
+
+<script src="i18n.js"></script>
+<script src="dashboard-shell.js"></script>
+<script>
+initDashboard('package', window.profindleI18n.t('Package','แพ็กเกจ'));
+window.addEventListener('profindle:lang-change', () => {
+  const h = document.querySelector('.page-title');
+  if (h) h.textContent = window.profindleI18n.t('Package','แพ็กเกจ');
+});
+
+// ── Trial-phase gate ─────────────────────────────────────────
+// Standard pricing tiers are hidden during the Early Bird trial period
+// so customers focus on the free offer. Show them automatically once the
+// trial ends. Use ?showStandard=1 in the URL to force-show for review.
+const TRIAL_END_DATE = '2026-12-31'; // 1st Early Bird free-until date
+(function gateStandardPricing() {
+  const section = document.getElementById('standard-pricing-section');
+  if (!section) return;
+  const forceShow = new URLSearchParams(location.search).get('showStandard') === '1';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const trialEnd = new Date(TRIAL_END_DATE + 'T23:59:59');
+  if (forceShow || today > trialEnd) section.style.display = '';
+})();
+function openLineModal() {
+  const m = document.getElementById('line-modal-backdrop');
+  m.style.display = 'flex';
+}
+function closeLineModal() {
+  document.getElementById('line-modal-backdrop').style.display = 'none';
+}
+</script>
+</body>
+</html>

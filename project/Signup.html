@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign up — Profindle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ds.css">
+<link rel="stylesheet" href="i18n.css">
+<style>
+.auth-layout { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; }
+.auth-panel {
+  background: linear-gradient(135deg,#171A21 0%,#0F6F73 100%);
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 48px; position: relative; overflow: hidden;
+}
+.auth-panel::before {
+  content:''; position:absolute; inset:0;
+  background: radial-gradient(ellipse 70% 60% at 70% 40%, rgba(26,157,163,0.2) 0%, transparent 65%);
+}
+.auth-panel-content { position: relative; z-index: 1; }
+.auth-panel-quote { font-size: 24px; font-weight: 700; color: white; line-height: 1.4; letter-spacing: -0.02em; max-width: 380px; margin-top: 40px; }
+.auth-panel-quote span { color: #F77F00; }
+.auth-panel-tagline { font-size: 14px; color: rgba(255,255,255,0.5); margin-top: 16px; }
+.auth-form-area { display: flex; align-items: flex-start; justify-content: center; background: #F4F5F7; padding: 48px 40px; overflow-y: auto; }
+.auth-card { background: white; border-radius: 20px; padding: 40px; width: 100%; max-width: 460px; box-shadow: 0 4px 24px rgba(23,26,33,0.10); }
+.auth-card-title { font-size: 24px; font-weight: 700; color: #171A21; letter-spacing: -0.02em; margin-bottom: 6px; }
+.auth-card-sub { font-size: 14px; color: #6B7385; margin-bottom: 28px; line-height: 1.55; }
+.auth-card-sub strong { color: #171A21; font-weight: 600; }
+.form-row { display: flex; flex-direction: column; gap: 16px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.role-select { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.role-option { border: 1.5px solid #E4E7ED; border-radius: 12px; padding: 14px; cursor: pointer; transition: all 150ms; }
+.role-option:hover { border-color: #0F6F73; background: #F0F9F9; }
+.role-option.selected { border-color: #0F6F73; background: #F0F9F9; box-shadow: 0 0 0 3px rgba(15,111,115,0.10); }
+.role-option-title { font-size: 14px; font-weight: 600; color: #171A21; margin-top: 8px; }
+.role-option-desc  { font-size: 12px; color: #6B7385; margin-top: 3px; }
+.terms { font-size: 12px; color: #9AA0AE; line-height: 1.6; }
+.terms a { color: #0F6F73; }
+.auth-switch { text-align: center; font-size: 14px; color: #6B7385; margin-top: 20px; }
+.auth-switch a { color: #0F6F73; font-weight: 600; text-decoration: none; cursor: pointer; }
+.auth-switch a:hover { text-decoration: underline; }
+
+/* Step indicator */
+.step-pill { display:inline-flex; align-items:center; gap:6px; background:#F0F9F9; color:#0F6F73; font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; padding:5px 10px; border-radius:999px; margin-bottom:14px; }
+.step-pill-num { width:16px; height:16px; border-radius:50%; background:#0F6F73; color:white; font-size:10px; display:flex; align-items:center; justify-content:center; }
+
+/* OTP boxes */
+.otp-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.otp-input {
+  height: 56px; text-align: center; font-size: 22px; font-weight: 700; color: #171A21;
+  border: 1.5px solid #E4E7ED; border-radius: 12px; background: white;
+  outline: none; transition: all 150ms; font-family: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.otp-input:focus { border-color: #0F6F73; box-shadow: 0 0 0 3px rgba(15,111,115,0.12); }
+.otp-input.filled { border-color: #0F6F73; background: #F0F9F9; }
+.otp-input.error { border-color: #FF5A5F; background: #FFF5F5; animation: shake 0.4s; }
+@keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-4px);} 75%{transform:translateX(4px);} }
+.otp-meta { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #9AA0AE; margin-top: 4px; }
+.otp-meta button { background: none; border: none; color: #0F6F73; font-weight: 600; cursor: pointer; padding: 0; font-family: inherit; font-size: 12px; }
+.otp-meta button:disabled { color: #9AA0AE; cursor: not-allowed; }
+.otp-back { background: none; border: none; color: #6B7385; font-size: 13px; cursor: pointer; padding: 0; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px; }
+.otp-back:hover { color: #171A21; }
+.otp-error-msg { font-size: 13px; color: #FF5A5F; margin-top: -4px; display: none; }
+.otp-error-msg.show { display: block; }
+
+@media (max-width: 768px) {
+  .auth-layout { grid-template-columns: 1fr; }
+  .auth-panel { display: none; }
+  .auth-form-area { padding: 32px 20px; min-height: 100vh; }
+  .two-col { grid-template-columns: 1fr; }
+}
+</style>
+<script src="i18n.js"></script>
+</head>
+<body>
+<div class="auth-layout">
+  <div class="auth-panel">
+    <div class="auth-panel-content">
+      <a href="Landing Page.html" class="logo">
+        <svg width="24" height="32" viewBox="-3 -3 44 56" fill="none">
+          <path d="M18.56 34.56C27.3966 34.56 34.56 27.3966 34.56 18.56C34.56 9.72345 27.3966 2.56 18.56 2.56C9.72344 2.56 2.56 9.72345 2.56 18.56C2.56 27.3966 9.72344 34.56 18.56 34.56Z" stroke="white" stroke-width="5.12" stroke-linecap="round"/>
+          <path d="M18.56 8.96C23.8619 8.96 28.16 13.2581 28.16 18.56" stroke="#F77F00" stroke-width="5.12" stroke-linecap="round"/>
+          <path d="M5.76001 47.36C5.76001 47.36 5.76001 34.56 18.56 34.56" stroke="white" stroke-width="5.12" stroke-linecap="round"/>
+          <path d="M18.56 34.56L31.36 47.36" stroke="white" stroke-width="5.12" stroke-linecap="round"/>
+          <path d="M18.56 38.4C20.6807 38.4 22.4 36.6808 22.4 34.56C22.4 32.4392 20.6807 30.72 18.56 30.72C16.4392 30.72 14.72 32.4392 14.72 34.56C14.72 36.6808 16.4392 38.4 18.56 38.4Z" fill="#F77F00"/>
+        </svg>
+        <span class="logo-wordmark logo-wordmark-inv"><span class="pro">Pro</span><span class="find">find</span><span class="le">le</span></span>
+      </a>
+      <div class="auth-panel-quote" data-i18n-en-html="Join Thailand's <span>fastest-growing</span> B2B network" data-i18n-th-html="ร่วมเป็นส่วนหนึ่งของเครือข่าย B2B <span>ที่เติบโตเร็วที่สุด</span>ของไทย">Join Thailand's <span>fastest-growing</span> B2B network</div>
+      <div class="auth-panel-tagline" data-i18n-en="Free to sign up. No passwords — we email you a code." data-i18n-th="สมัครฟรี ไม่ต้องใช้รหัสผ่าน — เราส่งรหัสยืนยันไปยังอีเมลของคุณ">Free to sign up. No passwords — we email you a code.</div>
+    </div>
+    <div style="position:relative;z-index:1;font-size:12px;color:rgba(255,255,255,0.25);">© 2026 Profindle</div>
+  </div>
+
+  <div class="auth-form-area">
+    <div class="auth-card">
+
+      <!-- STEP 1: Form -->
+      <div id="step-form">
+        <div class="step-pill"><span class="step-pill-num">1</span><span data-i18n-en="Account details" data-i18n-th="ข้อมูลบัญชี">Account details</span></div>
+        <div class="auth-card-title" data-i18n-en="Create your account" data-i18n-th="สร้างบัญชีของคุณ">Create your account</div>
+        <div class="auth-card-sub" data-i18n-en="Free forever. We'll email a 6-digit code to verify it's really you." data-i18n-th="ฟรีตลอดชีพ เราจะส่งรหัส 6 หลักไปยังอีเมลเพื่อยืนยันตัวตน">Free forever. We'll email a 6-digit code to verify it's really you.</div>
+        <div class="form-row">
+          <div class="two-col">
+            <div class="field">
+              <label class="field-label" data-i18n-en="First name" data-i18n-th="ชื่อจริง">First name</label>
+              <input type="text" class="input" id="first-name" placeholder="Somchai">
+            </div>
+            <div class="field">
+              <label class="field-label" data-i18n-en="Last name" data-i18n-th="นามสกุล">Last name</label>
+              <input type="text" class="input" id="last-name" placeholder="Jaidee">
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" data-i18n-en="Work email" data-i18n-th="อีเมลที่ทำงาน">Work email</label>
+            <input type="email" class="input" id="email-input" placeholder="you@company.com">
+            <span class="field-hint" data-i18n-en="We'll send a verification code here" data-i18n-th="เราจะส่งรหัสยืนยันไปที่นี่">We'll send a verification code here</span>
+          </div>
+          <div class="field">
+            <label class="field-label" data-i18n-en="I want to…" data-i18n-th="ฉันต้องการ…">I want to…</label>
+            <div class="role-select">
+              <div class="role-option selected" onclick="selectRole(this)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                <div class="role-option-title" data-i18n-en="Offer services" data-i18n-th="ให้บริการ">Offer services</div>
+                <div class="role-option-desc" data-i18n-en="Promote my company to buyers" data-i18n-th="โปรโมตบริษัทของฉันให้ลูกค้าเห็น">Promote my company to buyers</div>
+              </div>
+              <div class="role-option" onclick="selectRole(this)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7385" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <div class="role-option-title" data-i18n-en="Find services" data-i18n-th="หาบริการ">Find services</div>
+                <div class="role-option-desc" data-i18n-en="Discover providers for my needs" data-i18n-th="ค้นหาผู้ให้บริการที่ต้องการ">Discover providers for my needs</div>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary btn-block" onclick="sendCode()" style="margin-top:4px;" data-i18n-en="Send verification code" data-i18n-th="ส่งรหัสยืนยัน">Send verification code</button>
+          <p class="terms" data-i18n-en-html="By creating an account you agree to our <a href=&quot;Terms.html&quot;>Terms of Service</a> and <a href=&quot;Privacy.html&quot;>Privacy Policy</a>." data-i18n-th-html="เมื่อสมัครสมาชิก ถือว่าคุณยอมรับ <a href=&quot;Terms.html&quot;>ข้อกำหนดการให้บริการ</a> และ <a href=&quot;Privacy.html&quot;>นโยบายความเป็นส่วนตัว</a> ของเรา">By creating an account you agree to our <a href="Terms.html">Terms of Service</a> and <a href="Privacy.html">Privacy Policy</a>.</p>
+        </div>
+        <div class="auth-switch" data-i18n-en-html="Already have an account? <a href=&quot;Login.html&quot;>Log in</a>" data-i18n-th-html="มีบัญชีอยู่แล้ว? <a href=&quot;Login.html&quot;>เข้าสู่ระบบ</a>">Already have an account? <a href="Login.html">Log in</a></div>
+      </div>
+
+      <!-- STEP 2: OTP -->
+      <div id="step-otp" style="display:none;">
+        <button class="otp-back" onclick="goBack()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          <span data-i18n-en="Back" data-i18n-th="ย้อนกลับ">Back</span>
+        </button>
+        <div class="step-pill"><span class="step-pill-num">2</span><span data-i18n-en="Verify email" data-i18n-th="ยืนยันอีเมล">Verify email</span></div>
+        <div class="auth-card-title" data-i18n-en="Check your email" data-i18n-th="ตรวจสอบกล่องข้อความของคุณ">Check your email</div>
+        <div class="auth-card-sub" data-i18n-en-html="We sent a 6-digit code to <strong id=&quot;email-display&quot;>you@company.com</strong>. Enter it below to finish creating your account." data-i18n-th-html="เราส่งรหัส 6 หลักไปยัง <strong id=&quot;email-display&quot;>you@company.com</strong> พิมพ์รหัสด้านล่างเพื่อสร้างบัญชีให้เสร็จ">We sent a 6-digit code to <strong id="email-display">you@company.com</strong>. Enter it below to finish creating your account.</div>
+        <div class="form-row">
+          <div class="field">
+            <label class="field-label" data-i18n-en="Verification code" data-i18n-th="รหัสยืนยัน">Verification code</label>
+            <div class="otp-row" id="otp-row">
+              <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+              <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+              <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+              <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+              <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+              <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+            </div>
+            <div class="otp-error-msg" id="otp-error" data-i18n-en="Incorrect code. Please try again." data-i18n-th="รหัสไม่ถูกต้อง กรุณาลองใหม่">Incorrect code. Please try again.</div>
+            <div class="otp-meta">
+              <span data-i18n-en="Didn't get it? Check spam." data-i18n-th="ยังไม่ได้รับ? ตรวจสอบกล่อง Spam">Didn't get it? Check spam.</span>
+              <button id="resend-btn" onclick="resendCode()" disabled>Resend in <span id="resend-timer">30s</span></button>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary btn-block" onclick="verifyCode()" style="margin-top:4px;" data-i18n-en="Verify and create account" data-i18n-th="ยืนยันและสร้างบัญชี">Verify and create account</button>
+        </div>
+        <div class="auth-switch" style="font-size:12px;color:#9AA0AE;" data-i18n-en-html="Demo: any 6 digits will work · use <strong style=&quot;color:#171A21;&quot;>000000</strong> to see the error state" data-i18n-th-html="เดโม: ใส่ 6 หลักอะไรก็ได้ · ลองใส่ <strong style=&quot;color:#171A21;&quot;>000000</strong> เพื่อดู error state">Demo: any 6 digits will work · use <strong style="color:#171A21;">000000</strong> to see the error state</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script>
+let resendInterval = null;
+
+function selectRole(el) {
+  document.querySelectorAll('.role-option').forEach(r => {
+    r.classList.remove('selected');
+    r.querySelector('svg').setAttribute('stroke','#6B7385');
+  });
+  el.classList.add('selected');
+  el.querySelector('svg').setAttribute('stroke','#0F6F73');
+}
+
+function sendCode() {
+  const email = document.getElementById('email-input').value.trim();
+  const fn = document.getElementById('first-name').value.trim();
+  const ln = document.getElementById('last-name').value.trim();
+  if (!fn) { document.getElementById('first-name').focus(); return; }
+  if (!ln) { document.getElementById('last-name').focus(); return; }
+  if (!email || !email.includes('@')) { document.getElementById('email-input').focus(); return; }
+  document.getElementById('email-display').textContent = email;
+  document.getElementById('step-form').style.display = 'none';
+  document.getElementById('step-otp').style.display = 'block';
+  startResendTimer();
+  setTimeout(() => document.querySelector('.otp-input').focus(), 100);
+}
+
+function goBack() {
+  document.getElementById('step-otp').style.display = 'none';
+  document.getElementById('step-form').style.display = 'block';
+  if (resendInterval) clearInterval(resendInterval);
+  document.querySelectorAll('.otp-input').forEach(i => { i.value=''; i.classList.remove('filled','error'); });
+  document.getElementById('otp-error').classList.remove('show');
+}
+
+function startResendTimer() {
+  let t = 30;
+  const btn = document.getElementById('resend-btn');
+  btn.disabled = true;
+  btn.innerHTML = `Resend in <span id="resend-timer">${t}s</span>`;
+  if (resendInterval) clearInterval(resendInterval);
+  resendInterval = setInterval(() => {
+    t--;
+    if (t <= 0) {
+      clearInterval(resendInterval);
+      btn.disabled = false;
+      btn.textContent = 'Resend code';
+    } else {
+      btn.innerHTML = `Resend in <span id="resend-timer">${t}s</span>`;
+    }
+  }, 1000);
+}
+
+function resendCode() {
+  startResendTimer();
+  document.querySelectorAll('.otp-input').forEach(i => { i.value=''; i.classList.remove('filled','error'); });
+  document.getElementById('otp-error').classList.remove('show');
+  document.querySelector('.otp-input').focus();
+}
+
+function verifyCode() {
+  const inputs = document.querySelectorAll('.otp-input');
+  const code = Array.from(inputs).map(i => i.value).join('');
+  if (code.length !== 6) { inputs[code.length].focus(); return; }
+  if (code === '000000') {
+    inputs.forEach(i => { i.classList.remove('filled'); i.classList.add('error'); });
+    document.getElementById('otp-error').classList.add('show');
+    setTimeout(() => {
+      inputs.forEach(i => { i.value=''; i.classList.remove('error'); });
+      inputs[0].focus();
+    }, 800);
+    return;
+  }
+  window.location.href = 'Dashboard Home.html';
+}
+
+document.querySelectorAll('.otp-input').forEach((input, i, arr) => {
+  input.addEventListener('input', e => {
+    const v = e.target.value.replace(/\D/g,'');
+    e.target.value = v;
+    if (v) {
+      e.target.classList.add('filled');
+      if (i < arr.length - 1) arr[i+1].focus();
+      else if (Array.from(arr).every(x => x.value)) verifyCode();
+    } else {
+      e.target.classList.remove('filled');
+    }
+  });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !input.value && i > 0) {
+      arr[i-1].focus();
+      arr[i-1].value = '';
+      arr[i-1].classList.remove('filled');
+    }
+  });
+  input.addEventListener('paste', e => {
+    e.preventDefault();
+    const data = (e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+    data.split('').forEach((d, j) => { if (arr[j]) { arr[j].value = d; arr[j].classList.add('filled'); } });
+    if (data.length === 6) verifyCode();
+    else if (arr[data.length]) arr[data.length].focus();
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+/* ============================================================
+   Profindle — i18n styles (EN/TH toggle + fallback badge)
+   ============================================================ */
+
+/* Topbar language toggle (EN | TH) — pill segmented control */
+.lang-toggle {
+  display: inline-flex; align-items: center;
+  background: #F4F5F7;
+  border: 1px solid #E4E7ED;
+  border-radius: 999px;
+  padding: 2px;
+  font-family: Inter, sans-serif;
+}
+.lang-toggle button {
+  appearance: none; border: none; background: none;
+  font: inherit; font-size: 11.5px; font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #6B7385;
+  padding: 4px 10px; border-radius: 999px;
+  cursor: pointer;
+  transition: background 150ms, color 150ms;
+}
+.lang-toggle button:hover { color: #171A21; }
+.lang-toggle button.active {
+  background: white;
+  color: #0F6F73;
+  box-shadow: 0 1px 3px rgba(14,16,23,0.10);
+}
+
+/* Inline "EN" badge — shown when TH is requested but the field is empty */
+.i18n-fallback-badge {
+  display: inline-flex; align-items: center;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #6B7385;
+  background: #F4F5F7;
+  border: 1px solid #E4E7ED;
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-left: 4px;
+  vertical-align: 2px;
+}
+
+/* Bilingual textarea pair — used in editing modals */
+.bilingual-field { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.bilingual-field-block { display: flex; flex-direction: column; gap: 6px; }
+.bilingual-field-flag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+  color: #6B7385;
+}
+.bilingual-field-flag .pill {
+  background: #F4F5F7; border: 1px solid #E4E7ED;
+  border-radius: 4px; padding: 1px 6px; color: #444B5A;
+}
+.bilingual-field-flag.required .pill {
+  background: #F0F9F9; border-color: rgba(15,111,115,0.25); color: #0F6F73;
+}
+@media (max-width: 720px) {
+  .bilingual-field { grid-template-columns: 1fr; gap: 8px; }
+}

@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Profindle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ds.css">
+<link rel="stylesheet" href="i18n.css">
+<style>
+/* ── Premium status banner ────────────────────────────────── */
+.premium-banner {
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg,#FFFBF5,#FFF8EE);
+  border: 1px solid rgba(247,127,0,0.25);
+  border-radius: 14px; padding: 12px 18px; margin-bottom: 16px;
+}
+.premium-banner.urgent {
+  background: linear-gradient(135deg,#FFF6E8,#FFE8C8);
+  border-color: rgba(247,127,0,0.5);
+  box-shadow: 0 2px 10px rgba(247,127,0,0.12);
+}
+.premium-banner-icon {
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  background: linear-gradient(135deg,#F77F00,#E06B00);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+}
+.premium-banner-text { flex: 1; min-width: 0; }
+.premium-banner-title { font-size: 13px; font-weight: 700; color: #171A21; letter-spacing: -0.01em; }
+.premium-banner-sub   { font-size: 12px; color: #6B7385; margin-top: 2px; }
+.premium-banner.urgent .premium-banner-title { color: #C25600; }
+.premium-banner-countdown {
+  font-size: 12px; font-weight: 700; color: #E06B00;
+  background: white; border: 1px solid rgba(247,127,0,0.35);
+  border-radius: 999px; padding: 4px 12px; flex-shrink: 0;
+}
+
+/* ── Welcome banner ───────────────────────────────────────── */
+.welcome-banner {
+  background: linear-gradient(135deg,#0E1017 0%,#0F6F73 100%);
+  border-radius: 20px; padding: 28px 32px;
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  position: relative; overflow: hidden; margin-bottom: 24px;
+}
+.welcome-banner::before {
+  content:''; position:absolute; inset:0;
+  background: radial-gradient(ellipse 45% 80% at 85% 50%, rgba(247,127,0,0.13) 0%, transparent 60%),
+              radial-gradient(ellipse 30% 60% at 15% 80%, rgba(43,190,197,0.08) 0%, transparent 50%);
+  pointer-events: none;
+}
+.welcome-text { position:relative; z-index:1; flex:1; }
+.welcome-text h2 { font-size:22px; font-weight:700; color:white; letter-spacing:-0.02em; margin-bottom:4px; }
+.welcome-text p  { font-size:13px; color:rgba(255,255,255,0.55); margin-bottom:16px; }
+.progress-bar-wrap { display:flex; align-items:center; gap:10px; max-width:320px; }
+.progress-bar-track { flex:1; height:5px; background:rgba(255,255,255,0.15); border-radius:999px; overflow:hidden; }
+.progress-bar-fill  { height:100%; background:linear-gradient(90deg,#2BBEC5,#F77F00); border-radius:999px; width:50%; }
+.progress-label { font-size:12px; color:rgba(255,255,255,0.5); white-space:nowrap; }
+
+.welcome-right { position:relative; z-index:1; display:flex; gap:12px; flex-shrink:0; }
+.welcome-stat {
+  background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12);
+  border-radius:14px; padding:14px 18px; text-align:center; min-width:80px;
+}
+.welcome-stat-val   { font-size:22px; font-weight:700; color:white; line-height:1; }
+.welcome-stat-label { font-size:11px; color:rgba(255,255,255,0.45); margin-top:4px; }
+
+/* ── KPI row ──────────────────────────────────────────────── */
+.kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; position:relative; }
+.kpi-card { background:white; border-radius:14px; padding:18px 20px; border:1px solid rgba(15,111,115,0.10); }
+
+/* ── Locked Quick-Action cards ────────────────────────────── */
+.qa-card.locked { background:#FAFBFC; border-color:#E4E7ED; cursor:not-allowed; position:relative; }
+.qa-card.locked:hover { transform:none; box-shadow:none; border-color:#E4E7ED; }
+.qa-card.locked .qa-card-icon { filter:grayscale(0.6); opacity:0.55; }
+.qa-card.locked .qa-card-title,
+.qa-card.locked .qa-card-desc { color:#9AA0AE; }
+.qa-card.locked .qa-card-arrow { color:#9AA0AE; }
+.qa-card-lock-pill { position:absolute; top:14px; right:14px; display:inline-flex; align-items:center; gap:4px; background:white; border:1px solid #E4E7ED; color:#6B7385; font-size:10px; font-weight:600; padding:3px 8px; border-radius:999px; }
+.gate-banner { display:flex; align-items:center; gap:14px; background:linear-gradient(135deg,#FFFBF5,#FFF8EE); border:1px solid rgba(247,127,0,0.25); border-radius:14px; padding:14px 18px; margin-bottom:16px; }
+.gate-banner-icon { width:40px; height:40px; border-radius:10px; flex-shrink:0; background:linear-gradient(135deg,#FFF6E8,#FFE8C8); display:flex; align-items:center; justify-content:center; color:#E06B00; }
+.gate-banner-text { flex:1; min-width:0; }
+.gate-banner-title { font-size:14px; font-weight:700; color:#171A21; margin-bottom:2px; }
+.gate-banner-sub { font-size:12.5px; color:#6B7385; line-height:1.5; }
+.gate-banner-cta { flex-shrink:0; padding:9px 16px; border-radius:10px; background:linear-gradient(135deg,#0F6F73,#1A9DA3); color:white; font-size:13px; font-weight:600; text-decoration:none; white-space:nowrap; }
+.gate-banner-cta:hover { text-decoration:none; box-shadow:0 6px 16px rgba(15,111,115,0.32); }
+.kpi-card-val   { font-size:26px; font-weight:700; letter-spacing:-0.02em; }
+.kpi-card-label { font-size:12px; color:#9AA0AE; margin-top:3px; }
+.kpi-card-delta { font-size:11px; font-weight:600; margin-top:6px; }
+.delta-up   { color:#0F6F73; } .delta-new  { color:#F77F00; }
+
+/* ── Main grid ────────────────────────────────────────────── */
+.dash-grid { display:grid; grid-template-columns:1fr 340px; gap:20px; align-items:start; }
+.dash-fullwidth { grid-column: 1 / -1; }
+
+/* Side-by-side rows: each section takes ~half a row on desktop */
+.dash-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px; align-items:start; }
+@media (max-width: 1100px) {
+  .dash-row-2 { grid-template-columns:1fr; gap:16px; }
+}
+
+/* ── Checklist ────────────────────────────────────────────── */
+.checklist-card { background:white; border-radius:16px; border:1px solid rgba(15,111,115,0.10); overflow:hidden; margin-bottom:16px; }
+.checklist-header { padding:18px 20px 14px; border-bottom:1px solid #F4F5F7; display:flex; align-items:center; justify-content:space-between; }
+.checklist-title  { font-size:15px; font-weight:700; color:#171A21; }
+.checklist-item {
+  display:flex; align-items:center; gap:14px;
+  padding:13px 20px; border-bottom:1px solid #F4F5F7;
+  text-decoration:none; color:#171A21; transition:background 150ms;
+}
+.checklist-item:last-child { border-bottom:none; }
+.checklist-item:hover { background:#F4F8F8; }
+.checklist-item.done  { background:#F9FCFC; }
+.check-circle {
+  width:22px; height:22px; border-radius:999px;
+  border:2px solid #C8CDD7; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.checklist-item.done .check-circle { background:#0F6F73; border-color:#0F6F73; }
+.check-text { flex:1; }
+.check-text-title { font-size:13px; font-weight:600; }
+.check-text-sub   { font-size:12px; color:#9AA0AE; margin-top:1px; }
+.checklist-item.done .check-text-title { color:#0F6F73; }
+.check-arrow { color:#C8CDD7; flex-shrink:0; }
+.checklist-item:hover .check-arrow { color:#0F6F73; }
+.checklist-item.done .check-arrow { display:none; }
+
+/* ── Quick action cards ───────────────────────────────────── */
+.qa-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+.qa-card {
+  background:white; border-radius:14px; padding:20px;
+  border:1.5px solid #E4E7ED; text-decoration:none;
+  transition:border-color 200ms, box-shadow 200ms, transform 200ms;
+  display:flex; flex-direction:column; gap:10px; position:relative; overflow:hidden;
+}
+.qa-card:hover { border-color:#0F6F73; box-shadow:0 4px 20px rgba(15,111,115,0.12); transform:translateY(-1px); text-decoration:none; }
+.qa-card-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
+.qa-card-title { font-size:14px; font-weight:700; color:#171A21; }
+.qa-card-desc  { font-size:12px; color:#9AA0AE; line-height:1.5; }
+.qa-card-arrow { font-size:12px; color:#0F6F73; font-weight:600; margin-top:4px; }
+
+/* ── Recent activity ──────────────────────────────────────── */
+.activity-card { background:white; border-radius:16px; border:1px solid rgba(15,111,115,0.10); overflow:hidden; }
+.activity-header { padding:16px 20px; border-bottom:1px solid #F4F5F7; display:flex; align-items:center; justify-content:space-between; }
+.activity-title  { font-size:15px; font-weight:700; color:#171A21; }
+.activity-item { display:flex; align-items:flex-start; gap:12px; padding:14px 20px; border-bottom:1px solid #F4F5F7; }
+.activity-item:last-child { border-bottom:none; }
+.activity-dot { width:8px; height:8px; border-radius:999px; flex-shrink:0; margin-top:5px; }
+.activity-text { font-size:13px; color:#444B5A; flex:1; line-height:1.5; }
+.activity-time { font-size:11px; color:#9AA0AE; flex-shrink:0; margin-top:2px; }
+
+/* ── Right sidebar ────────────────────────────────────────── */
+.sidebar-card { background:white; border-radius:16px; border:1px solid rgba(15,111,115,0.10); overflow:hidden; margin-bottom:16px; }
+.sidebar-card-header { padding:16px 18px; border-bottom:1px solid #F4F5F7; }
+.sidebar-card-title  { font-size:14px; font-weight:700; color:#171A21; }
+
+/* ── Profile completion ring ──────────────────────────────── */
+.profile-ring-wrap { display:flex; flex-direction:column; align-items:center; padding:20px; }
+.ring-svg { transform:rotate(-90deg); }
+.ring-track { fill:none; stroke:#F0F9F9; stroke-width:8; }
+.ring-fill  { fill:none; stroke-width:8; stroke-linecap:round; stroke-dasharray:283; stroke-dashoffset:142; transition:stroke-dashoffset 800ms cubic-bezier(0.4,0,0.2,1); }
+.ring-label { font-size:22px; font-weight:700; fill:#171A21; }
+.ring-sub   { font-size:11px; fill:#9AA0AE; }
+.ring-steps { width:100%; display:flex; flex-direction:column; gap:6px; padding:0 18px 18px; }
+.ring-step  { display:flex; align-items:center; gap:10px; font-size:12px; color:#6B7385; }
+.ring-step.done  { color:#0F6F73; font-weight:500; }
+.ring-step-dot   { width:7px; height:7px; border-radius:999px; background:#C8CDD7; flex-shrink:0; }
+.ring-step.done .ring-step-dot { background:#0F6F73; }
+
+/* ── Tips / guide ─────────────────────────────────────────── */
+.tip-item { display:flex; gap:12px; padding:14px 18px; border-bottom:1px solid #F4F5F7; }
+.tip-item:last-child { border-bottom:none; }
+.tip-num  { width:22px; height:22px; border-radius:999px; background:linear-gradient(135deg,#0F6F73,#1A9DA3); color:white; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+.tip-text-title { font-size:13px; font-weight:600; color:#171A21; margin-bottom:2px; }
+.tip-text-desc  { font-size:12px; color:#9AA0AE; line-height:1.5; }
+
+/* ── Getting Started accordion (top of dashboard) ───────── */
+.gs-card { background:white; border-radius:16px; border:1px solid rgba(15,111,115,0.10); overflow:hidden; margin-bottom:20px; }
+.gs-header { padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:14px; border-bottom:1px solid #F4F5F7; }
+.gs-header-left { display:flex; align-items:center; gap:12px; }
+.gs-header-icon { width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg,#0F6F73,#1A9DA3); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.gs-header-title { font-size:15px; font-weight:700; color:#171A21; letter-spacing:-0.01em; }
+.gs-header-sub { font-size:12px; color:#9AA0AE; margin-top:1px; }
+.gs-progress { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.gs-progress-track { width:120px; height:5px; background:#F0F9F9; border-radius:999px; overflow:hidden; }
+.gs-progress-fill { height:100%; background:linear-gradient(90deg,#0F6F73,#F77F00); border-radius:999px; width:25%; transition:width 400ms; }
+.gs-progress-label { font-size:12px; color:#6B7385; font-weight:600; white-space:nowrap; }
+
+.gs-item { border-bottom:1px solid #F4F5F7; }
+.gs-item:last-child { border-bottom:none; }
+.gs-item-header {
+  width:100%; display:flex; align-items:center; gap:14px;
+  padding:14px 20px; background:none; border:none; cursor:pointer;
+  font-family:inherit; text-align:left; transition:background 150ms;
+}
+.gs-item-header:hover { background:#FAFCFC; }
+.gs-item-num {
+  width:24px; height:24px; border-radius:999px;
+  background:#F0F9F9; color:#0F6F73; font-size:11px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  border:1.5px solid #D4EEEF;
+}
+.gs-item.done .gs-item-num { background:#0F6F73; color:white; border-color:#0F6F73; }
+.gs-item-title-wrap { flex:1; min-width:0; }
+.gs-item-title { font-size:14px; font-weight:600; color:#171A21; }
+.gs-item-desc  { font-size:12px; color:#9AA0AE; margin-top:2px; }
+.gs-item.done .gs-item-title { color:#0F6F73; }
+.gs-item-status { font-size:11px; font-weight:600; color:#9AA0AE; flex-shrink:0; }
+.gs-item.done .gs-item-status { color:#0F6F73; }
+.gs-item-chevron {
+  width:18px; height:18px; color:#9AA0AE; flex-shrink:0;
+  transition:transform 200ms;
+}
+.gs-item.open .gs-item-chevron { transform:rotate(180deg); color:#0F6F73; }
+
+.gs-item-body {
+  display:none; padding:0 20px 16px 58px;
+}
+.gs-item.open .gs-item-body { display:block; }
+
+/* Sub-task list (inside Complete your profile) */
+.gs-sub { display:flex; flex-direction:column; gap:0; }
+.gs-sub-item {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 12px; border-radius:10px;
+  text-decoration:none; color:#171A21;
+  transition:background 150ms;
+}
+.gs-sub-item:hover { background:#F4F8F8; text-decoration:none; }
+.gs-sub-check {
+  width:18px; height:18px; border-radius:999px;
+  border:2px solid #C8CDD7; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.gs-sub-item.done .gs-sub-check { background:#0F6F73; border-color:#0F6F73; }
+.gs-sub-text { flex:1; min-width:0; }
+.gs-sub-title { font-size:13px; font-weight:500; }
+.gs-sub-sub   { font-size:11.5px; color:#9AA0AE; margin-top:1px; }
+.gs-sub-item.done .gs-sub-title { color:#0F6F73; }
+.gs-sub-arrow { color:#C8CDD7; flex-shrink:0; transition:color 150ms; }
+.gs-sub-item:hover .gs-sub-arrow { color:#0F6F73; }
+.gs-sub-item.done .gs-sub-arrow { display:none; }
+
+/* Inline body content (LINE, portfolio, early-bird) */
+.gs-body-row { display:flex; align-items:center; gap:14px; padding:8px 0; flex-wrap:wrap; }
+.gs-body-text { flex:1; min-width:200px; font-size:13px; color:#444B5A; line-height:1.55; }
+.gs-body-cta {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:9px 16px; border-radius:10px;
+  font-size:13px; font-weight:600; text-decoration:none; border:none; cursor:pointer;
+  font-family:inherit; flex-shrink:0;
+}
+.gs-body-cta.line { background:#06C755; color:white; }
+.gs-body-cta.line:hover { background:#04a544; }
+.gs-body-cta.teal { background:linear-gradient(135deg,#0F6F73,#1A9DA3); color:white; }
+.gs-body-cta.teal:hover { box-shadow:0 6px 16px rgba(15,111,115,0.32); }
+.gs-body-cta.amber { background:linear-gradient(135deg,#F77F00,#E06B00); color:white; }
+.gs-body-cta.amber:hover { box-shadow:0 6px 16px rgba(247,127,0,0.32); }
+
+@media (max-width:720px) {
+  .gs-progress-track { width:80px; }
+  .gs-item-body { padding-left:20px; }
+}
+
+/* ── LINE connect nudge ───────────────────────────────────── */
+.line-nudge { background:linear-gradient(135deg,#04a544,#06C755); border-radius:14px; padding:16px 18px; display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.line-nudge-icon { width:36px; height:36px; background:rgba(255,255,255,0.2); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.line-nudge-text .title { font-size:13px; font-weight:700; color:white; }
+.line-nudge-text .sub   { font-size:12px; color:rgba(255,255,255,0.7); margin-top:2px; }
+.line-nudge-btn { margin-left:auto; background:white; color:#06C755; font-size:12px; font-weight:700; padding:7px 14px; border-radius:8px; border:none; cursor:pointer; white-space:nowrap; font-family:inherit; }
+
+/* ── Fill-row: 2-col compact pair under the Profile Setup checklist ── */
+.fill-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+.fill-row .line-nudge { margin-bottom:0; }
+.fill-row .sidebar-card { margin-bottom:0; }
+/* Compact ring card for the fill-row */
+.fill-row .profile-ring-wrap { padding:14px 16px 8px; flex-direction:row; align-items:center; gap:14px; justify-content:flex-start; }
+.fill-row .ring-svg { width:64px; height:64px; flex-shrink:0; }
+.fill-row .ring-pct-block { display:flex; flex-direction:column; }
+.fill-row .ring-pct { font-size:18px; font-weight:700; color:#171A21; line-height:1; }
+.fill-row .ring-pct-sub { font-size:11px; color:#9AA0AE; margin-top:2px; }
+.fill-row .ring-steps { padding:0 16px 14px; gap:5px; }
+.fill-row .ring-step  { font-size:11.5px; }
+@media (max-width: 720px) {
+  .fill-row { grid-template-columns:1fr; }
+}
+
+/* ── Mobile ───────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .dash-grid { grid-template-columns:1fr; }
+  .kpi-row { grid-template-columns:1fr 1fr; }
+  .welcome-right { display:none; }
+  .qa-grid { grid-template-columns:1fr 1fr; }
+}
+@media (max-width: 520px) {
+  .kpi-row { grid-template-columns:1fr 1fr; }
+  .qa-grid { grid-template-columns:1fr; }
+  .welcome-banner { padding:20px; }
+}
+</style>
+</head>
+<body>
+<div class="main-with-sidebar">
+  <div class="page-body">
+
+    <!-- Premium status banner -->
+    <div class="premium-banner" id="premium-banner" style="display:none;">
+      <div class="premium-banner-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <div class="premium-banner-text">
+        <div class="premium-banner-title" id="premium-banner-title" data-i18n-en="✦ Premium plan active" data-i18n-th="✦ แพ็กเกจ Premium พร้อมใช้งาน">Premium plan active</div>
+        <div class="premium-banner-sub" id="premium-banner-sub">Until 31 Dec 2026</div>
+      </div>
+      <span class="premium-banner-countdown" id="premium-banner-countdown" style="display:none;"></span>
+    </div>
+
+    <!-- Welcome banner -->
+    <div class="welcome-banner">
+      <div class="welcome-text">
+        <h2 id="welcome-headline" data-i18n-en="Welcome back, {name} 👋" data-i18n-th="ยินดีต้อนรับกลับมา {name} 👋">Welcome back, {name} 👋</h2>
+        <p data-i18n-en="Complete your profile to unlock all platform features." data-i18n-th="กรอกข้อมูลโปรไฟล์ให้ครบเพื่อปลดล็อกทุกฟีเจอร์">Complete your profile to unlock all platform features.</p>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-track"><div class="progress-bar-fill"></div></div>
+          <span class="progress-label" data-i18n-en="2 of 4 steps done" data-i18n-th="เสร็จแล้ว 2 จาก 4 ขั้นตอน">2 of 4 steps done</span>
+        </div>
+      </div>
+      <div class="welcome-right">
+        <div class="welcome-stat">
+          <div class="welcome-stat-val">0</div>
+          <div class="welcome-stat-label" data-i18n-en="Profile views" data-i18n-th="การเข้าชม">Profile views</div>
+        </div>
+        <div class="welcome-stat">
+          <div class="welcome-stat-val">0</div>
+          <div class="welcome-stat-label" data-i18n-en="Broadcasts" data-i18n-th="การกระจายข่าว">Broadcasts</div>
+        </div>
+        <div class="welcome-stat" style="border-color:rgba(247,127,0,0.3);">
+          <div class="welcome-stat-val" style="background:linear-gradient(90deg,#F77F00,#E06B00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:18px;padding-top:2px;" data-i18n-en="Free" data-i18n-th="ฟรี">Free</div>
+          <div class="welcome-stat-label" data-i18n-en="Current plan" data-i18n-th="แพ็กเกจปัจจุบัน">Current plan</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gate banner: shown only when company profile not yet created -->
+    <div class="gate-banner" id="gate-banner" style="display:none;">
+      <div class="gate-banner-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div class="gate-banner-text">
+        <div class="gate-banner-title" data-i18n-en="Add your company info to unlock provider &amp; buyer features" data-i18n-th="เพิ่มข้อมูลบริษัทเพื่อปลดล็อกฟีเจอร์สำหรับผู้ให้บริการและผู้ซื้อ">Add your company info to unlock provider &amp; buyer features</div>
+        <div class="gate-banner-sub" data-i18n-en="Manage Services, Portfolio, LINE Connect and Find Providers all need a company profile." data-i18n-th="จัดการบริการ ผลงาน เชื่อม LINE และค้นหาผู้ให้บริการต้องมีบริษัทก่อน">Manage Services, Portfolio, LINE Connect and Find Providers all need a company profile.</div>
+      </div>
+      <a href="My Company.html" class="gate-banner-cta" data-i18n-en="Add company info →" data-i18n-th="เพิ่มข้อมูลบริษัท →">Add company info →</a>
+    </div>
+
+    <!-- KPI row -->
+    <div class="kpi-row" id="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-card-val" style="color:#C8CDD7;">—</div>
+        <div class="kpi-card-label" data-i18n-en="Profile Views" data-i18n-th="การเข้าชมโปรไฟล์">Profile Views</div>
+        <div class="kpi-card-delta" style="color:#9AA0AE;" data-i18n-en="Data appears after your first profile view" data-i18n-th="ข้อมูลจะแสดงเมื่อมีการเข้าชมครั้งแรก">Data appears after your first profile view</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card-val" style="color:#C8CDD7;">—</div>
+        <div class="kpi-card-label" data-i18n-en="Broadcast Requests Sent" data-i18n-th="คำขอกระจายข่าวที่ส่ง">Broadcast Requests Sent</div>
+        <div class="kpi-card-delta" style="color:#9AA0AE;" data-i18n-en="4 free broadcasts/month" data-i18n-th="ฟรี 4 ครั้ง/เดือน">4 free broadcasts/month</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card-val" style="color:#C8CDD7;">—</div>
+        <div class="kpi-card-label" data-i18n-en="Portfolio Projects" data-i18n-th="ผลงาน">Portfolio Projects</div>
+        <div class="kpi-card-delta" style="color:#9AA0AE;" data-i18n-en="No projects added yet" data-i18n-th="ยังไม่มีผลงาน">No projects added yet</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card-val" style="color:#9AA0AE;">—</div>
+        <div class="kpi-card-label" data-i18n-en="Verification Status" data-i18n-th="สถานะการยืนยัน">Verification Status</div>
+        <div class="kpi-card-delta" style="color:#E06B00;" data-i18n-en="⚠ Documents pending" data-i18n-th="⚠ รอตรวจสอบเอกสาร">⚠ Documents pending</div>
+      </div>
+    </div>
+
+    <!-- Row 1: Getting Started + Quick Actions -->
+    <div class="dash-row-2">
+      <div>
+        <!-- Getting Started accordion -->
+        <div class="gs-card" style="margin-bottom:0;">
+          <div class="gs-header">
+            <div class="gs-header-left">
+              <div class="gs-header-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <div>
+                <div class="gs-header-title" data-i18n-en="Getting Started" data-i18n-th="เริ่มต้นใช้งาน">Getting Started</div>
+                <div class="gs-header-sub" data-i18n-en="Finish these to get the most out of Profindle" data-i18n-th="ทำให้ครบเพื่อใช้งาน Profindle ได้เต็มประสิทธิภาพ">Finish these to get the most out of Profindle</div>
+              </div>
+            </div>
+            <div class="gs-progress">
+              <div class="gs-progress-track"><div class="gs-progress-fill" id="gs-progress-fill"></div></div>
+              <span class="gs-progress-label" id="gs-progress-label">0 / 4</span>
+            </div>
+          </div>
+
+          <!-- 1. Complete your profile (with sub-tasks) -->
+          <div class="gs-item open" id="gs-1">
+            <button class="gs-item-header" onclick="toggleGS('gs-1')">
+              <div class="gs-item-num">1</div>
+              <div class="gs-item-title-wrap">
+                <div class="gs-item-title" data-i18n-en="Complete your profile" data-i18n-th="กรอกข้อมูลโปรไฟล์ให้ครบ">Complete your profile</div>
+                <div class="gs-item-desc" data-i18n-en="Add services, description, and logo to appear in search." data-i18n-th="เพิ่มบริการ คำอธิบาย และโลโก้ เพื่อปรากฏในการค้นหา">Add services, description, and logo to appear in search.</div>
+              </div>
+              <span class="gs-item-status" id="gs-1-status">2 / 4</span>
+              <svg class="gs-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="gs-item-body">
+              <div class="gs-sub">
+                <a href="My Company.html" class="gs-sub-item done">
+                  <div class="gs-sub-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                  <div class="gs-sub-text">
+                    <div class="gs-sub-title" data-i18n-en="Verify your email" data-i18n-th="ยืนยันอีเมล">Verify your email</div>
+                    <div class="gs-sub-sub" id="gs-email-sub" data-i18n-en="Confirmed via {email}" data-i18n-th="ยืนยันแล้วผ่าน {email}">Confirmed via {email}</div>
+                  </div>
+                  <svg class="gs-sub-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+                <a href="My Company.html" class="gs-sub-item done">
+                  <div class="gs-sub-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                  <div class="gs-sub-text">
+                    <div class="gs-sub-title" data-i18n-en="Add company basic info" data-i18n-th="เพิ่มข้อมูลบริษัทพื้นฐาน">Add company basic info</div>
+                    <div class="gs-sub-sub" id="gs-company-sub">{company}</div>
+                  </div>
+                  <svg class="gs-sub-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+                <a href="My Company.html" class="gs-sub-item">
+                  <div class="gs-sub-check"></div>
+                  <div class="gs-sub-text">
+                    <div class="gs-sub-title" data-i18n-en="Select your industry &amp; services" data-i18n-th="เลือกอุตสาหกรรมและบริการ">Select your industry &amp; services</div>
+                    <div class="gs-sub-sub" data-i18n-en="Helps clients find you in search" data-i18n-th="ช่วยให้ลูกค้าค้นหาคุณเจอ">Helps clients find you in search</div>
+                  </div>
+                  <svg class="gs-sub-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+                <a href="My Company.html" class="gs-sub-item">
+                  <div class="gs-sub-check"></div>
+                  <div class="gs-sub-text">
+                    <div class="gs-sub-title" data-i18n-en="Upload verification documents" data-i18n-th="อัปโหลดเอกสารยืนยันตัวตน">Upload verification documents</div>
+                    <div class="gs-sub-sub" data-i18n-en="Get the Verified badge on your profile" data-i18n-th="รับเครื่องหมาย Verified บนโปรไฟล์">Get the Verified badge on your profile</div>
+                  </div>
+                  <svg class="gs-sub-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Add Portfolio -->
+          <div class="gs-item" id="gs-2">
+            <button class="gs-item-header" onclick="toggleGS('gs-2')">
+              <div class="gs-item-num">2</div>
+              <div class="gs-item-title-wrap">
+                <div class="gs-item-title" data-i18n-en="Add portfolio" data-i18n-th="เพิ่มผลงาน">Add portfolio</div>
+                <div class="gs-item-desc" data-i18n-en="Showcase real work to build trust with potential clients." data-i18n-th="นำเสนอผลงานจริงเพื่อสร้างความเชื่อมั่นกับลูกค้า">Showcase real work to build trust with potential clients.</div>
+              </div>
+              <span class="gs-item-status" data-i18n-en="Not started" data-i18n-th="ยังไม่ได้เริ่ม">Not started</span>
+              <svg class="gs-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="gs-item-body">
+              <div class="gs-body-row">
+                <div class="gs-body-text" data-i18n-en="Add at least 3 projects with images, results, and the services delivered. Verified projects rank higher in client search." data-i18n-th="เพิ่มอย่างน้อย 3 ผลงาน พร้อมรูปภาพ ผลลัพธ์ และบริการที่ส่งมอบ ผลงานที่ยืนยันแล้วจะปรากฏในการค้นหาสูงกว่า">Add at least 3 projects with images, results, and the services delivered. Verified projects rank higher in client search.</div>
+                <a href="Portfolio.html" class="gs-body-cta teal" data-i18n-en="Add a project →" data-i18n-th="เพิ่มผลงาน →">Add a project →</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Connect LINE for alerts -->
+          <div class="gs-item" id="gs-3">
+            <button class="gs-item-header" onclick="toggleGS('gs-3')">
+              <div class="gs-item-num">3</div>
+              <div class="gs-item-title-wrap">
+                <div class="gs-item-title" data-i18n-en="Connect LINE for alerts" data-i18n-th="เชื่อม LINE เพื่อรับการแจ้งเตือน">Connect LINE for alerts</div>
+                <div class="gs-item-desc" data-i18n-en="Get instant broadcast alerts the moment a client posts a request." data-i18n-th="รับการแจ้งเตือนทันทีเมื่อลูกค้าโพสต์คำขอ">Get instant broadcast alerts the moment a client posts a request.</div>
+              </div>
+              <span class="gs-item-status" data-i18n-en="Not connected" data-i18n-th="ยังไม่ได้เชื่อม">Not connected</span>
+              <svg class="gs-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="gs-item-body">
+              <div class="gs-body-row">
+                <div class="gs-body-text" data-i18n-en="Never miss a client broadcast. Connect your LINE account once and we’ll notify you on every matching request." data-i18n-th="ไม่พลาดทุกคำขอจากลูกค้า เชื่อมบัญชี LINE ครั้งเดียว เราจะแจ้งเตือนทุกคำขอที่ตรงกับคุณ">Never miss a client broadcast. Connect your LINE account once and we’ll notify you on every matching request.</div>
+                <a href="Settings.html" class="gs-body-cta line">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.04 2 11c0 3.31 1.86 6.22 4.72 8.05L6 22l3.18-1.67C10.03 20.77 11 21 12 21c5.52 0 10-4.04 10-9S17.52 2 12 2z"/></svg>
+                  <span data-i18n-en="Connect LINE" data-i18n-th="เชื่อม LINE">Connect LINE</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Claim Early Bird Offer -->
+          <div class="gs-item" id="gs-4">
+            <button class="gs-item-header" onclick="toggleGS('gs-4')">
+              <div class="gs-item-num">4</div>
+              <div class="gs-item-title-wrap">
+                <div class="gs-item-title" data-i18n-en="Claim Early Bird offer" data-i18n-th="รับสิทธิ์ Early Bird">Claim Early Bird offer</div>
+                <div class="gs-item-desc" data-i18n-en="Get all Premium features FREE — 47 of 100 spots left." data-i18n-th="รับฟีเจอร์ Premium ทั้งหมดฟรี — เหลือ 47 จาก 100 สิทธิ์">Get all Premium features FREE — 47 of 100 spots left.</div>
+              </div>
+              <span class="gs-item-status" style="color:#E06B00;" data-i18n-en="Limited" data-i18n-th="จำกัด">Limited</span>
+              <svg class="gs-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="gs-item-body">
+              <div class="gs-body-row">
+                <div class="gs-body-text" data-i18n-en="First 100 companies on Profindle get all Premium features (broadcasts, Pro badge, advanced analytics) free for life. Once spots are gone, they’re gone." data-i18n-th="100 บริษัทแรกบน Profindle จะได้รับฟีเจอร์ Premium ทั้งหมด (กระจายข่าว, Pro badge, วิเคราะห์ขั้นสูง) ฟรีตลอดชีพ เมื่อสิทธิ์หมด จะไม่มีอีก">First 100 companies on Profindle get all Premium features (broadcasts, Pro badge, advanced analytics) free for life. Once spots are gone, they’re gone.</div>
+                <a href="Package.html" class="gs-body-cta amber" data-i18n-en="Claim now →" data-i18n-th="รับสิทธิ์ →">Claim now →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div>
+        <!-- Quick actions -->
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#9AA0AE;margin-bottom:10px;" data-i18n-en="Quick Actions" data-i18n-th="การดำเนินการด่วน">Quick Actions</div>
+        <div class="qa-grid" style="margin-bottom:0;">
+          <a href="Provider Overview.html" class="qa-card qa-lockable" data-locked-href="My Company.html?from=locked-services">
+            <div class="qa-card-icon" style="background:linear-gradient(135deg,#0F6F73,#1A9DA3);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            </div>
+            <div class="qa-card-title" data-i18n-en="Manage Services" data-i18n-th="จัดการบริการ">Manage Services</div>
+            <div class="qa-card-desc" data-i18n-en="Set up your service offerings and attract new clients." data-i18n-th="ตั้งค่าบริการของคุณเพื่อดึงดูดลูกค้าใหม่">Set up your service offerings and attract new clients.</div>
+            <div class="qa-card-arrow" data-i18n-en="View overview →" data-i18n-th="ดูภาพรวม →">View overview →</div>
+          </a>
+          <a href="Find Providers.html" class="qa-card qa-lockable" data-locked-href="My Company.html?from=locked-find">
+            <div class="qa-card-icon" style="background:linear-gradient(135deg,#F77F00,#E06B00);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </div>
+            <div class="qa-card-title" data-i18n-en="Find Providers" data-i18n-th="ค้นหาผู้ให้บริการ">Find Providers</div>
+            <div class="qa-card-desc" data-i18n-en="Search or broadcast a request to matching providers." data-i18n-th="ค้นหาหรือกระจายคำขอไปยังผู้ให้บริการที่ตรงกัน">Search or broadcast a request to matching providers.</div>
+            <div class="qa-card-arrow" data-i18n-en="Search now →" data-i18n-th="ค้นหาเลย →">Search now →</div>
+          </a>
+          <a href="Portfolio.html" class="qa-card qa-lockable" data-locked-href="My Company.html?from=locked-portfolio">
+            <div class="qa-card-icon" style="background:linear-gradient(135deg,#2BBEC5,#0F6F73);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            </div>
+            <div class="qa-card-title" data-i18n-en="Add Portfolio" data-i18n-th="เพิ่มผลงาน">Add Portfolio</div>
+            <div class="qa-card-desc" data-i18n-en="Showcase projects to build trust with potential clients." data-i18n-th="นำเสนอผลงานเพื่อสร้างความเชื่อมั่น">Showcase projects to build trust with potential clients.</div>
+            <div class="qa-card-arrow" data-i18n-en="Add project →" data-i18n-th="เพิ่มผลงาน →">Add project →</div>
+          </a>
+          <a href="Package.html" class="qa-card" style="border-color:rgba(247,127,0,0.3);background:linear-gradient(135deg,#FFFBF5,#FFF8EE);">
+            <div class="qa-card-icon" style="background:linear-gradient(135deg,#F77F00,#E06B00);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div class="qa-card-title" style="color:#E06B00;" data-i18n-en="Early Bird Offer" data-i18n-th="สิทธิ์ Early Bird">Early Bird Offer</div>
+            <div class="qa-card-desc" style="color:#F77F00;" data-i18n-en="Get all Premium features FREE — 47 of 100 spots left." data-i18n-th="รับฟีเจอร์ Premium ทั้งหมดฟรี — เหลือ 47 จาก 100 สิทธิ์">Get all Premium features FREE — 47 of 100 spots left.</div>
+            <div class="qa-card-arrow" style="color:#F77F00;" data-i18n-en="Claim now →" data-i18n-th="รับสิทธิ์ →">Claim now →</div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Recent Activity + Need Help -->
+    <div class="dash-row-2">
+      <div class="activity-card">
+          <div class="activity-header">
+            <div class="activity-title" data-i18n-en="Recent Activity" data-i18n-th="กิจกรรมล่าสุด">Recent Activity</div>
+            <span style="font-size:12px;color:#9AA0AE;" data-i18n-en="Last 7 days" data-i18n-th="7 วันล่าสุด">Last 7 days</span>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:#0F6F73;"></div>
+            <div class="activity-text" data-i18n-en="Account created — welcome to Profindle!" data-i18n-th="สร้างบัญชีแล้ว — ยินดีต้อนรับสู่ Profindle!">Account created — welcome to Profindle!</div>
+            <div class="activity-time" data-i18n-en="Today" data-i18n-th="วันนี้">Today</div>
+          </div>
+          <!-- Real activity items come from /api/activity?user=me -->
+          <div class="activity-item" style="background:#FAFCFC;">
+            <div class="activity-dot" style="background:#C8CDD7;"></div>
+            <div class="activity-text" style="color:#9AA0AE;" data-i18n-en="Activity will appear here as you use Profindle." data-i18n-th="กิจกรรมจะแสดงที่นี่เมื่อคุณเริ่มใช้งาน Profindle">Activity will appear here as you use Profindle.</div>
+            <div class="activity-time">—</div>
+          </div>
+      </div>
+
+      <!-- Help -->
+      <div style="background:linear-gradient(135deg,#F0F9F9,#D4EEEF);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:10px;">
+        <div style="font-size:15px;font-weight:700;color:#0F6F73;" data-i18n-en="Need help?" data-i18n-th="ต้องการความช่วยเหลือ?">Need help?</div>
+        <div style="font-size:13px;color:#6B7385;line-height:1.55;" data-i18n-en="Our team is ready to assist you get set up on Profindle. Reach out anytime on LINE — we usually reply within an hour." data-i18n-th="ทีมงานพร้อมช่วยคุณตั้งค่าบน Profindle ติดต่อเราได้ตลอดทาง LINE — ตอบกลับภายใน 1 ชั่วโมง">Our team is ready to assist you get set up on Profindle. Reach out anytime on LINE — we usually reply within an hour.</div>
+        <a href="https://lin.ee/VjYhQQ0" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="align-self:flex-start;margin-top:4px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 12 19.79 19.79 0 0 1 1.92 3.38C1.86 2.58 2.42 2 3.22 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.15 6.15l1.48-1.48a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span data-i18n-en="Contact on LINE" data-i18n-th="ติดต่อทาง LINE">Contact on LINE</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="i18n.js"></script>
+<script src="dashboard-shell.js"></script>
+<script>
+initDashboard('home', window.profindleI18n.t('Dashboard','หน้าหลัก'));
+window.addEventListener('profindle:lang-change', () => {
+  const h = document.querySelector('.page-title');
+  if (h) h.textContent = window.profindleI18n.t('Dashboard','หน้าหลัก');
+});
+
+// Hydrate dynamic welcome + email placeholders from DEMO_USER.
+// Only touches LEAF nodes (no children) so we don't flatten container HTML.
+(function hydrateUser() {
+  const u = window.profindleDemoUser;
+  if (!u) return;
+  const company = (u.company && u.company.name) || '';
+  const t = (k) => k.replace('{name}', u.firstName).replace('{email}', u.email).replace('{company}', company);
+  document.querySelectorAll('[data-i18n-en],[data-i18n-th]').forEach(el => {
+    ['data-i18n-en','data-i18n-th'].forEach(a => {
+      const v = el.getAttribute(a);
+      if (v && (v.includes('{name}') || v.includes('{email}') || v.includes('{company}'))) el.setAttribute(a, t(v));
+    });
+    if (el.children.length === 0) {
+      const txt = el.textContent;
+      if (txt.includes('{name}') || txt.includes('{email}') || txt.includes('{company}')) {
+        el.textContent = t(txt);
+      }
+    }
+  });
+  // Plain text nodes without data-i18n (e.g. gs-company-sub)
+  document.querySelectorAll('[id^="gs-"]').forEach(el => {
+    if (el.children.length === 0 && el.textContent.includes('{company}')) {
+      el.textContent = t(el.textContent);
+    }
+  });
+})();
+
+
+// ── Premium status banner ─────────────────────────────────
+function renderPremiumBanner() {
+  const stored = localStorage.getItem('profindlePremiumUntil');
+  const untilISO = stored !== null ? stored : '2026-12-31';
+  const banner = document.getElementById('premium-banner');
+  if (!untilISO) { banner.style.display = 'none'; return; }
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const until = new Date(untilISO + 'T23:59:00');
+  const daysLeft = Math.round((until.getTime() - today.getTime()) / 86400000);
+  if (daysLeft < 0) { banner.style.display = 'none'; return; }
+
+  const title  = document.getElementById('premium-banner-title');
+  const sub    = document.getElementById('premium-banner-sub');
+  const count  = document.getElementById('premium-banner-countdown');
+  const t  = window.profindleI18n.t;
+  const lg = window.profindleI18n.getLang();
+  const locale = lg === 'th' ? 'th-TH' : 'en-GB';
+  const niceDate = until.toLocaleDateString(locale, { day:'2-digit', month:'short', year:'numeric' });
+
+  if (daysLeft < 30) {
+    banner.classList.add('urgent');
+    title.textContent = t('✦ Premium expires soon', '✦ Premium กำลังจะหมดอายุ');
+    sub.textContent   = t(`Your Premium plan ends on ${niceDate} — contact admin to renew.`,
+                          `แพ็กเกจ Premium ของคุณจะสิ้นสุด ${niceDate} — ติดต่อแอดมินเพื่อต่ออายุ`);
+    count.style.display = 'inline-block';
+    if (daysLeft === 0) {
+      count.textContent = t('Today', 'วันนี้');
+    } else {
+      count.textContent = t(`${daysLeft} day${daysLeft===1?'':'s'} left`,
+                            `เหลือ ${daysLeft} วัน`);
+    }
+  } else {
+    banner.classList.remove('urgent');
+    title.textContent = t('✦ Premium plan active', '✦ แพ็กเกจ Premium พร้อมใช้งาน');
+    sub.textContent   = t('Until ' + niceDate, 'จนถึง ' + niceDate);
+    count.style.display = 'none';
+  }
+  banner.style.display = 'flex';
+}
+renderPremiumBanner();
+window.addEventListener('profindle:lang-change', renderPremiumBanner);
+
+// ── Getting Started accordion ───────────────────────
+function toggleGS(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const isOpen = el.classList.contains('open');
+  document.querySelectorAll('.gs-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) el.classList.add('open');
+}
+(function initGSProgress() {
+  // Step 1 done if all 4 sub-tasks done; for now, only LINE+Portfolio+EarlyBird are 4 main steps
+  const sub = document.querySelectorAll('#gs-1 .gs-sub-item');
+  const subDone = document.querySelectorAll('#gs-1 .gs-sub-item.done').length;
+  const profileDone = sub.length > 0 && subDone === sub.length;
+  if (profileDone) document.getElementById('gs-1').classList.add('done');
+  const items = ['gs-1','gs-2','gs-3','gs-4'];
+  const done = items.filter(id => document.getElementById(id).classList.contains('done')).length;
+  document.getElementById('gs-progress-fill').style.width = (done/items.length*100) + '%';
+  function renderGSLabel() {
+    const t = window.profindleI18n.t;
+    document.getElementById('gs-progress-label').textContent =
+      t(`${done} / ${items.length} done`, `${done} / ${items.length} เสร็จแล้ว`);
+    const s1 = document.getElementById('gs-1-status');
+    if (s1 && /\d+\s*\/\s*\d+/.test(s1.textContent)) {
+      const sub = document.querySelectorAll('#gs-1 .gs-sub-item');
+      const sd = document.querySelectorAll('#gs-1 .gs-sub-item.done').length;
+      s1.textContent = t(`${sd} / ${sub.length} done`, `${sd} / ${sub.length} เสร็จแล้ว`);
+    }
+  }
+  renderGSLabel();
+  window.addEventListener('profindle:lang-change', renderGSLabel);
+})();
+
+// ── Feature gate ─────────────────────────────────────────
+// Provider + Buyer features unlock once the user has added their company info.
+// Unified flag — see dashboard-shell.js
+const hasCompany = window.profindleHasCompany();
+
+function applyGate(unlocked) {
+  document.getElementById('gate-banner').style.display = unlocked ? 'none' : 'flex';
+  document.querySelectorAll('.qa-lockable').forEach(card => {
+    if (unlocked) {
+      card.classList.remove('locked');
+      card.querySelector('.qa-card-lock-pill')?.remove();
+      if (card.dataset.origHref) card.href = card.dataset.origHref;
+    } else {
+      card.classList.add('locked');
+      if (!card.dataset.origHref) card.dataset.origHref = card.getAttribute('href');
+      card.href = card.dataset.lockedHref;
+      if (!card.querySelector('.qa-card-lock-pill')) {
+        const pill = document.createElement('span');
+        pill.className = 'qa-card-lock-pill';
+        const lockLabel = window.profindleI18n.t('Locked','ล็อก');
+        pill.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> ' + lockLabel;
+        pill.dataset.lockPill = '1';
+        card.appendChild(pill);
+      }
+    }
+  });
+}
+applyGate(hasCompany);
+
+// Re-render the locked pill label when language changes
+window.addEventListener('profindle:lang-change', () => {
+  const lockLabel = window.profindleI18n.t('Locked','ล็อก');
+  document.querySelectorAll('.qa-card-lock-pill').forEach(p => {
+    const svg = p.querySelector('svg');
+    p.innerHTML = '';
+    if (svg) p.appendChild(svg);
+    p.appendChild(document.createTextNode(' ' + lockLabel));
+  });
+});
+</script>
+</body>
+</html>

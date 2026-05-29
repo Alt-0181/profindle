@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Broadcast History — Profindle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ds.css">
+<style>
+/* ── Page header ──────────────────────────────────────────── */
+.page-intro { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
+.page-intro-text h2 { font-size:20px; font-weight:700; color:#171A21; letter-spacing:-0.02em; }
+.page-intro-text p  { font-size:13px; color:#9AA0AE; margin-top:4px; }
+
+/* ── KPI strip ────────────────────────────────────────────── */
+.bh-kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
+.bh-kpi { background:white; border-radius:14px; padding:18px 20px; border:1px solid rgba(15,111,115,0.10); }
+.bh-kpi-val   { font-size:24px; font-weight:700; letter-spacing:-0.02em; color:#171A21; }
+.bh-kpi-label { font-size:12px; color:#9AA0AE; margin-top:3px; }
+.bh-kpi-delta { font-size:11px; font-weight:600; margin-top:6px; color:#0F6F73; }
+
+/* ── Filter tabs ──────────────────────────────────────────── */
+.filter-tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+.filter-tab {
+  padding:7px 16px; border-radius:999px; border:1.5px solid #E4E7ED;
+  background:white; color:#444B5A; font-size:13px; font-weight:600;
+  font-family:inherit; cursor:pointer; transition:all 150ms;
+  display:flex; align-items:center; gap:6px;
+}
+.filter-tab:hover { border-color:rgba(15,111,115,0.4); color:#0F6F73; }
+.filter-tab.active { background:#F0F9F9; border-color:#0F6F73; color:#0F6F73; }
+.filter-tab-count {
+  background:rgba(15,111,115,0.12); color:#0F6F73;
+  font-size:11px; font-weight:700; padding:1px 7px; border-radius:999px;
+}
+.filter-tab.active .filter-tab-count { background:#0F6F73; color:white; }
+
+/* ── Search + sort ────────────────────────────────────────── */
+.bh-toolbar { display:flex; gap:10px; align-items:center; margin-bottom:18px; flex-wrap:wrap; }
+.bh-search-wrap { position:relative; flex:1; min-width:200px; }
+.bh-search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#9AA0AE; pointer-events:none; }
+.bh-search { width:100%; padding:9px 14px 9px 36px; border:1.5px solid #E4E7ED; border-radius:10px; font-size:13px; font-family:inherit; color:#171A21; outline:none; background:white; transition:border-color 150ms; }
+.bh-search:focus { border-color:#0F6F73; box-shadow:0 0 0 3px rgba(15,111,115,0.10); }
+
+/* ── Broadcast cards ──────────────────────────────────────── */
+.broadcast-list { display:flex; flex-direction:column; gap:14px; }
+.bc-card {
+  background:white; border-radius:16px; border:1px solid rgba(15,111,115,0.10);
+  overflow:hidden; transition:box-shadow 200ms, transform 200ms;
+}
+.bc-card:hover { box-shadow:0 4px 20px rgba(15,111,115,0.10); transform:translateY(-1px); }
+
+.bc-card-header {
+  padding:18px 20px 14px; display:flex; align-items:flex-start;
+  justify-content:space-between; gap:16px; flex-wrap:wrap;
+}
+.bc-card-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px; }
+.bc-card-id { font-size:11px; color:#9AA0AE; font-weight:600; }
+.bc-card-title { font-size:15px; font-weight:700; color:#171A21; line-height:1.4; }
+.bc-card-actions { display:flex; gap:8px; flex-shrink:0; }
+
+/* Status pills */
+.status-open     { background:#F0F9F9; color:#0F6F73; }
+.status-matched  { background:linear-gradient(135deg,#F77F00,#E06B00); color:white; }
+.status-closed   { background:#F4F5F7; color:#9AA0AE; }
+.status-expired  { background:#FFF0F0; color:#E04347; }
+.status-pill {
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:11px; font-weight:600; padding:3px 10px; border-radius:999px;
+}
+
+/* Body grid */
+.bc-card-body {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
+  padding:0 20px 16px; border-bottom:1px solid #F4F5F7;
+}
+.bc-field { }
+.bc-field-label { font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9AA0AE; margin-bottom:4px; }
+.bc-field-value { font-size:13px; color:#171A21; font-weight:500; line-height:1.4; }
+.bc-field-value.muted { color:#9AA0AE; font-weight:400; font-style:italic; }
+
+.bc-desc {
+  padding:14px 20px; font-size:13px; color:#6B7385; line-height:1.6;
+  background:#FAFBFC;
+}
+.bc-desc-label {
+  font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+  color:#9AA0AE; margin-bottom:4px;
+}
+
+/* Matches row */
+.bc-matches {
+  padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+}
+.bc-matches-left { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.bc-match-avatars { display:flex; }
+.bc-match-avatar {
+  width:30px; height:30px; border-radius:999px;
+  border:2px solid white; margin-left:-8px;
+  display:flex; align-items:center; justify-content:center;
+  color:white; font-size:11px; font-weight:700; flex-shrink:0;
+}
+.bc-match-avatar:first-child { margin-left:0; }
+.bc-match-text { font-size:13px; color:#444B5A; }
+.bc-match-text strong { color:#171A21; }
+
+.bc-date {
+  display:flex; align-items:center; gap:6px;
+  font-size:12px; color:#9AA0AE;
+}
+
+/* Expanded view (matches list) */
+.bc-expanded {
+  border-top:1px solid #F4F5F7;
+  padding:16px 20px;
+  background:#FAFBFC;
+  display:none;
+}
+.bc-card.expanded .bc-expanded { display:block; }
+.bc-card.expanded .bc-expand-icon { transform:rotate(180deg); }
+.bc-expand-icon { transition:transform 200ms; flex-shrink:0; }
+
+.bc-match-list { display:flex; flex-direction:column; gap:10px; }
+.bc-match-item {
+  display:flex; align-items:center; gap:14px;
+  background:white; border-radius:10px; padding:12px 14px;
+  border:1px solid #F0F0F0;
+}
+.bc-match-logo {
+  width:38px; height:38px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  color:white; font-size:14px; font-weight:700; flex-shrink:0;
+}
+.bc-match-info { flex:1; min-width:0; }
+.bc-match-name { font-size:14px; font-weight:600; color:#171A21; display:flex; align-items:center; gap:6px; }
+.bc-match-meta { font-size:12px; color:#9AA0AE; margin-top:2px; }
+.bc-match-status {
+  font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px;
+  flex-shrink:0;
+}
+.bc-match-status.responded { background:#F0F9F9; color:#0F6F73; }
+.bc-match-status.viewed    { background:#FFF6EC; color:#E06B00; }
+.bc-match-status.notified  { background:#F4F5F7; color:#9AA0AE; }
+
+/* Empty state */
+.bh-empty {
+  text-align:center; padding:60px 20px;
+  background:white; border-radius:16px; border:1px dashed #C8CDD7;
+}
+.bh-empty-icon {
+  width:56px; height:56px; border-radius:14px;
+  background:#F0F9F9; display:flex; align-items:center; justify-content:center;
+  margin:0 auto 16px;
+}
+
+/* ── Mobile ───────────────────────────────────────────────── */
+@media (max-width:900px) {
+  .bh-kpi-row { grid-template-columns:1fr 1fr; }
+  .bc-card-body { grid-template-columns:1fr 1fr; }
+}
+@media (max-width:560px) {
+  .bh-kpi-row { grid-template-columns:1fr 1fr; }
+  .bc-card-body { grid-template-columns:1fr; gap:10px; }
+  .bc-card-header { padding:16px 16px 12px; }
+  .bc-card-body, .bc-matches, .bc-expanded { padding-left:16px; padding-right:16px; }
+}
+</style>
+</head>
+<body>
+<div class="main-with-sidebar">
+  <div class="page-body">
+
+    <!-- Page intro -->
+    <div class="page-intro">
+      <div class="page-intro-text">
+        <h2 data-i18n-en="Broadcast History" data-i18n-th="ประวัติประกาศ">Broadcast History</h2>
+        <p data-i18n-en="All your service requests in one place — see who saw, viewed, and responded." data-i18n-th="คำขอบริการทั้งหมดของคุณในที่เดียว — ดูใครรับ ดู และตอบกลับ">All your service requests in one place — see who saw, viewed, and responded.</p>
+      </div>
+      <a href="Find Providers.html" class="btn btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        <span data-i18n-en="Send New Broadcast" data-i18n-th="ส่งประกาศใหม่">Send New Broadcast</span>
+      </a>
+    </div>
+
+    <!-- KPI strip -->
+    <div class="bh-kpi-row">
+      <div class="bh-kpi">
+        <div class="bh-kpi-val">12</div>
+        <div class="bh-kpi-label" data-i18n-en="Total Broadcasts" data-i18n-th="ประกาศทั้งหมด">Total Broadcasts</div>
+        <div class="bh-kpi-delta" data-i18n-en="↑ 3 this month" data-i18n-th="↑ 3 ในเดือนนี้">↑ 3 this month</div>
+      </div>
+      <div class="bh-kpi">
+        <div class="bh-kpi-val" style="color:#0F6F73;">3</div>
+        <div class="bh-kpi-label" data-i18n-en="Open Requests" data-i18n-th="คำขอที่เปิดอยู่">Open Requests</div>
+        <div class="bh-kpi-delta" style="color:#9AA0AE;" data-i18n-en="Awaiting response" data-i18n-th="รอการตอบกลับ">Awaiting response</div>
+      </div>
+      <div class="bh-kpi">
+        <div class="bh-kpi-val" style="color:#F77F00;">7</div>
+        <div class="bh-kpi-label" data-i18n-en="Total Matches" data-i18n-th="การจับคู่ทั้งหมด">Total Matches</div>
+        <div class="bh-kpi-delta" data-i18n-en="↑ 2 vs last month" data-i18n-th="↑ 2 เทียบกับเดือนที่แล้ว">↑ 2 vs last month</div>
+      </div>
+      <div class="bh-kpi">
+        <div class="bh-kpi-val">28%</div>
+        <div class="bh-kpi-label" data-i18n-en="Response Rate" data-i18n-th="อัตราการตอบกลับ">Response Rate</div>
+        <div class="bh-kpi-delta" data-i18n-en="↑ 4% vs last month" data-i18n-th="↑ 4% เทียบกับเดือนที่แล้ว">↑ 4% vs last month</div>
+      </div>
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="filterStatus('all', this)"><span data-i18n-en="All" data-i18n-th="ทั้งหมด">All</span> <span class="filter-tab-count">12</span></button>
+      <button class="filter-tab" onclick="filterStatus('open', this)"><span data-i18n-en="Open" data-i18n-th="เปิด">Open</span> <span class="filter-tab-count">3</span></button>
+      <button class="filter-tab" onclick="filterStatus('matched', this)"><span data-i18n-en="Matched" data-i18n-th="จับคู่แล้ว">Matched</span> <span class="filter-tab-count">5</span></button>
+      <button class="filter-tab" onclick="filterStatus('closed', this)"><span data-i18n-en="Closed" data-i18n-th="ปิด">Closed</span> <span class="filter-tab-count">3</span></button>
+      <button class="filter-tab" onclick="filterStatus('expired', this)"><span data-i18n-en="Expired" data-i18n-th="หมดอายุ">Expired</span> <span class="filter-tab-count">1</span></button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="bh-toolbar">
+      <div class="bh-search-wrap">
+        <span class="bh-search-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+        <input type="text" class="bh-search" placeholder="Search by service, client, or description…" data-i18n-en-ph="Search by service, client, or description…" data-i18n-th-ph="ค้นหาตามบริการ ลูกค้า หรือคำอธิบาย…" oninput="filterSearch(this.value)">
+      </div>
+      <select class="input select" style="width:170px;padding:9px 12px;font-size:13px;" onchange="sortBroadcasts(this.value)">
+        <option value="newest" data-i18n-en="Sort: Newest first" data-i18n-th="เรียง: ล่าสุดก่อน">Sort: Newest first</option>
+        <option value="oldest" data-i18n-en="Sort: Oldest first" data-i18n-th="เรียง: เก่าสุดก่อน">Sort: Oldest first</option>
+        <option value="matches" data-i18n-en="Sort: Most matches" data-i18n-th="เรียง: จับคู่มากที่สุด">Sort: Most matches</option>
+      </select>
+    </div>
+
+    <!-- Broadcast cards list -->
+    <div class="broadcast-list" id="broadcast-list"></div>
+
+  </div>
+</div>
+
+<!-- Confirm close modal -->
+<div class="modal-backdrop" id="close-modal" style="display:none;">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      <div class="modal-title" data-i18n-en="Close this broadcast?" data-i18n-th="ปิดประกาศนี้?">Close this broadcast?</div>
+      <button class="modal-close" onclick="closeCloseModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:#6B7385;line-height:1.65;margin-bottom:20px;" data-i18n-en="Once closed, providers will no longer be able to respond. You can still see the history but matches will be archived." data-i18n-th="เมื่อปิดแล้ว ผู้ให้บริการจะไม่สามารถตอบกลับได้อีก คุณยังสามารถดูประวัติได้แต่การจับคู่จะถูกเก็บถาวร">Once closed, providers will no longer be able to respond. You can still see the history but matches will be archived.</p>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn btn-ghost" onclick="closeCloseModal()" data-i18n-en="Cancel" data-i18n-th="ยกเลิก">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmClose()" data-i18n-en="Close broadcast" data-i18n-th="ปิดประกาศ">Close broadcast</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" style="display:none;position:fixed;bottom:32px;right:32px;z-index:999;background:white;border-radius:12px;padding:14px 18px;box-shadow:0 8px 32px rgba(15,111,115,0.18);border:1px solid rgba(15,111,115,0.2);align-items:center;gap:10px;font-size:14px;font-weight:600;color:#0F6F73;">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toast-msg"></span>
+</div>
+
+<script src="i18n.js"></script>
+<script src="dashboard-shell.js"></script>
+<script>
+profindleGuard('Broadcast History');
+initDashboard('history', window.profindleI18n.t('Broadcast History','ประวัติประกาศ'));
+window.addEventListener('profindle:lang-change', () => {
+  const h = document.querySelector('.page-title');
+  if (h) h.textContent = window.profindleI18n.t('Broadcast History','ประวัติประกาศ');
+  renderBroadcasts();
+});
+
+// ── Mock data ─────────────────────────────────────────────
+const BROADCASTS = [
+  {
+    id:'BC-2026-0012', status:'open', date:'May 24, 2026 · 2 days ago',
+    title:'SEO Optimization for E-commerce Store',
+    service:'SEO / SEM Services', client:'Central Retail Corp.',
+    budget:'฿100,000 – ฿500,000', timeline:'1–3 months',
+    description:'Looking for an experienced SEO agency to overhaul our e-commerce platform. Need a complete technical audit, keyword strategy, and ongoing content support. Thai + English market.',
+    matches:[
+      { initial:'J', color:'linear-gradient(135deg,#0F6F73,#1A9DA3)', name:'Jaidee Solutions', verified:true, premium:true, location:'Bangkok', status:'responded' },
+      { initial:'D', color:'linear-gradient(135deg,#1A9DA3,#2BBEC5)', name:'DataBridge Consulting', verified:true, premium:true, location:'Bangkok', status:'viewed' },
+      { initial:'S', color:'linear-gradient(135deg,#F77F00,#E06B00)', name:'Sunrise Creative', verified:true, premium:true, location:'Chiang Mai', status:'viewed' },
+      { initial:'T', color:'linear-gradient(135deg,#22262F,#444B5A)', name:'TechVenture Co.', verified:false, premium:false, location:'Bangkok', status:'notified' },
+    ]
+  },
+  {
+    id:'BC-2026-0011', status:'matched', date:'May 21, 2026 · 5 days ago',
+    title:'Brand Identity Design for Restaurant Chain',
+    service:'Brand Identity Design', client:'Spice & Co. Thailand',
+    budget:'฿500,001 – ฿1,000,000', timeline:'Within 1 month',
+    description:'Need a complete brand identity refresh — logo, packaging, signage system, brand guidelines. We have 12 outlets across Bangkok.',
+    matches:[
+      { initial:'S', color:'linear-gradient(135deg,#F77F00,#E06B00)', name:'Sunrise Creative', verified:true, premium:true, location:'Chiang Mai', status:'responded' },
+      { initial:'P', color:'linear-gradient(135deg,#2BBEC5,#0F6F73)', name:'Phuket Media Hub', verified:true, premium:true, location:'Phuket', status:'responded' },
+      { initial:'L', color:'linear-gradient(135deg,#444B5A,#22262F)', name:'Luma Design Studio', verified:true, premium:false, location:'Bangkok', status:'responded' },
+    ]
+  },
+  {
+    id:'BC-2026-0010', status:'open', date:'May 18, 2026 · 8 days ago',
+    title:'LINE OA Marketing Automation',
+    service:'Social Media Marketing', client:'MBK Group',
+    budget:'฿50,000 – ฿100,000', timeline:'ASAP',
+    description:'Set up automated LINE Official Account flows for customer support and promotions. Integration with our existing CRM is a must.',
+    matches:[
+      { initial:'J', color:'linear-gradient(135deg,#0F6F73,#1A9DA3)', name:'Jaidee Solutions', verified:true, premium:true, location:'Bangkok', status:'responded' },
+      { initial:'B', color:'linear-gradient(135deg,#2BBEC5,#1A9DA3)', name:'BotMaker Thailand', verified:false, premium:false, location:'Bangkok', status:'notified' },
+    ]
+  },
+  {
+    id:'BC-2026-0009', status:'matched', date:'May 12, 2026',
+    title:'Annual Corporate Audit',
+    service:'Audit Services', client:'',
+    budget:'Confidential', timeline:'Within 1 month',
+    description:'Listed company in SET requires annual statutory audit. Must be a CPA firm with experience auditing public companies in Thailand.',
+    matches:[
+      { initial:'N', color:'linear-gradient(135deg,#0F6F73,#0a5457)', name:'Nara Accounting', verified:true, premium:false, location:'Bangkok', status:'responded' },
+      { initial:'A', color:'linear-gradient(135deg,#444B5A,#22262F)', name:'AsianAudit Co.', verified:true, premium:true, location:'Bangkok', status:'responded' },
+    ]
+  },
+  {
+    id:'BC-2026-0008', status:'closed', date:'May 5, 2026',
+    title:'Mobile App Development — Food Delivery',
+    service:'Mobile App Development', client:'FoodieGo Thailand',
+    budget:'฿1,000,001 – ฿5,000,000', timeline:'1–3 months',
+    description:'Native iOS + Android food delivery app with Stripe + KBank payment, real-time tracking, and merchant portal. MVP in 12 weeks.',
+    matches:[
+      { initial:'T', color:'linear-gradient(135deg,#22262F,#444B5A)', name:'TechVenture Co.', verified:false, premium:false, location:'Bangkok', status:'responded' },
+      { initial:'D', color:'linear-gradient(135deg,#1A9DA3,#2BBEC5)', name:'DataBridge Consulting', verified:true, premium:true, location:'Bangkok', status:'responded' },
+      { initial:'C', color:'linear-gradient(135deg,#F77F00,#FF9A2E)', name:'Codex Studio', verified:true, premium:false, location:'Bangkok', status:'viewed' },
+    ]
+  },
+  {
+    id:'BC-2026-0007', status:'open', date:'May 2, 2026',
+    title:'Event Photography for Product Launch',
+    service:'Event Photography & Videography', client:'Samsung Thailand',
+    budget:'฿50,000 – ฿100,000', timeline:'Within 1 week',
+    description:'2-day product launch event in Bangkok. Need a photographer + videographer team. Final deliverables in 5 business days.',
+    matches:[
+      { initial:'P', color:'linear-gradient(135deg,#2BBEC5,#0F6F73)', name:'Phuket Media Hub', verified:true, premium:true, location:'Phuket', status:'viewed' },
+    ]
+  },
+  {
+    id:'BC-2026-0006', status:'expired', date:'Apr 14, 2026',
+    title:'Legal Review of Distribution Contract',
+    service:'Contract Drafting & Review', client:'Acme Industries',
+    budget:'Under ฿50,000', timeline:'Within 1 week',
+    description:'Need a Thai corporate lawyer to review a distribution agreement with a Singaporean partner. 32 pages, English + Thai.',
+    matches:[]
+  },
+];
+
+let currentStatus = 'all';
+let currentSearch = '';
+let currentSort = 'newest';
+let expandedCards = new Set();
+
+renderBroadcasts();
+
+function renderBroadcasts() {
+  let list = [...BROADCASTS];
+
+  // Filter by status
+  if (currentStatus !== 'all') {
+    list = list.filter(b => b.status === currentStatus);
+  }
+
+  // Filter by search
+  if (currentSearch) {
+    const q = currentSearch.toLowerCase();
+    list = list.filter(b =>
+      b.title.toLowerCase().includes(q) ||
+      b.service.toLowerCase().includes(q) ||
+      (b.client && b.client.toLowerCase().includes(q)) ||
+      b.description.toLowerCase().includes(q)
+    );
+  }
+
+  // Sort
+  if (currentSort === 'matches') {
+    list.sort((a,b) => b.matches.length - a.matches.length);
+  }
+  // newest/oldest already in correct order in data; reverse for oldest
+  if (currentSort === 'oldest') {
+    list = [...list].reverse();
+  }
+
+  const container = document.getElementById('broadcast-list');
+
+  if (list.length === 0) {
+    const t = window.profindleI18n.t;
+    container.innerHTML = `
+      <div class="bh-empty">
+        <div class="bh-empty-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </div>
+        <div style="font-size:15px;font-weight:600;color:#171A21;margin-bottom:6px;">${t('No broadcasts found','ไม่พบประกาศ')}</div>
+        <div style="font-size:13px;color:#9AA0AE;margin-bottom:20px;">${t('Try a different filter or send your first broadcast request.','ลองเปลี่ยนตัวกรอง หรือส่งคำขอประกาศแรกของคุณ')}</div>
+        <a href="Find Providers.html" class="btn btn-primary btn-sm">${t('Send New Broadcast','ส่งประกาศใหม่')}</a>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = list.map(b => renderCard(b)).join('');
+}
+
+function renderCard(b) {
+  const t = window.profindleI18n.t;
+  const statusClass = 'status-' + b.status;
+  const statusLabel = {
+    open:    t('Open','เปิด'),
+    matched: t('Matched','จับคู่แล้ว'),
+    closed:  t('Closed','ปิด'),
+    expired: t('Expired','หมดอายุ'),
+  }[b.status];
+  const expanded = expandedCards.has(b.id);
+
+  return `
+  <div class="bc-card ${expanded ? 'expanded' : ''}" id="card-${b.id}">
+    <div class="bc-card-header">
+      <div style="flex:1;min-width:0;">
+        <div class="bc-card-meta">
+          <span class="bc-card-id">${b.id}</span>
+          <span class="status-pill ${statusClass}">${statusLabel}</span>
+        </div>
+        <div class="bc-card-title">${esc(b.title)}</div>
+      </div>
+      <div class="bc-card-actions">
+        ${b.status === 'open' ? `<button class="btn btn-ghost btn-sm" onclick="openCloseModal('${b.id}')">${t('Close','ปิด')}</button>` : ''}
+        ${b.status === 'expired' ? `<button class="btn btn-secondary btn-sm" onclick="resend('${b.id}')">${t('Resend','ส่งใหม่')}</button>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="duplicateRequest('${b.id}')">${t('Duplicate','ทำซ้ำ')}</button>
+      </div>
+    </div>
+
+    <div class="bc-card-body">
+      <div class="bc-field">
+        <div class="bc-field-label">${t('Service','บริการ')}</div>
+        <div class="bc-field-value">${esc(b.service)}</div>
+      </div>
+      <div class="bc-field">
+        <div class="bc-field-label">${t('Client','ลูกค้า')}</div>
+        <div class="bc-field-value ${b.client ? '' : 'muted'}">${b.client ? esc(b.client) : t('Not specified','ไม่ระบุ')}</div>
+      </div>
+      <div class="bc-field">
+        <div class="bc-field-label">${t('Budget','งบประมาณ')}</div>
+        <div class="bc-field-value">${esc(b.budget)}</div>
+      </div>
+      <div class="bc-field">
+        <div class="bc-field-label">${t('Timeline','ระยะเวลา')}</div>
+        <div class="bc-field-value">${esc(b.timeline)}</div>
+      </div>
+    </div>
+
+    <div class="bc-desc">
+      <div class="bc-desc-label">${t('Project Description','รายละเอียดโปรเจกต์')}</div>
+      ${esc(b.description)}
+    </div>
+
+    <div class="bc-matches" onclick="toggleExpand('${b.id}')" style="cursor:pointer;">
+      <div class="bc-matches-left">
+        ${b.matches.length > 0 ? `
+          <div class="bc-match-avatars">
+            ${b.matches.slice(0,4).map(m => `<div class="bc-match-avatar" style="background:${m.color};">${m.initial}</div>`).join('')}
+          </div>
+          <div class="bc-match-text">
+            <strong>${b.matches.length}</strong> ${t(b.matches.length === 1 ? 'provider' : 'providers', 'ผู้ให้บริการ')} ${t('notified','ได้รับแจ้ง')} ·
+            <strong style="color:#0F6F73;">${b.matches.filter(m => m.status === 'responded').length}</strong> ${t('responded','ตอบกลับ')}
+          </div>` : `
+          <div class="bc-match-text" style="color:#9AA0AE;">${t('No matching providers — try broadening your criteria','ไม่พบผู้ให้บริการที่ตรงกัน — ลองขยายเกณฑ์การค้นหา')}</div>`}
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="bc-date">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${esc(b.date)}
+        </div>
+        ${b.matches.length > 0 ? `
+          <svg class="bc-expand-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9AA0AE" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        ` : ''}
+      </div>
+    </div>
+
+    ${b.matches.length > 0 ? `
+    <div class="bc-expanded">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#9AA0AE;margin-bottom:10px;">${t('Provider Responses','การตอบกลับจากผู้ให้บริการ')}</div>
+      <div class="bc-match-list">
+        ${b.matches.map(m => `
+          <div class="bc-match-item">
+            <div class="bc-match-logo" style="background:${m.color};">${m.initial}</div>
+            <div class="bc-match-info">
+              <div class="bc-match-name">
+                ${esc(m.name)}
+                ${m.verified ? `<span class="badge badge-dark" style="font-size:9px;padding:1px 6px;">${t('Verified','ยืนยันแล้ว')}</span>` : ''}
+                ${m.premium ? `<span class="badge badge-amber" style="font-size:9px;padding:1px 6px;">✦ Pro</span>` : ''}
+              </div>
+              <div class="bc-match-meta">${esc(m.location)}</div>
+            </div>
+            <span class="bc-match-status ${m.status}">${
+              m.status === 'responded' ? '✓ ' + t('Responded','ตอบกลับแล้ว') :
+              m.status === 'viewed'    ? '👁 ' + t('Viewed','ดูแล้ว') :
+                                          '🔔 ' + t('Notified','แจ้งเตือนแล้ว')
+            }</span>
+            ${m.status === 'responded' ? `<a href="#" style="background:#06C755;color:white;font-size:12px;font-weight:600;padding:6px 12px;border-radius:8px;text-decoration:none;display:inline-flex;align-items:center;gap:5px;flex-shrink:0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.04 2 11c0 3.31 1.86 6.22 4.72 8.05L6 22l3.18-1.67C10.03 20.77 11 21 12 21c5.52 0 10-4.04 10-9S17.52 2 12 2z"/></svg>LINE</a>` : ''}
+          </div>`).join('')}
+      </div>
+    </div>` : ''}
+
+  </div>`;
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function filterStatus(status, btn) {
+  currentStatus = status;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderBroadcasts();
+}
+
+function filterSearch(val) {
+  currentSearch = val;
+  renderBroadcasts();
+}
+
+function sortBroadcasts(val) {
+  currentSort = val;
+  renderBroadcasts();
+}
+
+function toggleExpand(id) {
+  if (expandedCards.has(id)) expandedCards.delete(id);
+  else expandedCards.add(id);
+  const card = document.getElementById('card-' + id);
+  if (card) card.classList.toggle('expanded');
+}
+
+let cardToClose = null;
+function openCloseModal(id) { cardToClose = id; document.getElementById('close-modal').style.display = 'flex'; }
+function closeCloseModal() { cardToClose = null; document.getElementById('close-modal').style.display = 'none'; }
+function confirmClose() {
+  const b = BROADCASTS.find(b => b.id === cardToClose);
+  if (b) { b.status = 'closed'; renderBroadcasts(); showToast(window.profindleI18n.t('Broadcast closed.','ปิดประกาศแล้ว')); }
+  closeCloseModal();
+}
+
+function resend(id) {
+  const b = BROADCASTS.find(b => b.id === id);
+  if (b) { b.status = 'open'; b.date = window.profindleI18n.t('Just now','เมื่อสักครู่'); renderBroadcasts(); showToast(window.profindleI18n.t('Broadcast resent — providers notified via LINE.','ส่งประกาศใหม่แล้ว — แจ้งเตือนผู้ให้บริการทาง LINE แล้ว')); }
+}
+
+function duplicateRequest(id) {
+  window.location.href = 'Find Providers.html';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.style.display = 'flex';
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+</script>
+</body>
+</html>

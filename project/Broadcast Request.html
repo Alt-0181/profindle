@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Broadcast a Request — Profindle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ds.css">
+<link rel="stylesheet" href="i18n.css">
+<style>
+/* ── Layout ───────────────────────────────────────────── */
+.bc-page { max-width: 940px; margin: 0 auto; padding: 8px 0 60px; }
+
+/* Header */
+.bc-page-head { margin-bottom: 24px; }
+.bc-page-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: #0E1017; }
+.bc-page-sub { font-size: 14px; color: #6B7385; margin-top: 4px; line-height: 1.55; max-width: 620px; }
+
+/* Stepper */
+.bc-stepper {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+  margin-bottom: 28px;
+}
+.bc-step {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 12px 14px;
+  background: white;
+  border: 1.5px solid #E4E7ED;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+.bc-step:hover { border-color: rgba(15,111,115,0.4); }
+.bc-step.active { border-color: #0F6F73; box-shadow: 0 4px 18px rgba(15,111,115,0.14); background: #F0F9F9; }
+.bc-step.done { background: #F9FCFC; }
+.bc-step-row { display: flex; align-items: center; gap: 8px; }
+.bc-step-num {
+  width: 22px; height: 22px; border-radius: 999px;
+  background: #F4F5F7; color: #6B7385;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+.bc-step.active .bc-step-num { background: #0F6F73; color: white; }
+.bc-step.done .bc-step-num { background: #0F6F73; color: white; }
+.bc-step-label { font-size: 12px; font-weight: 700; color: #171A21; letter-spacing: -0.005em; }
+.bc-step.active .bc-step-label { color: #0F6F73; }
+.bc-step-sub { font-size: 11px; color: #9AA0AE; line-height: 1.35; }
+
+/* Card */
+.bc-card {
+  background: white; border-radius: 18px; border: 1px solid rgba(15,111,115,0.10);
+  padding: 28px; margin-bottom: 16px;
+}
+.bc-card-title { font-size: 17px; font-weight: 700; color: #171A21; letter-spacing: -0.01em; }
+.bc-card-sub { font-size: 13px; color: #6B7385; margin-top: 4px; line-height: 1.55; }
+.bc-card-body { margin-top: 22px; }
+
+/* Step body wrapper */
+.bc-step-body { display: none; }
+.bc-step-body.active { display: block; }
+
+/* Field labels */
+.bc-field-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+  color: #6B7385; text-transform: uppercase;
+  margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+}
+.bc-field-label .req { color: #FF5A5F; font-size: 10px; }
+.bc-field-label .opt { color: #9AA0AE; font-weight: 500; letter-spacing: 0; text-transform: none; font-size: 11px; }
+
+/* Service category — search + suggestions */
+.bc-search-wrap { position: relative; }
+.bc-search-box {
+  display: flex; align-items: center; gap: 10px;
+  border: 1.5px solid #E4E7ED;
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: white;
+  transition: border-color 150ms, box-shadow 150ms;
+  min-height: 56px;
+}
+.bc-search-box:focus-within {
+  border-color: #0F6F73;
+  box-shadow: 0 0 0 4px rgba(15,111,115,0.08);
+}
+.bc-search-icon { color: #9AA0AE; flex-shrink: 0; display: flex; }
+.bc-search-input {
+  flex: 1; border: none; outline: none; background: transparent;
+  font-family: inherit; font-size: 15px; color: #171A21;
+  font-weight: 500; min-width: 0;
+}
+.bc-search-input::placeholder { color: #9AA0AE; font-weight: 400; }
+
+.bc-selected-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg,#0F6F73,#1A9DA3);
+  color: white;
+  border-radius: 10px;
+  padding: 6px 8px 6px 8px;
+  font-size: 14px; font-weight: 600;
+  max-width: 100%;
+}
+.bc-selected-pill .pill-icon {
+  width: 24px; height: 24px; border-radius: 6px;
+  background: rgba(255,255,255,0.18);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.bc-selected-pill .pill-icon svg { width: 14px; height: 14px; }
+.bc-selected-pill .pill-text {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bc-selected-pill .pill-remove {
+  border: none; background: rgba(255,255,255,0.2);
+  cursor: pointer; width: 22px; height: 22px; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  color: white; padding: 0; flex-shrink: 0;
+}
+.bc-selected-pill .pill-remove:hover { background: rgba(255,255,255,0.35); }
+
+.bc-suggest-dropdown {
+  position: absolute; left: 0; right: 0; top: calc(100% + 8px);
+  background: white;
+  border: 1px solid #E4E7ED;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(23,26,33,0.12);
+  padding: 6px;
+  max-height: 340px; overflow-y: auto;
+  z-index: 20;
+}
+.bc-suggest-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: 10px;
+  cursor: pointer; transition: background 100ms;
+  width: 100%; border: none; background: transparent;
+  font-family: inherit; text-align: left;
+}
+.bc-suggest-item:hover { background: #F0F9F9; }
+.bc-suggest-item-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.bc-suggest-item-icon svg { width: 18px; height: 18px; }
+.bc-suggest-item-text { flex: 1; min-width: 0; }
+.bc-suggest-item-name { font-size: 14px; font-weight: 600; color: #171A21; }
+.bc-suggest-item-meta { font-size: 12px; color: #6B7385; margin-top: 2px; }
+.bc-suggest-item.custom .bc-suggest-item-icon {
+  background: linear-gradient(135deg,#F77F00,#E06B00); color: white;
+}
+.bc-suggest-divider { height: 1px; background: #F0F1F4; margin: 6px 6px; }
+.bc-suggest-section-label {
+  font-size: 11px; font-weight: 700; color: #9AA0AE;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 10px 12px 4px;
+}
+
+.bc-popular-row { margin-top: 18px; }
+.bc-popular-label {
+  font-size: 12px; font-weight: 600; color: #6B7385;
+  margin-bottom: 10px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.bc-popular-chips {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.bc-popular-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px 8px 8px;
+  background: white;
+  border: 1px solid #E4E7ED;
+  border-radius: 999px;
+  font-size: 13px; font-weight: 600; color: #444B5A;
+  font-family: inherit; cursor: pointer;
+  transition: all 150ms;
+}
+.bc-popular-chip:hover {
+  border-color: #0F6F73; color: #0F6F73;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(15,111,115,0.10);
+}
+.bc-popular-chip-icon {
+  width: 22px; height: 22px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.bc-popular-chip-icon svg { width: 12px; height: 12px; }
+
+/* Browse-by-industry (JobsDB-style drill-down) */
+.bc-browse-label {
+  font-size: 12px; font-weight: 600; color: #6B7385;
+  margin-bottom: 10px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.bc-browse-list {
+  border: 1px solid #E4E7ED;
+  border-radius: 14px;
+  background: white;
+  max-height: 360px; overflow-y: auto;
+}
+.bc-browse-row {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: white; border: none;
+  border-bottom: 1px solid #F0F1F4;
+  font-family: inherit; text-align: left;
+  cursor: pointer; transition: background 100ms;
+}
+.bc-browse-row:last-child { border-bottom: none; }
+.bc-browse-row:hover { background: #F0F9F9; }
+.bc-browse-row-name {
+  flex: 1; min-width: 0;
+  font-size: 14px; font-weight: 600; color: #171A21;
+  overflow-wrap: anywhere;
+}
+.bc-browse-row-count {
+  font-size: 13px; font-weight: 600; color: #6B7385;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.bc-browse-row-chev {
+  color: #9AA0AE; flex-shrink: 0;
+}
+.bc-browse-row.service .bc-browse-row-name { font-weight: 500; }
+.bc-browse-row.service:hover { background: rgba(15,111,115,0.06); }
+.bc-browse-row.service .bc-browse-row-chev { color: #0F6F73; }
+.bc-browse-row.custom {
+  background: linear-gradient(135deg, #FFF6EC 0%, #FFFFFF 100%);
+  border-top: 1px dashed #F77F00;
+}
+.bc-browse-row.custom .bc-browse-row-name {
+  color: #E06B00; font-weight: 600;
+}
+.bc-browse-row.custom .bc-browse-row-chev { color: #F77F00; }
+
+.bc-browse-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent; border: none;
+  color: #0F6F73; font-family: inherit;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; padding: 4px 0;
+  margin-bottom: 12px;
+}
+.bc-browse-back:hover { color: #1A9DA3; }
+
+.bc-browse-detail-head {
+  display: flex; align-items: baseline; gap: 12px;
+  padding: 0 0 12px 2px;
+}
+.bc-browse-detail-name {
+  font-size: 16px; font-weight: 700; color: #171A21;
+}
+.bc-browse-detail-count {
+  font-size: 12px; color: #9AA0AE; font-weight: 500;
+}
+
+/* Service category cards (legacy — kept for reference) */
+.bc-cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.bc-cat-card {
+  position: relative;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 16px 16px 18px;
+  background: white;
+  border: 1.5px solid #E4E7ED;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: inherit; text-align: left;
+  transition: all 150ms;
+  isolation: isolate;
+}
+.bc-cat-card:hover { border-color: rgba(15,111,115,0.4); transform: translateY(-1px); }
+.bc-cat-card.active {
+  border-color: #0F6F73;
+  background: linear-gradient(135deg, #F0F9F9 0%, #FFFFFF 100%);
+  box-shadow: 0 4px 14px rgba(15,111,115,0.12);
+}
+.bc-cat-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+}
+.bc-cat-card.active .bc-cat-tick {
+  position: absolute; top: 12px; right: 12px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #0F6F73; color: white;
+  display: flex; align-items: center; justify-content: center;
+}
+.bc-cat-tick { display: none; }
+.bc-cat-name { font-size: 14px; font-weight: 700; color: #171A21; }
+.bc-cat-th { font-size: 12px; color: #6B7385; font-family: 'Sarabun', sans-serif; }
+.bc-cat-count { font-size: 11px; color: #9AA0AE; margin-top: 2px; }
+
+/* Bilingual field (for description) */
+.bc-bilingual { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.bc-bilingual-block { display: flex; flex-direction: column; gap: 6px; }
+.bc-bilingual-flag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: #6B7385;
+}
+.bc-bilingual-flag .pill {
+  background: #F4F5F7; border: 1px solid #E4E7ED; border-radius: 4px; padding: 1px 6px; color: #444B5A;
+}
+.bc-bilingual-flag.required .pill {
+  background: #F0F9F9; border-color: rgba(15,111,115,0.25); color: #0F6F73;
+}
+.bc-textarea {
+  width: 100%; min-height: 100px; padding: 12px 14px;
+  border: 1.5px solid #E4E7ED; border-radius: 10px;
+  font-family: inherit; font-size: 14px; color: #171A21;
+  resize: vertical; outline: none;
+  transition: border-color 150ms;
+}
+.bc-textarea:focus { border-color: #0F6F73; }
+.bc-counter {
+  font-size: 11px; color: #9AA0AE;
+  font-variant-numeric: tabular-nums;
+  margin-top: 4px;
+}
+.bc-counter.warn { color: #E06B00; }
+.bc-counter.danger { color: #E04347; }
+
+/* Single input */
+.bc-input {
+  width: 100%; padding: 10px 14px;
+  border: 1.5px solid #E4E7ED; border-radius: 10px;
+  font-family: inherit; font-size: 14px; color: #171A21;
+  outline: none; transition: border-color 150ms; background: white;
+}
+.bc-input:focus { border-color: #0F6F73; }
+
+/* Pill / chip options (budget, timeline) */
+.bc-chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.bc-chip {
+  padding: 10px 16px;
+  background: white;
+  border: 1.5px solid #E4E7ED;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px; font-weight: 600;
+  color: #444B5A;
+  transition: all 150ms;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.bc-chip:hover { border-color: rgba(15,111,115,0.4); color: #0F6F73; }
+.bc-chip.active {
+  background: #0F6F73; border-color: #0F6F73; color: white;
+}
+.bc-chip .bc-chip-sub { font-size: 11px; opacity: 0.7; font-weight: 500; }
+.bc-chip.active .bc-chip-sub { opacity: 0.85; }
+
+/* Field grid */
+.bc-field { margin-bottom: 20px; }
+.bc-field:last-child { margin-bottom: 0; }
+
+/* Footer / nav */
+.bc-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-top: 22px;
+  padding: 16px 0 0;
+  border-top: 1px solid #F4F5F7;
+}
+.bc-foot-info {
+  font-size: 12px; color: #6B7385; line-height: 1.5;
+}
+.bc-foot-info strong { color: #171A21; }
+.bc-foot-actions { display: flex; gap: 10px; flex-shrink: 0; }
+.bc-btn-back {
+  background: white; border: 1.5px solid #E4E7ED; color: #444B5A;
+  padding: 9px 18px; border-radius: 10px; font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+  transition: border-color 150ms;
+}
+.bc-btn-back:hover { border-color: rgba(15,111,115,0.5); color: #0F6F73; }
+.bc-btn-next {
+  background: linear-gradient(135deg, #0F6F73 0%, #1A9DA3 100%);
+  color: white; border: none;
+  padding: 10px 22px; border-radius: 10px;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: box-shadow 150ms, transform 100ms;
+}
+.bc-btn-next:hover { box-shadow: 0 6px 20px rgba(15,111,115,0.28); }
+.bc-btn-next:disabled { background: #C8CDD7; cursor: not-allowed; box-shadow: none; }
+.bc-btn-send {
+  background: linear-gradient(135deg, #F77F00 0%, #E06B00 100%);
+  color: white; border: none;
+  padding: 11px 22px; border-radius: 10px;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: box-shadow 150ms;
+}
+.bc-btn-send:hover { box-shadow: 0 6px 20px rgba(247,127,0,0.36); }
+
+/* Plan warning */
+.bc-plan-banner {
+  display: flex; align-items: center; gap: 12px;
+  background: linear-gradient(135deg, #FFFBF5, #FFF8EE);
+  border: 1px solid rgba(247,127,0,0.25);
+  border-radius: 12px;
+  padding: 12px 16px; margin-bottom: 20px;
+  font-size: 12.5px; line-height: 1.5;
+}
+.bc-plan-banner-icon {
+  width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+  background: linear-gradient(135deg,#F77F00,#E06B00);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+}
+.bc-plan-banner-text strong { color: #171A21; }
+
+/* Review screen styles */
+.bc-review-row {
+  display: grid; grid-template-columns: 140px 1fr;
+  align-items: start; gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #F4F5F7;
+}
+.bc-review-row:last-child { border-bottom: none; }
+.bc-review-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+  color: #9AA0AE; text-transform: uppercase; padding-top: 3px;
+}
+.bc-review-value { font-size: 14px; color: #171A21; line-height: 1.55; }
+.bc-review-value .bc-review-th {
+  display: block; font-family: 'Sarabun', sans-serif; color: #6B7385; margin-top: 4px;
+}
+.bc-review-edit {
+  background: none; border: none; color: #0F6F73;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  margin-left: 8px; padding: 0; font-family: inherit;
+}
+.bc-review-edit:hover { text-decoration: underline; }
+
+/* Matched-providers preview on review */
+.bc-match-card {
+  background: linear-gradient(135deg, #171A21, #0F6F73);
+  border-radius: 14px;
+  padding: 18px 20px;
+  color: white;
+  margin-top: 8px;
+  position: relative; overflow: hidden;
+}
+.bc-match-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 50% 80% at 90% 50%, rgba(247,127,0,0.18), transparent 60%);
+  pointer-events: none;
+}
+.bc-match-count {
+  font-size: 28px; font-weight: 700; letter-spacing: -0.02em;
+  position: relative; z-index: 1;
+  background: linear-gradient(90deg, #FFFFFF 0%, #FDD0A0 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.bc-match-label {
+  font-size: 12px; color: rgba(255,255,255,0.65); position: relative; z-index: 1;
+}
+.bc-match-avatars {
+  display: flex; margin-top: 14px; position: relative; z-index: 1;
+}
+.bc-match-avatar {
+  width: 32px; height: 32px; border-radius: 50%; border: 2px solid #1A4E50;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: white;
+  margin-right: -8px;
+}
+.bc-match-avatar:nth-child(1) { background: linear-gradient(135deg,#0F6F73,#1A9DA3); }
+.bc-match-avatar:nth-child(2) { background: linear-gradient(135deg,#F77F00,#E06B00); }
+.bc-match-avatar:nth-child(3) { background: linear-gradient(135deg,#22262F,#444B5A); }
+.bc-match-avatar:nth-child(4) { background: linear-gradient(135deg,#2BBEC5,#0F6F73); }
+.bc-match-avatar.more {
+  background: rgba(255,255,255,0.18); font-size: 10px; font-weight: 700;
+}
+
+/* ── Success screen ──────────────────────────────────── */
+.bc-success {
+  background: white; border-radius: 18px;
+  border: 1px solid rgba(15,111,115,0.10);
+  padding: 48px 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.bc-success::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 50% 60% at 50% 0%, rgba(15,111,115,0.06), transparent 70%),
+    radial-gradient(ellipse 30% 40% at 50% 100%, rgba(247,127,0,0.05), transparent 70%);
+  pointer-events: none;
+}
+.bc-success-burst {
+  width: 84px; height: 84px; margin: 0 auto 20px; position: relative; z-index: 1;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0F6F73 0%, #1A9DA3 100%);
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+  box-shadow: 0 12px 32px rgba(15,111,115,0.32);
+}
+.bc-success-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: #0E1017; position: relative; z-index: 1; }
+.bc-success-sub { font-size: 14px; color: #6B7385; margin-top: 8px; max-width: 460px; margin-left: auto; margin-right: auto; line-height: 1.55; position: relative; z-index: 1; }
+
+.bc-next-steps {
+  margin: 28px auto 0; max-width: 540px; text-align: left;
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.bc-next-step {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 14px 16px;
+  background: #FAFCFC;
+  border: 1px solid #E4E7ED;
+  border-radius: 12px;
+}
+.bc-next-step-num {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+  background: linear-gradient(135deg, #0F6F73, #1A9DA3);
+  color: white; font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.bc-next-step-text { font-size: 13px; color: #444B5A; line-height: 1.55; }
+.bc-next-step-text strong { color: #171A21; }
+
+.bc-success-actions {
+  margin-top: 28px;
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  position: relative; z-index: 1;
+}
+
+/* Mobile */
+@media (max-width: 760px) {
+  .bc-stepper { grid-template-columns: 1fr 1fr; }
+  .bc-cat-grid { grid-template-columns: 1fr 1fr; }
+  .bc-bilingual { grid-template-columns: 1fr; }
+  .bc-review-row { grid-template-columns: 1fr; gap: 4px; }
+  .bc-card { padding: 22px 18px; }
+  .bc-foot { flex-direction: column; align-items: stretch; }
+  .bc-foot-actions { width: 100%; }
+  .bc-foot-actions button { flex: 1; }
+}
+</style>
+<script src="industries-data.js"></script>
+<script src="i18n.js"></script>
+</head>
+<body>
+
+<div class="main-with-sidebar">
+  <div class="page-body">
+
+    <div class="bc-page">
+
+      <!-- Header -->
+      <div class="bc-page-head">
+        <div class="bc-page-title" data-i18n-en="Broadcast Request" data-i18n-th="ประกาศหาผู้ให้บริการ">Broadcast Request</div>
+        <p class="bc-page-sub" data-i18n-en="Briefly describe the service you need here. Matching premium providers get notified instantly on LINE and will contact you back within hours." data-i18n-th="เพียงแค่อธิบาย Service ที่ต้องการแบบสั้นๆในนี้ ผู้ให้บริการระดับ Premium ที่ตรงกับเงื่อนไขจะได้รับแจ้งเตือนทันทีผ่าน LINE และติดต่อกลับหาคุณภายในไม่กี่ชั่วโมง">Briefly describe the service you need here. Matching premium providers get notified instantly on LINE and will contact you back within hours.</p>
+      </div>
+
+      <!-- Stepper -->
+      <div class="bc-stepper" id="stepper">
+        <div class="bc-step active" data-step="1" onclick="goToStep(1)">
+          <div class="bc-step-row">
+            <span class="bc-step-num">1</span>
+            <span class="bc-step-label" data-i18n-en="Service" data-i18n-th="บริการ">Service</span>
+          </div>
+          <div class="bc-step-sub" data-i18n-en="What do you need?" data-i18n-th="คุณต้องการบริการอะไร">What do you need?</div>
+        </div>
+        <div class="bc-step" data-step="2" onclick="goToStep(2)">
+          <div class="bc-step-row">
+            <span class="bc-step-num">2</span>
+            <span class="bc-step-label" data-i18n-en="Details" data-i18n-th="รายละเอียด">Details</span>
+          </div>
+          <div class="bc-step-sub" data-i18n-en="Describe your project" data-i18n-th="อธิบายโปรเจกต์ของคุณ">Describe your project</div>
+        </div>
+        <div class="bc-step" data-step="3" onclick="goToStep(3)">
+          <div class="bc-step-row">
+            <span class="bc-step-num">3</span>
+            <span class="bc-step-label" data-i18n-en="Budget &amp; time" data-i18n-th="งบ &amp; เวลา">Budget &amp; time</span>
+          </div>
+          <div class="bc-step-sub" data-i18n-en="Filter the matches" data-i18n-th="ใช้คัดเลือกผู้ให้บริการ">Filter the matches</div>
+        </div>
+        <div class="bc-step" data-step="4" onclick="goToStep(4)">
+          <div class="bc-step-row">
+            <span class="bc-step-num">4</span>
+            <span class="bc-step-label" data-i18n-en="Review" data-i18n-th="ตรวจสอบ">Review</span>
+          </div>
+          <div class="bc-step-sub" data-i18n-en="Confirm &amp; send" data-i18n-th="ยืนยันและส่ง">Confirm &amp; send</div>
+        </div>
+      </div>
+
+      <!-- Plan banner (free user) -->
+      <div class="bc-plan-banner" id="bc-plan-banner">
+        <div class="bc-plan-banner-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="bc-plan-banner-text">
+          <strong data-i18n-en="Free plan:" data-i18n-th="แพ็กเกจฟรี:">Free plan:</strong>
+          <span data-i18n-en=" 4 broadcasts / month — you have 4 left this month. Premium users get unlimited broadcasts." data-i18n-th=" 4 ครั้ง / เดือน — เดือนนี้คุณยังเหลือ 4 ครั้ง สมาชิก Premium ส่งได้ไม่จำกัด"> 4 broadcasts / month — you have 4 left this month. Premium users get unlimited broadcasts.</span>
+        </div>
+      </div>
+
+      <!-- ─────────────── STEP 1: SERVICE ─────────────── -->
+      <div class="bc-step-body active" data-step-body="1">
+        <div class="bc-card">
+          <div class="bc-card-title" data-i18n-en="What service do you need?" data-i18n-th="คุณต้องการบริการประเภทไหน?">What service do you need?</div>
+          <p class="bc-card-sub" data-i18n-en="Pick the closest match. You can add detail next." data-i18n-th="เลือกที่ใกล้เคียงที่สุด คุณจะสามารถอธิบายเพิ่มเติมในขั้นต่อไป">Pick the closest match. You can add detail next.</p>
+
+          <div class="bc-card-body">
+            <div class="bc-search-wrap">
+              <div class="bc-search-box" id="bc-search-box"></div>
+              <div class="bc-suggest-dropdown" id="bc-suggest-dropdown" style="display:none;"></div>
+            </div>
+            <div class="bc-popular-row" id="bc-popular-row"></div>
+          </div>
+        </div>
+
+        <div class="bc-foot">
+          <div class="bc-foot-info" id="bc-step1-info">
+            <span data-i18n-en="Step 1 of 4" data-i18n-th="ขั้นตอนที่ 1 จาก 4">Step 1 of 4</span>
+          </div>
+          <div class="bc-foot-actions">
+            <button class="bc-btn-next" id="bc-step1-next" onclick="goToStep(2)" disabled>
+              <span data-i18n-en="Next: Details" data-i18n-th="ถัดไป: รายละเอียด">Next: Details</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────────── STEP 2: DETAILS ─────────────── -->
+      <div class="bc-step-body" data-step-body="2">
+        <div class="bc-card">
+          <div class="bc-card-title" data-i18n-en="Describe your project" data-i18n-th="อธิบายโปรเจกต์">Describe your project</div>
+          <p class="bc-card-sub" data-i18n-en="The clearer you are, the better the matches. 300 character limit." data-i18n-th="ยิ่งชัดเจน ยิ่งได้ผู้ที่ตรงกับงาน จำกัด 300 ตัวอักษร">The clearer you are, the better the matches. 300 character limit.</p>
+
+          <div class="bc-card-body">
+
+            <div class="bc-field">
+              <div class="bc-field-label">
+                <span data-i18n-en="Project description" data-i18n-th="รายละเอียดโปรเจกต์">Project description</span>
+                <span class="req">*</span>
+              </div>
+              <textarea class="bc-textarea" id="bc-desc-en" maxlength="300" rows="5"
+                        placeholder="e.g. We need a new e-commerce site on Shopify with Thai–English bilingual support, payment gateway (Omise), and 2-week launch timeline."
+                        data-i18n-en-ph="e.g. We need a new e-commerce site on Shopify with Thai–English bilingual support, payment gateway (Omise), and 2-week launch timeline."
+                        data-i18n-th-ph="เช่น เราต้องการเว็บไซต์ e-commerce บน Shopify รองรับสองภาษา ไทย–อังกฤษ พร้อม payment gateway (Omise) เปิดให้ทันใน 2 สัปดาห์"
+                        oninput="updateDesc()"></textarea>
+              <div class="bc-counter" id="bc-desc-en-counter" style="text-align:right;margin-top:6px;">0 / 300</div>
+            </div>
+
+            <div class="bc-field">
+              <div class="bc-field-label">
+                <span data-i18n-en="Project title" data-i18n-th="ชื่อโปรเจกต์">Project title</span>
+                <span class="opt" data-i18n-en="(optional · helps providers scan)" data-i18n-th="(ไม่บังคับ · ช่วยให้ผู้ให้บริการเห็นภาพรวมได้เร็ว)">(optional · helps providers scan)</span>
+              </div>
+              <input type="text" class="bc-input" id="bc-title" placeholder="e.g. Shopify rebuild · 2-week launch"
+                     data-i18n-en-ph="e.g. Shopify rebuild · 2-week launch"
+                     data-i18n-th-ph="เช่น สร้างเว็บ Shopify ใหม่ · เปิดตัวใน 2 สัปดาห์">
+            </div>
+
+          </div>
+        </div>
+
+        <div class="bc-foot">
+          <div class="bc-foot-info"><span data-i18n-en="Step 2 of 4" data-i18n-th="ขั้นตอนที่ 2 จาก 4">Step 2 of 4</span></div>
+          <div class="bc-foot-actions">
+            <button class="bc-btn-back" onclick="goToStep(1)">
+              <span data-i18n-en="Back" data-i18n-th="ย้อนกลับ">Back</span>
+            </button>
+            <button class="bc-btn-next" id="bc-step2-next" onclick="goToStep(3)" disabled>
+              <span data-i18n-en="Next: Budget &amp; time" data-i18n-th="ถัดไป: งบ &amp; เวลา">Next: Budget &amp; time</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────────── STEP 3: BUDGET / TIME ─────────────── -->
+      <div class="bc-step-body" data-step-body="3">
+        <div class="bc-card">
+          <div class="bc-card-title" data-i18n-en="Budget, timeline &amp; location" data-i18n-th="งบประมาณ ระยะเวลา และพื้นที่">Budget, timeline &amp; location</div>
+          <p class="bc-card-sub" data-i18n-en="Helps us filter out mismatched providers." data-i18n-th="ช่วยกรองผู้ให้บริการที่ไม่ตรงกับเงื่อนไขออก">Helps us filter out mismatched providers.</p>
+
+          <div class="bc-card-body">
+
+            <div class="bc-field">
+              <div class="bc-field-label">
+                <span data-i18n-en="Budget range" data-i18n-th="งบประมาณ">Budget range</span>
+                <span class="req">*</span>
+              </div>
+              <div class="bc-chip-grid" id="bc-budget-grid"></div>
+            </div>
+
+            <div class="bc-field">
+              <div class="bc-field-label">
+                <span data-i18n-en="Timeline" data-i18n-th="ระยะเวลา">Timeline</span>
+                <span class="req">*</span>
+              </div>
+              <div class="bc-chip-grid" id="bc-timeline-grid"></div>
+            </div>
+
+            <div class="bc-field">
+              <div class="bc-field-label">
+                <span data-i18n-en="Location preference" data-i18n-th="พื้นที่ที่ต้องการ">Location preference</span>
+                <span class="opt" data-i18n-en="(optional)" data-i18n-th="(ไม่บังคับ)">(optional)</span>
+              </div>
+              <div class="bc-chip-grid" id="bc-location-grid"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="bc-foot">
+          <div class="bc-foot-info"><span data-i18n-en="Step 3 of 4" data-i18n-th="ขั้นตอนที่ 3 จาก 4">Step 3 of 4</span></div>
+          <div class="bc-foot-actions">
+            <button class="bc-btn-back" onclick="goToStep(2)">
+              <span data-i18n-en="Back" data-i18n-th="ย้อนกลับ">Back</span>
+            </button>
+            <button class="bc-btn-next" id="bc-step3-next" onclick="goToStep(4)" disabled>
+              <span data-i18n-en="Next: Review" data-i18n-th="ถัดไป: ตรวจสอบ">Next: Review</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────────── STEP 4: REVIEW ─────────────── -->
+      <div class="bc-step-body" data-step-body="4">
+        <div class="bc-card">
+          <div class="bc-card-title" data-i18n-en="Review &amp; confirm" data-i18n-th="ตรวจสอบและยืนยัน">Review &amp; confirm</div>
+          <p class="bc-card-sub" data-i18n-en="One last look before we notify the matching providers." data-i18n-th="ตรวจสอบครั้งสุดท้ายก่อนเราแจ้งผู้ให้บริการที่ตรงกับเงื่อนไข">One last look before we notify the matching providers.</p>
+
+          <div class="bc-card-body" id="bc-review-body"></div>
+
+          <div class="bc-match-card">
+            <div class="bc-match-count" id="bc-match-count">— providers</div>
+            <div class="bc-match-label" data-i18n-en="match your request and will be notified on LINE" data-i18n-th="ตรงกับเงื่อนไขของคุณ และจะได้รับแจ้งเตือนผ่าน LINE">match your request and will be notified on LINE</div>
+            <div class="bc-match-avatars">
+              <div class="bc-match-avatar">J</div>
+              <div class="bc-match-avatar">S</div>
+              <div class="bc-match-avatar">T</div>
+              <div class="bc-match-avatar">P</div>
+              <div class="bc-match-avatar more" id="bc-match-more">+0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bc-foot">
+          <div class="bc-foot-info">
+            <strong data-i18n-en="Providers respond within ~2 hours on average." data-i18n-th="ผู้ให้บริการตอบกลับเฉลี่ยภายใน ~2 ชั่วโมง">Providers respond within ~2 hours on average.</strong>
+          </div>
+          <div class="bc-foot-actions">
+            <button class="bc-btn-back" onclick="goToStep(3)">
+              <span data-i18n-en="Back" data-i18n-th="ย้อนกลับ">Back</span>
+            </button>
+            <button class="bc-btn-send" onclick="submitBroadcast()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              <span data-i18n-en="Send broadcast" data-i18n-th="ส่งคำขอ">Send broadcast</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────────── SUCCESS ─────────────── -->
+      <div class="bc-step-body" data-step-body="5">
+        <div class="bc-success">
+          <div class="bc-success-burst">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="bc-success-title" data-i18n-en="Broadcast sent! 🎉" data-i18n-th="ส่งคำขอเรียบร้อย! 🎉">Broadcast sent! 🎉</div>
+          <p class="bc-success-sub" data-i18n-en="Matching providers have been notified on LINE. Expect first replies within 2 hours." data-i18n-th="ผู้ให้บริการที่ตรงกับเงื่อนไขได้รับแจ้งเตือนผ่าน LINE แล้ว คาดว่าจะได้รับการตอบกลับครั้งแรกภายใน 2 ชั่วโมง">Matching providers have been notified on LINE. Expect first replies within 2 hours.</p>
+
+          <div class="bc-next-steps">
+            <div class="bc-next-step">
+              <div class="bc-next-step-num">1</div>
+              <div class="bc-next-step-text">
+                <strong data-i18n-en="Providers reply directly" data-i18n-th="ผู้ให้บริการจะตอบกลับโดยตรง">Providers reply directly</strong><br>
+                <span data-i18n-en="Each interested provider will message you on LINE or in your Profindle inbox." data-i18n-th="ผู้ที่สนใจจะส่งข้อความหาคุณผ่าน LINE หรือกล่องข้อความบน Profindle">Each interested provider will message you on LINE or in your Profindle inbox.</span>
+              </div>
+            </div>
+            <div class="bc-next-step">
+              <div class="bc-next-step-num">2</div>
+              <div class="bc-next-step-text">
+                <strong data-i18n-en="You stay anonymous (if you want)" data-i18n-th="คุณยังคงไม่เปิดเผยตัวตน (ถ้าต้องการ)">You stay anonymous (if you want)</strong><br>
+                <span data-i18n-en="Only company name + first name shows on the broadcast. You decide who to reveal contact details to." data-i18n-th="แสดงเฉพาะชื่อบริษัทและชื่อจริงในประกาศ คุณเลือกว่าจะเปิดเผยข้อมูลติดต่อกับใคร">Only company name + first name shows on the broadcast. You decide who to reveal contact details to.</span>
+              </div>
+            </div>
+            <div class="bc-next-step">
+              <div class="bc-next-step-num">3</div>
+              <div class="bc-next-step-text">
+                <strong data-i18n-en="Pick the best fit" data-i18n-th="เลือกผู้ที่เหมาะที่สุด">Pick the best fit</strong><br>
+                <span data-i18n-en="Compare proposals in your Broadcast history. Profindle never takes a commission." data-i18n-th="เปรียบเทียบข้อเสนอในประวัติคำขอของคุณ Profindle ไม่หักค่าคอมมิชชั่นใด ๆ">Compare proposals in your Broadcast history. Profindle never takes a commission.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bc-success-actions">
+            <a href="Find Providers.html" class="bc-btn-back" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+              <span data-i18n-en="Browse providers" data-i18n-th="เลือกชมผู้ให้บริการ">Browse providers</span>
+            </a>
+            <a href="Dashboard Home.html" class="bc-btn-next" style="text-decoration:none;">
+              <span data-i18n-en="View my broadcast" data-i18n-th="ดูคำขอของฉัน">View my broadcast</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="i18n.js"></script>
+<script src="dashboard-shell.js"></script>
+<script>
+initDashboard('find','Broadcast Request');
+
+/* ── Data ────────────────────────────────────────────── */
+const CATEGORIES = [
+  { id:'digital',    name:'Digital Marketing',   th:'การตลาดดิจิทัล',   count: 142, color:'linear-gradient(135deg,#0F6F73,#1A9DA3)',
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 4-4 4 4 5-5"/></svg>' },
+  { id:'webdev',     name:'Web Development',     th:'พัฒนาเว็บไซต์',     count: 98,  color:'linear-gradient(135deg,#22262F,#444B5A)',
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>' },
+  { id:'design',     name:'Branding &amp; Design',  th:'แบรนด์ &amp; ออกแบบ', count: 64,  color:'linear-gradient(135deg,#F77F00,#E06B00)',
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>' },
+  { id:'photo',      name:'Photo &amp; Video',     th:'ภาพถ่าย &amp; วิดีโอ',  count: 53,  color:'linear-gradient(135deg,#2BBEC5,#0F6F73)',
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>' },
+  { id:'seo',        name:'SEO / SEM',           th:'SEO / SEM',         count: 76,  color:'linear-gradient(135deg,#1A9DA3,#2BBEC5)',
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>' },
+  { id:'legal',      name:'Legal Services',      th:'บริการกฎหมาย',       count: 41,  color:'linear-gradient(135deg,#444B5A,#22262F)',
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6v12M16 6v12M6 18h12"/></svg>' },
+  { id:'consulting', name:'Consulting',          th:'ที่ปรึกษาธุรกิจ',   count: 37,  color:'linear-gradient(135deg,#0F6F73,#22262F)',
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>' },
+  { id:'accounting', name:'Accounting &amp; Tax',  th:'บัญชี &amp; ภาษี',     count: 38,  color:'linear-gradient(135deg,#0F6F73,#1A4E50)',
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>' },
+  { id:'event',      name:'Event Management',    th:'จัดอีเวนต์',         count: 28,  color:'linear-gradient(135deg,#E06B00,#F77F00)',
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 10h16M10 14h10M4 14l2 2-2 2M14 18h6"/></svg>' },
+];
+
+/* Services come from the shared database file (industries-data.js).
+   ~400 services across 39 industries. Each entry has:
+     id, name, industry (id), industryName, industryTh, color, icon, count */
+const SERVICES = (window.getAllServices && window.getAllServices()) || [];
+
+function serviceIndustry(svc) {
+  // Service objects already carry industry name/th/color/icon
+  // so the "industry view" is just a projection of those fields.
+  return {
+    id: svc.industryId,
+    name: svc.industryName,
+    th: svc.industryTh,
+    color: svc.color,
+    icon: svc.icon,
+  };
+}
+
+const BUDGETS = [
+  { id:'b1', en:'Under ฿50,000',         th:'ต่ำกว่า ฿50,000',          sub:'<฿50k' },
+  { id:'b2', en:'฿50,000 – ฿100,000',    th:'฿50,000 – ฿100,000',       sub:'~฿100k' },
+  { id:'b3', en:'฿100,000 – ฿300,000',   th:'฿100,000 – ฿300,000',      sub:'~฿300k' },
+  { id:'b4', en:'฿300,000 – ฿1M',        th:'฿300,000 – ฿1M',           sub:'~฿1M' },
+  { id:'b5', en:'Over ฿1M',              th:'มากกว่า ฿1M',              sub:'>฿1M' },
+  { id:'b6', en:'To be discussed',       th:'คุยกันก่อน',                sub:'open' },
+];
+
+const TIMELINES = [
+  { id:'t1', en:'ASAP',              th:'ด่วนที่สุด' },
+  { id:'t2', en:'Within 1 week',     th:'ภายใน 1 สัปดาห์' },
+  { id:'t3', en:'Within 1 month',    th:'ภายใน 1 เดือน' },
+  { id:'t4', en:'1–3 months',        th:'1–3 เดือน' },
+  { id:'t5', en:'3+ months',         th:'3 เดือนขึ้นไป' },
+  { id:'t6', en:'Flexible',          th:'ยืดหยุ่น' },
+];
+
+const LOCATIONS = [
+  { id:'l1', en:'Anywhere',          th:'ทุกพื้นที่' },
+  { id:'l2', en:'Bangkok',           th:'กรุงเทพฯ' },
+  { id:'l3', en:'Chiang Mai',        th:'เชียงใหม่' },
+  { id:'l4', en:'Phuket',            th:'ภูเก็ต' },
+  { id:'l5', en:'Pattaya',           th:'พัทยา' },
+  { id:'l6', en:'Remote',            th:'ทำงานทางไกล' },
+];
+
+/* ── State ───────────────────────────────────────────── */
+const state = {
+  step: 1,
+  category: null,
+  descEN: '',
+  descTH: '',
+  title: '',
+  budget: null,
+  timeline: null,
+  location: 'l1',
+};
+
+/* ── Stepper ─────────────────────────────────────────── */
+function goToStep(n) {
+  // Validation gate
+  if (n > 1 && !state.category) return;
+  if (n > 2 && !state.descEN.trim()) return;
+  if (n > 3 && (!state.budget || !state.timeline)) return;
+
+  state.step = n;
+  document.querySelectorAll('.bc-step').forEach(el => {
+    const step = parseInt(el.dataset.step, 10);
+    el.classList.toggle('active', step === n);
+    el.classList.toggle('done', step < n);
+  });
+  document.querySelectorAll('.bc-step-body').forEach(el => {
+    el.classList.toggle('active', parseInt(el.dataset.stepBody, 10) === n);
+  });
+  if (n === 4) renderReview();
+  // Hide plan banner once they've sent (step 5)
+  document.getElementById('bc-plan-banner').style.display = (n === 5) ? 'none' : '';
+  // Hide stepper on success
+  document.getElementById('stepper').style.display = (n === 5) ? 'none' : '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ── Step 1: render service cards ───────────────────── */
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function decodeAmp(s) { return String(s).replace(/&amp;/g, '&'); }
+function isCustomCategory() {
+  return typeof state.category === 'string' && state.category.indexOf('custom:') === 0;
+}
+function customCategoryText() {
+  return isCustomCategory() ? state.category.slice(7) : '';
+}
+
+function renderStep1() {
+  const lg = window.profindleI18n ? window.profindleI18n.getLang() : 'en';
+  const box = document.getElementById('bc-search-box');
+  const popularRow = document.getElementById('bc-popular-row');
+  if (!box) return;
+  hideSuggest();
+
+  if (state.category) {
+    const isCustom = isCustomCategory();
+    const svc = isCustom ? null : SERVICES.find(s => s.id === state.category);
+    const ind = svc ? serviceIndustry(svc) : null;
+    const name = isCustom ? customCategoryText() : (lg === 'th' ? decodeAmp(svc.th) : decodeAmp(svc.name));
+    const icon = isCustom
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+      : ind.icon;
+    const pillBg = isCustom ? 'linear-gradient(135deg,#F77F00,#E06B00)' : ind.color;
+    box.innerHTML =
+      '<span class="bc-selected-pill" style="background:' + pillBg + ';">' +
+        '<span class="pill-icon">' + icon + '</span>' +
+        '<span class="pill-text">' + escapeHtml(name) + '</span>' +
+        '<button class="pill-remove" type="button" onclick="clearCategory()" aria-label="Remove">' +
+          '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+        '</button>' +
+      '</span>' +
+      '<span style="flex:1;"></span>' +
+      '<span style="font-size:13px;color:#9AA0AE;">' + (lg === 'th' ? 'เลือกแล้ว' : 'Selected') + '</span>';
+    popularRow.style.display = 'none';
+  } else {
+    const placeholder = lg === 'th'
+      ? 'เช่น SEO, ออกแบบโลโก้, ทำบัญชี…'
+      : 'e.g. SEO, Logo design, Bookkeeping…';
+    box.innerHTML =
+      '<span class="bc-search-icon">' +
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>' +
+      '</span>' +
+      '<input type="text" class="bc-search-input" id="bc-cat-search" placeholder="' + escapeHtml(placeholder) + '" autocomplete="off">';
+    const input = document.getElementById('bc-cat-search');
+    input.addEventListener('input', onSearchInput);
+    input.addEventListener('focus', onSearchInput);
+    input.addEventListener('keydown', onSearchKeydown);
+    input.addEventListener('blur', () => setTimeout(hideSuggest, 180));
+    popularRow.style.display = '';
+    renderPopularChips(lg);
+  }
+}
+
+function renderPopularChips(lg) {
+  // Replaced by drill-down browse — see renderBrowse() below.
+  renderBrowse(lg);
+}
+
+// Step-1 browse sub-state (lives outside `state` because it's UI-only).
+let step1View = 'industries';  // 'industries' | 'services'
+let step1IndustryId = null;
+
+function renderBrowse(lg) {
+  lg = lg || (window.profindleI18n ? window.profindleI18n.getLang() : 'en');
+  const root = document.getElementById('bc-popular-row');
+  if (!root) return;
+  const data = window.INDUSTRIES_DATA || [];
+
+  // Fall back to industries view if services view has no industry set
+  if (step1View === 'services' && !step1IndustryId) step1View = 'industries';
+
+  if (step1View === 'industries') {
+    const label = lg === 'th' ? 'หรือเลือกจากสายงาน' : 'Or browse by industry';
+    root.innerHTML =
+      '<div class="bc-browse-label">' + label + '</div>' +
+      '<div class="bc-browse-list">' +
+        data.map(ind =>
+          '<button type="button" class="bc-browse-row" onclick="openIndustry(\'' + ind.id + '\')">' +
+            '<span class="bc-browse-row-name">' + (lg === 'th' ? ind.th : ind.name) + '</span>' +
+            '<span class="bc-browse-row-count">' + ind.services.length + ' ' + (lg === 'th' ? 'บริการ' : 'services') + '</span>' +
+            '<svg class="bc-browse-row-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>' +
+          '</button>'
+        ).join('') +
+      '</div>';
+  } else {
+    const ind = window.getIndustryById(step1IndustryId);
+    if (!ind) { step1View = 'industries'; renderBrowse(lg); return; }
+    const services = window.getServicesByIndustry(step1IndustryId);
+    const backLabel = lg === 'th' ? '← สายงานทั้งหมด' : '← All industries';
+    const indName = lg === 'th' ? ind.th : ind.name;
+    const companies = lg === 'th' ? 'บริการ' : 'services';
+    root.innerHTML =
+      '<button type="button" class="bc-browse-back" onclick="backToIndustries()">' + backLabel + '</button>' +
+      '<div class="bc-browse-detail-head">' +
+        '<div class="bc-browse-detail-name">' + indName + '</div>' +
+        '<div class="bc-browse-detail-count">' + services.length + ' ' + companies + '</div>' +
+      '</div>' +
+      '<div class="bc-browse-list">' +
+        services.map(s =>
+          '<button type="button" class="bc-browse-row service" onclick="pickCategory(\'' + s.id + '\')">' +
+            '<span class="bc-browse-row-name">' + s.name + '</span>' +
+            '<svg class="bc-browse-row-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>' +
+          '</button>'
+        ).join('') +
+      '</div>';
+  }
+}
+
+function openIndustry(id) {
+  step1View = 'services';
+  step1IndustryId = id;
+  renderBrowse();
+  // scroll the browse panel into view so users see the service list right away
+  const root = document.getElementById('bc-popular-row');
+  if (root) root.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+function backToIndustries() {
+  step1View = 'industries';
+  step1IndustryId = null;
+  renderBrowse();
+}
+
+function onSearchInput() {
+  const inp = document.getElementById('bc-cat-search');
+  if (!inp) return;
+  const q = (inp.value || '').trim();
+  const lg = window.profindleI18n ? window.profindleI18n.getLang() : 'en';
+  const dropdown = document.getElementById('bc-suggest-dropdown');
+  const ql = q.toLowerCase();
+  const matches = SERVICES.filter(s => {
+    if (!q) return true;
+    const ind = serviceIndustry(s);
+    return decodeAmp(s.name).toLowerCase().includes(ql) ||
+           decodeAmp(s.th).toLowerCase().includes(ql) ||
+           decodeAmp(ind.name).toLowerCase().includes(ql) ||
+           decodeAmp(ind.th).toLowerCase().includes(ql);
+  }).slice(0, 12);
+
+  let html = '';
+  if (matches.length) {
+    html += '<div class="bc-suggest-section-label">' + (lg === 'th' ? 'บริการที่ตรงกับคำค้น' : 'Matching services') + '</div>';
+    html += matches.map(s => {
+      const ind = serviceIndustry(s);
+      const indName = lg === 'th' ? ind.th : ind.name;
+      return '<button type="button" class="bc-suggest-item" onmousedown="event.preventDefault();pickCategory(\'' + s.id + '\')">' +
+        '<span class="bc-suggest-item-icon" style="background:' + ind.color + ';">' + ind.icon + '</span>' +
+        '<span class="bc-suggest-item-text">' +
+          '<div class="bc-suggest-item-name">' + (lg === 'th' ? s.th : s.name) + '</div>' +
+          '<div class="bc-suggest-item-meta">' + indName + '</div>' +
+        '</span>' +
+      '</button>';
+    }).join('');
+  }
+
+  if (q.length > 0) {
+    if (matches.length) html += '<div class="bc-suggest-divider"></div>';
+    const useLabel = lg === 'th' ? 'ใช้เป็นบริการที่กำหนดเอง' : 'Use as custom service';
+    const qAttr = encodeURIComponent(q);
+    html +=
+      '<button type="button" class="bc-suggest-item custom" onmousedown="event.preventDefault();pickCustomCategory(decodeURIComponent(\'' + qAttr + '\'))">' +
+        '<span class="bc-suggest-item-icon">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+        '</span>' +
+        '<span class="bc-suggest-item-text">' +
+          '<div class="bc-suggest-item-name">“' + escapeHtml(q) + '”</div>' +
+          '<div class="bc-suggest-item-meta">' + useLabel + '</div>' +
+        '</span>' +
+      '</button>';
+  }
+
+  if (!html) { dropdown.style.display = 'none'; return; }
+  dropdown.innerHTML = html;
+  dropdown.style.display = '';
+}
+
+function onSearchKeydown(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const q = (e.target.value || '').trim();
+    if (!q) return;
+    const ql = q.toLowerCase();
+    const match = SERVICES.find(s => {
+      const ind = serviceIndustry(s);
+      return decodeAmp(s.name).toLowerCase().includes(ql) ||
+             decodeAmp(s.th).toLowerCase().includes(ql) ||
+             decodeAmp(ind.name).toLowerCase().includes(ql) ||
+             decodeAmp(ind.th).toLowerCase().includes(ql);
+    });
+    if (match) pickCategory(match.id);
+    else pickCustomCategory(q);
+  } else if (e.key === 'Escape') {
+    hideSuggest();
+  }
+}
+
+function hideSuggest() {
+  const d = document.getElementById('bc-suggest-dropdown');
+  if (d) d.style.display = 'none';
+}
+
+function pickCategory(id) {
+  state.category = id;
+  renderStep1();
+  document.getElementById('bc-step1-next').disabled = false;
+}
+function pickCustomCategory(text) {
+  state.category = 'custom:' + text;
+  renderStep1();
+  document.getElementById('bc-step1-next').disabled = false;
+}
+function clearCategory() {
+  state.category = null;
+  renderStep1();
+  document.getElementById('bc-step1-next').disabled = true;
+  setTimeout(() => {
+    const inp = document.getElementById('bc-cat-search');
+    if (inp) inp.focus();
+  }, 30);
+}
+
+// Legacy alias
+function renderCategories() { renderStep1(); }
+
+/* ── Step 2: description fields ─────────────────────── */
+function updateDesc() {
+  const en = document.getElementById('bc-desc-en');
+  const enCount = document.getElementById('bc-desc-en-counter');
+  state.descEN = en.value;
+  state.descTH = ''; // legacy field, kept on state for back-compat
+  state.title = document.getElementById('bc-title').value;
+  enCount.textContent = en.value.length + ' / 300';
+  enCount.classList.toggle('warn', en.value.length > 240);
+  enCount.classList.toggle('danger', en.value.length >= 300);
+  document.getElementById('bc-step2-next').disabled = !state.descEN.trim();
+}
+document.getElementById('bc-title').addEventListener('input', updateDesc);
+
+/* ── Step 3: budget / timeline / location chips ──── */
+function renderChipGrid(elId, items, stateKey, hasSubLabel) {
+  const grid = document.getElementById(elId);
+  grid.innerHTML = items.map(it => `
+    <button type="button" class="bc-chip ${state[stateKey] === it.id ? 'active' : ''}"
+            onclick="pickChip('${stateKey}', '${it.id}')">
+      <span data-i18n-en="${it.en}" data-i18n-th="${it.th}">${it.en}</span>
+      ${hasSubLabel && it.match ? `<span class="bc-chip-sub">${it.match} match</span>` : ''}
+    </button>
+  `).join('');
+  if (window.profindleI18n) window.profindleI18n.apply(grid);
+}
+function pickChip(key, id) {
+  state[key] = id;
+  renderChipGrid('bc-budget-grid', BUDGETS, 'budget', true);
+  renderChipGrid('bc-timeline-grid', TIMELINES, 'timeline', false);
+  renderChipGrid('bc-location-grid', LOCATIONS, 'location', false);
+  document.getElementById('bc-step3-next').disabled = !(state.budget && state.timeline);
+}
+
+/* ── Step 4: render review ──────────────────────────── */
+function renderReview() {
+  const t = window.profindleI18n ? window.profindleI18n.t.bind(window.profindleI18n) : (en) => en;
+  const lg = window.profindleI18n ? window.profindleI18n.getLang() : 'en';
+  const svc = SERVICES.find(s => s.id === state.category);
+  const ind = svc ? serviceIndustry(svc) : null;
+  const budget = BUDGETS.find(b => b.id === state.budget);
+  const timeline = TIMELINES.find(x => x.id === state.timeline);
+  const location = LOCATIONS.find(x => x.id === state.location);
+
+  const rows = [
+    {
+      label: t('Service', 'บริการ'),
+      value: isCustomCategory() ? escapeHtml(customCategoryText()) : (svc ? (lg === 'th' ? svc.th : svc.name) + ' <span style="color:#9AA0AE;font-weight:500;">· ' + (lg === 'th' ? ind.th : ind.name) + '</span>' : '—'),
+      editStep: 1,
+    },
+    {
+      label: t('Project title', 'ชื่อโปรเจกต์'),
+      value: state.title || `<em style="color:#9AA0AE;">${t('Not specified', 'ไม่ได้ระบุ')}</em>`,
+      editStep: 2,
+    },
+    {
+      label: t('Description', 'รายละเอียด'),
+      value: (state.descEN || '').trim() || `<em style="color:#9AA0AE;">${t('Not specified', 'ไม่ได้ระบุ')}</em>`,
+      editStep: 2,
+    },
+    {
+      label: t('Budget', 'งบประมาณ'),
+      value: budget ? (lg === 'th' ? budget.th : budget.en) : '—',
+      editStep: 3,
+    },
+    {
+      label: t('Timeline', 'ระยะเวลา'),
+      value: timeline ? (lg === 'th' ? timeline.th : timeline.en) : '—',
+      editStep: 3,
+    },
+    {
+      label: t('Location', 'พื้นที่'),
+      value: location ? (lg === 'th' ? location.th : location.en) : '—',
+      editStep: 3,
+    },
+  ];
+
+  document.getElementById('bc-review-body').innerHTML = rows.map(r => `
+    <div class="bc-review-row">
+      <div class="bc-review-label">${r.label}</div>
+      <div class="bc-review-value">${r.value}
+        <button class="bc-review-edit" onclick="goToStep(${r.editStep})">${t('Edit', 'แก้ไข')}</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Match count: real number comes from the backend.
+  // Until wired up, show — instead of a fake estimate.
+  document.getElementById('bc-match-count').textContent = '— ' + (lg === 'th' ? 'ผู้ให้บริการ' : 'providers');
+  document.getElementById('bc-match-more').textContent = '';
+}
+
+function bilingualValue(en, th, lg, t) {
+  const e = (en || '').trim();
+  const h = (th || '').trim();
+  if (lg === 'th') {
+    if (h) {
+      return escapeHTML(h) + (e ? `<span class="bc-review-th">${escapeHTML(e)} <small style="opacity:0.55;">(EN)</small></span>` : '');
+    }
+    // TH empty → show EN with badge
+    return `${escapeHTML(e)} <span class="i18n-fallback-badge">EN</span>`;
+  } else {
+    if (e) {
+      return escapeHTML(e) + (h ? `<span class="bc-review-th">${escapeHTML(h)} <small style="opacity:0.55;">(TH)</small></span>` : '');
+    }
+    return `${escapeHTML(h)} <span class="i18n-fallback-badge">TH</span>`;
+  }
+}
+
+function escapeHTML(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+/* ── Submit ──────────────────────────────────────────── */
+function submitBroadcast() {
+  // Real match count is returned by the backend after the request is
+  // persisted. The success screen no longer shows a hard-coded count.
+  goToStep(5);
+}
+
+/* ── Init ────────────────────────────────────────────── */
+renderCategories();
+renderChipGrid('bc-budget-grid', BUDGETS, 'budget', true);
+renderChipGrid('bc-timeline-grid', TIMELINES, 'timeline', false);
+renderChipGrid('bc-location-grid', LOCATIONS, 'location', false);
+
+// Re-render dynamic content when language changes
+window.addEventListener('profindle:lang-change', () => {
+  renderCategories();
+  renderChipGrid('bc-budget-grid', BUDGETS, 'budget', true);
+  renderChipGrid('bc-timeline-grid', TIMELINES, 'timeline', false);
+  renderChipGrid('bc-location-grid', LOCATIONS, 'location', false);
+  if (state.step === 4) renderReview();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in — Profindle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ds.css">
+<link rel="stylesheet" href="i18n.css">
+<style>
+.auth-layout { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; }
+.auth-panel {
+  background: linear-gradient(135deg,#171A21 0%,#0F6F73 100%);
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 48px; position: relative; overflow: hidden;
+}
+.auth-panel::before {
+  content:''; position:absolute; inset:0;
+  background: radial-gradient(ellipse 70% 60% at 70% 40%, rgba(26,157,163,0.2) 0%, transparent 65%);
+}
+.auth-panel-content { position: relative; z-index: 1; }
+.auth-panel-quote { font-size: 24px; font-weight: 700; color: white; line-height: 1.4; letter-spacing: -0.02em; max-width: 380px; margin-top: 40px; }
+.auth-panel-quote span { color: #F77F00; }
+.auth-panel-tagline { font-size: 14px; color: rgba(255,255,255,0.5); margin-top: 16px; }
+.auth-panel-badges { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 32px; }
+.auth-panel-badge {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px; padding: 10px 14px; font-size: 13px; color: rgba(255,255,255,0.75); font-weight: 500;
+}
+.auth-form-area { display: flex; align-items: center; justify-content: center; background: #F4F5F7; padding: 48px 40px; }
+.auth-card { background: white; border-radius: 20px; padding: 40px; width: 100%; max-width: 420px; box-shadow: 0 4px 24px rgba(23,26,33,0.10); }
+.auth-card-title { font-size: 24px; font-weight: 700; color: #171A21; letter-spacing: -0.02em; margin-bottom: 6px; }
+.auth-card-sub   { font-size: 14px; color: #6B7385; margin-bottom: 28px; line-height: 1.55; }
+.auth-card-sub strong { color: #171A21; font-weight: 600; }
+.form-row { display: flex; flex-direction: column; gap: 16px; }
+.auth-switch { text-align: center; font-size: 14px; color: #6B7385; margin-top: 20px; }
+.auth-switch a { color: #0F6F73; font-weight: 600; text-decoration: none; cursor: pointer; }
+.auth-switch a:hover { text-decoration: underline; }
+
+/* OTP boxes */
+.otp-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.otp-input {
+  height: 56px; text-align: center; font-size: 22px; font-weight: 700; color: #171A21;
+  border: 1.5px solid #E4E7ED; border-radius: 12px; background: white;
+  outline: none; transition: all 150ms; font-family: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.otp-input:focus { border-color: #0F6F73; box-shadow: 0 0 0 3px rgba(15,111,115,0.12); }
+.otp-input.filled { border-color: #0F6F73; background: #F0F9F9; }
+.otp-input.error { border-color: #FF5A5F; background: #FFF5F5; animation: shake 0.4s; }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+.otp-meta { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #9AA0AE; margin-top: 4px; }
+.otp-meta button { background: none; border: none; color: #0F6F73; font-weight: 600; cursor: pointer; padding: 0; font-family: inherit; font-size: 12px; }
+.otp-meta button:disabled { color: #9AA0AE; cursor: not-allowed; }
+.otp-back { background: none; border: none; color: #6B7385; font-size: 13px; cursor: pointer; padding: 0; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px; }
+.otp-back:hover { color: #171A21; }
+.otp-error-msg { font-size: 13px; color: #FF5A5F; margin-top: -4px; display: none; }
+.otp-error-msg.show { display: block; }
+
+@media (max-width: 768px) {
+  .auth-layout { grid-template-columns: 1fr; }
+  .auth-panel { display: none; }
+  .auth-form-area { padding: 32px 20px; min-height: 100vh; }
+}
+</style>
+<script src="i18n.js"></script>
+</head>
+<body>
+<div class="auth-layout">
+  <!-- Left panel -->
+  <div class="auth-panel">
+    <div class="auth-panel-content">
+      <a href="Landing Page.html" class="logo">
+        <svg width="24" height="32" viewBox="-3 -3 44 56" fill="none">
+          <path d="M18.56 34.56C27.3966 34.56 34.56 27.3966 34.56 18.56C34.56 9.72345 27.3966 2.56 18.56 2.56C9.72344 2.56 2.56 9.72345 2.56 18.56C2.56 27.3966 9.72344 34.56 18.56 34.56Z" stroke="white" stroke-width="5.12" stroke-linecap="round"/>
+          <path d="M18.56 8.96C23.8619 8.96 28.16 13.2581 28.16 18.56" stroke="#F77F00" stroke-width="5.12" stroke-linecap="round"/>
+          <path d="M5.76001 47.36C5.76001 47.36 5.76001 34.56 18.56 34.56" stroke="white" stroke-width="5.12" stroke-linecap="round"/>
+          <path d="M18.56 34.56L31.36 47.36" stroke="white" stroke-width="5.12" stroke-linecap="round"/>
+          <path d="M18.56 38.4C20.6807 38.4 22.4 36.6808 22.4 34.56C22.4 32.4392 20.6807 30.72 18.56 30.72C16.4392 30.72 14.72 32.4392 14.72 34.56C14.72 36.6808 16.4392 38.4 18.56 38.4Z" fill="#F77F00"/>
+        </svg>
+        <span class="logo-wordmark logo-wordmark-inv"><span class="pro">Pro</span><span class="find">find</span><span class="le">le</span></span>
+      </a>
+      <div class="auth-panel-quote" data-i18n-en-html="Thailand's <span>smartest</span> way to find business partners" data-i18n-th-html="วิธี<span>อัจฉริยะที่สุด</span>ในการหาพันธมิตรทางธุรกิจของไทย">Thailand's <span>smartest</span> way to find business partners</div>
+      <div class="auth-panel-tagline" data-i18n-en="No passwords. We send a one-time code to your email." data-i18n-th="ไม่ต้องจำรหัสผ่าน เราส่งรหัสแบบใช้ครั้งเดียวไปยังอีเมลของคุณ">No passwords. We send a one-time code to your email.</div>
+      <div class="auth-panel-badges">
+        <div class="auth-panel-badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2BBEC5" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span data-i18n-en="400+ services" data-i18n-th="มากกว่า 400 บริการ">400+ services</span>
+        </div>
+        <div class="auth-panel-badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F77F00" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span data-i18n-en="Verified companies" data-i18n-th="บริษัทที่ยืนยันแล้ว">Verified companies</span>
+        </div>
+        <div class="auth-panel-badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2BBEC5" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span data-i18n-en="Free to join" data-i18n-th="สมัครฟรี">Free to join</span>
+        </div>
+      </div>
+    </div>
+    <div style="position:relative;z-index:1;font-size:12px;color:rgba(255,255,255,0.25);">© 2026 Profindle</div>
+  </div>
+
+  <!-- Right: form -->
+  <div class="auth-form-area">
+    <div class="auth-card">
+
+      <!-- STEP 1: email -->
+      <div id="step-email">
+        <div class="auth-card-title" data-i18n-en="Welcome back" data-i18n-th="ยินดีต้อนรับกลับมา">Welcome back</div>
+        <div class="auth-card-sub" data-i18n-en="Enter your email and we'll send you a 6-digit code to log in." data-i18n-th="กรอกอีเมลของคุณ เราจะส่งรหัส 6 หลักไปให้เพื่อเข้าสู่ระบบ">Enter your email and we'll send you a 6-digit code to log in.</div>
+        <div class="form-row">
+          <div class="field">
+            <label class="field-label" data-i18n-en="Email address" data-i18n-th="อีเมล">Email address</label>
+            <input type="email" class="input" id="email-input" placeholder="you@company.com">
+          </div>
+          <button type="button" class="btn btn-primary btn-block" onclick="sendCode()" style="margin-top:4px;" data-i18n-en="Send login code" data-i18n-th="ส่งรหัสเข้าสู่ระบบ">Send login code</button>
+        </div>
+        <div class="auth-switch" data-i18n-en-html="Don't have an account? <a href=&quot;Signup.html&quot;>Sign up free</a>" data-i18n-th-html="ยังไม่มีบัญชี? <a href=&quot;Signup.html&quot;>สมัครฟรี</a>">Don't have an account? <a href="Signup.html">Sign up free</a></div>
+      </div>
+
+      <!-- STEP 2: OTP -->
+      <div id="step-otp" style="display:none;">
+        <button class="otp-back" onclick="goBack()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          <span data-i18n-en="Back" data-i18n-th="ย้อนกลับ">Back</span>
+        </button>
+        <div class="auth-card-title" data-i18n-en="Check your email" data-i18n-th="ตรวจสอบกล่องข้อความของคุณ">Check your email</div>
+        <div class="auth-card-sub" data-i18n-en-html="We sent a 6-digit code to <strong id=&quot;email-display&quot;>you@company.com</strong>. Enter it below to log in." data-i18n-th-html="เราส่งรหัส 6 หลักไปยัง <strong id=&quot;email-display&quot;>you@company.com</strong> พิมพ์รหัสด้านล่างเพื่อเข้าสู่ระบบ">We sent a 6-digit code to <strong id="email-display">you@company.com</strong>. Enter it below to log in.</div>
+        <div class="form-row">
+          <div class="field">
+            <label class="field-label" data-i18n-en="Verification code" data-i18n-th="รหัสยืนยัน">Verification code</label>
+            <div class="otp-row" id="otp-row">
+              <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+              <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+              <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+              <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+              <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+              <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+            </div>
+            <div class="otp-error-msg" id="otp-error" data-i18n-en="Incorrect code. Please try again." data-i18n-th="รหัสไม่ถูกต้อง กรุณาลองใหม่">Incorrect code. Please try again.</div>
+            <div class="otp-meta">
+              <span data-i18n-en="Didn't get it? Check spam." data-i18n-th="ยังไม่ได้รับ? ตรวจสอบกล่อง Spam">Didn't get it? Check spam.</span>
+              <button id="resend-btn" onclick="resendCode()" disabled>Resend in <span id="resend-timer">30s</span></button>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary btn-block" onclick="verifyCode()" style="margin-top:4px;" data-i18n-en="Verify and log in" data-i18n-th="ยืนยันและเข้าสู่ระบบ">Verify and log in</button>
+        </div>
+        <div class="auth-switch" style="font-size:12px;color:#9AA0AE;" data-i18n-en-html="Demo: any 6 digits will work · use <strong style=&quot;color:#171A21;&quot;>000000</strong> to see the error state" data-i18n-th-html="เดโม: ใส่ 6 หลักอะไรก็ได้ · ลองใส่ <strong style=&quot;color:#171A21;&quot;>000000</strong> เพื่อดู error state">Demo: any 6 digits will work · use <strong style="color:#171A21;">000000</strong> to see the error state</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script>
+let resendInterval = null;
+
+function sendCode() {
+  const email = document.getElementById('email-input').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('email-input').focus();
+    return;
+  }
+  document.getElementById('email-display').textContent = email;
+  document.getElementById('step-email').style.display = 'none';
+  document.getElementById('step-otp').style.display = 'block';
+  startResendTimer();
+  setTimeout(() => document.querySelector('.otp-input').focus(), 100);
+}
+
+function goBack() {
+  document.getElementById('step-otp').style.display = 'none';
+  document.getElementById('step-email').style.display = 'block';
+  if (resendInterval) clearInterval(resendInterval);
+  document.querySelectorAll('.otp-input').forEach(i => { i.value=''; i.classList.remove('filled','error'); });
+  document.getElementById('otp-error').classList.remove('show');
+}
+
+function startResendTimer() {
+  let t = 30;
+  const btn = document.getElementById('resend-btn');
+  const lbl = document.getElementById('resend-timer');
+  btn.disabled = true;
+  const lg = window.profindleI18n.getLang();
+  const lblIn  = lg === 'th' ? 'ส่งอีกครั้งใน' : 'Resend in';
+  const lblNow = lg === 'th' ? 'ส่งรหัสอีกครั้ง' : 'Resend code';
+  btn.innerHTML = `${lblIn} <span id="resend-timer">${t}s</span>`;
+  if (resendInterval) clearInterval(resendInterval);
+  resendInterval = setInterval(() => {
+    t--;
+    if (t <= 0) {
+      clearInterval(resendInterval);
+      btn.disabled = false;
+      btn.textContent = lblNow;
+    } else {
+      btn.innerHTML = `${lblIn} <span id="resend-timer">${t}s</span>`;
+    }
+  }, 1000);
+}
+
+function resendCode() {
+  startResendTimer();
+  document.querySelectorAll('.otp-input').forEach(i => { i.value=''; i.classList.remove('filled','error'); });
+  document.getElementById('otp-error').classList.remove('show');
+  document.querySelector('.otp-input').focus();
+}
+
+function verifyCode() {
+  const inputs = document.querySelectorAll('.otp-input');
+  const code = Array.from(inputs).map(i => i.value).join('');
+  if (code.length !== 6) {
+    inputs[code.length].focus();
+    return;
+  }
+  if (code === '000000') {
+    inputs.forEach(i => { i.classList.remove('filled'); i.classList.add('error'); });
+    document.getElementById('otp-error').classList.add('show');
+    setTimeout(() => {
+      inputs.forEach(i => { i.value=''; i.classList.remove('error'); });
+      inputs[0].focus();
+    }, 800);
+    return;
+  }
+  // Success
+  window.location.href = 'Dashboard Home.html';
+}
+
+// OTP input behaviour
+document.querySelectorAll('.otp-input').forEach((input, i, arr) => {
+  input.addEventListener('input', e => {
+    const v = e.target.value.replace(/\D/g,'');
+    e.target.value = v;
+    if (v) {
+      e.target.classList.add('filled');
+      if (i < arr.length - 1) arr[i+1].focus();
+      else if (Array.from(arr).every(x => x.value)) verifyCode();
+    } else {
+      e.target.classList.remove('filled');
+    }
+  });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !input.value && i > 0) {
+      arr[i-1].focus();
+      arr[i-1].value = '';
+      arr[i-1].classList.remove('filled');
+    }
+  });
+  input.addEventListener('paste', e => {
+    e.preventDefault();
+    const data = (e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+    data.split('').forEach((d, j) => {
+      if (arr[j]) { arr[j].value = d; arr[j].classList.add('filled'); }
+    });
+    if (data.length === 6) verifyCode();
+    else if (arr[data.length]) arr[data.length].focus();
+  });
+});
+</script>
+</body>
+</html>

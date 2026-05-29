@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Provider Overview — Profindle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ds.css">
+<link rel="stylesheet" href="i18n.css">
+<style>
+.kpi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; margin-bottom: 28px; }
+.kpi-card { background: white; border-radius: 16px; padding: 24px; border: 1px solid rgba(15,111,115,0.10); position: relative; overflow: hidden; }
+.kpi-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; background: linear-gradient(90deg,#0F6F73,#1A9DA3); }
+.kpi-card.amber::after { background: linear-gradient(90deg,#F77F00,#FF9A2E); }
+.kpi-card.dark::after  { background: linear-gradient(90deg,#22262F,#444B5A); }
+.kpi-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+.kpi-value { font-size: 36px; font-weight: 700; letter-spacing: -0.03em; color: #171A21; line-height: 1; }
+.kpi-label { font-size: 13px; color: #6B7385; margin-top: 6px; }
+.kpi-delta { font-size: 12px; font-weight: 600; margin-top: 8px; display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; }
+.kpi-delta.up   { background: #F0F9F9; color: #0F6F73; }
+.kpi-delta.down { background: #FFF0F0; color: #E04347; }
+
+.quick-actions { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 28px; }
+.quick-action { background: white; border-radius: 14px; padding: 20px; border: 1px solid #E4E7ED; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; cursor: pointer; transition: all 150ms; text-decoration: none; }
+.quick-action:hover { border-color: #0F6F73; background: #F0F9F9; box-shadow: 0 4px 16px rgba(15,111,115,0.10); text-decoration: none; }
+.quick-action-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.quick-action-label { font-size: 14px; font-weight: 600; color: #171A21; }
+.quick-action-sub   { font-size: 12px; color: #9AA0AE; }
+
+.activity-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px 0; border-bottom: 1px solid #F4F5F7; }
+.activity-item:last-child { border-bottom: none; }
+.activity-dot { width: 8px; height: 8px; border-radius: 999px; margin-top: 6px; flex-shrink: 0; }
+.activity-dot.teal   { background: #0F6F73; }
+.activity-dot.amber  { background: #F77F00; }
+.activity-dot.coral  { background: #FF5A5F; }
+.activity-text { font-size: 14px; color: #171A21; line-height: 1.5; flex: 1; }
+.activity-time { font-size: 12px; color: #9AA0AE; flex-shrink: 0; }
+
+.chart-bar-wrap { display: flex; flex-direction: column; gap: 10px; }
+.chart-bar-row { display: flex; align-items: center; gap: 12px; }
+.chart-bar-label { font-size: 12px; color: #6B7385; width: 120px; text-align: right; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chart-bar-track { flex: 1; height: 8px; background: #F4F5F7; border-radius: 999px; overflow: hidden; }
+.chart-bar-fill  { height: 100%; border-radius: 999px; background: linear-gradient(90deg,#0F6F73,#1A9DA3); }
+.chart-bar-val   { font-size: 12px; font-weight: 600; color: #171A21; width: 28px; text-align: right; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div class="main-with-sidebar">
+  <div class="page-body">
+
+    <!-- Upgrade nudge -->
+    <div style="background:linear-gradient(135deg,#FFF6EC,#FEE8CC);border:1.5px solid rgba(247,127,0,0.25);border-radius:14px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:20px;">✦</span>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#E06B00;" data-i18n-en="Upgrade to Premium to receive broadcast requests" data-i18n-th="อัปเกรดเป็น Premium เพื่อรับคำขอจากลูกค้า">Upgrade to Premium to receive broadcast requests</div>
+          <div style="font-size:13px;color:#F77F00;margin-top:2px;" data-i18n-en="Premium providers get notified of matching client requests in real time." data-i18n-th="สมาชิก Premium จะได้รับการแจ้งเตือนทันทีเมื่อมีคำขอที่ตรงกับบริการของคุณ">Premium providers get notified of matching client requests in real time.</div>
+        </div>
+      </div>
+      <a href="Package.html" class="btn btn-premium btn-sm" style="flex-shrink:0;" data-i18n-en="Upgrade now" data-i18n-th="อัปเกรดตอนนี้">Upgrade now</a>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:#F0F9F9;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" stroke-width="2.2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <div class="kpi-value">—</div>
+        <div class="kpi-label" data-i18n-en="Profile Views (30d)" data-i18n-th="การเข้าชมโปรไฟล์ (30 วัน)">Profile Views (30d)</div>
+        <span class="kpi-delta" style="background:#F4F5F7;color:#9AA0AE;" data-i18n-en="vs last month" data-i18n-th="เทียบกับเดือนที่แล้ว">vs last month</span>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-icon" style="background:#FFF6EC;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F77F00" stroke-width="2.2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="kpi-value">—</div>
+        <div class="kpi-label" data-i18n-en="Leads Received (30d)" data-i18n-th="ลูกค้าที่ได้รับ (30 วัน)">Leads Received (30d)</div>
+        <span class="kpi-delta" style="background:#F4F5F7;color:#9AA0AE;" data-i18n-en="vs last month" data-i18n-th="เทียบกับเดือนที่แล้ว">vs last month</span>
+      </div>
+      <div class="kpi-card dark">
+        <div class="kpi-icon" style="background:#F4F5F7;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#444B5A" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        </div>
+        <div class="kpi-value">—</div>
+        <div class="kpi-label" data-i18n-en="Portfolio Items" data-i18n-th="จำนวนผลงาน">Portfolio Items</div>
+        <span class="kpi-delta" style="background:#F4F5F7;color:#9AA0AE;" data-i18n-en="this month" data-i18n-th="เดือนนี้">this month</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+      <!-- Quick Actions -->
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#9AA0AE;margin-bottom:12px;" data-i18n-en="Quick Actions" data-i18n-th="การดำเนินการด่วน">Quick Actions</div>
+        <div class="quick-actions" style="grid-template-columns:1fr 1fr;">
+          <a href="Portfolio.html" class="quick-action">
+            <div class="quick-action-icon" style="background:#F0F9F9;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            </div>
+            <div class="quick-action-label" data-i18n-en="Add Portfolio" data-i18n-th="เพิ่มผลงาน">Add Portfolio</div>
+            <div class="quick-action-sub" data-i18n-en="Showcase a project" data-i18n-th="นำเสนอผลงานของคุณ">Showcase a project</div>
+          </a>
+          <a href="My Company.html" class="quick-action">
+            <div class="quick-action-icon" style="background:#F0F9F9;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" stroke-width="2.2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            <div class="quick-action-label" data-i18n-en="Edit Profile" data-i18n-th="แก้ไขโปรไฟล์">Edit Profile</div>
+            <div class="quick-action-sub" data-i18n-en="Update company info" data-i18n-th="อัปเดตข้อมูลบริษัท">Update company info</div>
+          </a>
+          <a href="Package.html" class="quick-action">
+            <div class="quick-action-icon" style="background:#F0F9F9;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" stroke-width="2.2" stroke-linecap="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+            <div class="quick-action-label" data-i18n-en="Upgrade Plan" data-i18n-th="อัปเกรดแพ็กเกจ">Upgrade Plan</div>
+            <div class="quick-action-sub" data-i18n-en="Go Premium" data-i18n-th="ไปสู่ Premium">Go Premium</div>
+          </a>
+          <a href="Settings.html" class="quick-action">
+            <div class="quick-action-icon" style="background:#F0F9F9;">
+              <span style="font-size:11px;font-weight:800;color:#0F6F73;letter-spacing:0.05em;">LINE</span>
+            </div>
+            <div class="quick-action-label" data-i18n-en="LINE Connect" data-i18n-th="เชื่อม LINE">LINE Connect</div>
+            <div class="quick-action-sub" data-i18n-en="Link your LINE ID" data-i18n-th="ผูก LINE ID ของคุณ">Link your LINE ID</div>
+          </a>
+        </div>
+
+        <!-- Top services chart -->
+        <div style="background:white;border-radius:16px;border:1px solid rgba(15,111,115,0.10);padding:24px;margin-top:0;">
+          <div style="font-size:15px;font-weight:700;color:#171A21;margin-bottom:4px;" data-i18n-en="Top Services by Views" data-i18n-th="บริการยอดนิยมตามยอดการเข้าชม">Top Services by Views</div>
+          <div style="font-size:13px;color:#9AA0AE;margin-bottom:20px;" data-i18n-en="Last 30 days" data-i18n-th="30 วันล่าสุด">Last 30 days</div>
+          <div class="chart-bar-wrap">
+            <div class="chart-bar-row">
+              <div class="chart-bar-label">SEO Optimization</div>
+              <div class="chart-bar-track"><div class="chart-bar-fill" style="width:88%;"></div></div>
+              <div class="chart-bar-val">412</div>
+            </div>
+            <div class="chart-bar-row">
+              <div class="chart-bar-label">Social Media Mgmt</div>
+              <div class="chart-bar-track"><div class="chart-bar-fill" style="width:72%;"></div></div>
+              <div class="chart-bar-val">337</div>
+            </div>
+            <div class="chart-bar-row">
+              <div class="chart-bar-label">Web Development</div>
+              <div class="chart-bar-track"><div class="chart-bar-fill" style="width:55%;"></div></div>
+              <div class="chart-bar-val">259</div>
+            </div>
+            <div class="chart-bar-row">
+              <div class="chart-bar-label">Google Ads</div>
+              <div class="chart-bar-track"><div class="chart-bar-fill" style="width:40%;"></div></div>
+              <div class="chart-bar-val">188</div>
+            </div>
+            <div class="chart-bar-row">
+              <div class="chart-bar-label">Content Marketing</div>
+              <div class="chart-bar-track"><div class="chart-bar-fill" style="width:22%;"></div></div>
+              <div class="chart-bar-val">52</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#9AA0AE;margin-bottom:12px;" data-i18n-en="Recent Activity" data-i18n-th="กิจกรรมล่าสุด">Recent Activity</div>
+        <div style="background:white;border-radius:16px;border:1px solid rgba(15,111,115,0.10);padding:48px 24px;text-align:center;">
+          <div style="color:#9AA0AE;font-size:13px;" data-i18n-en="Activity will appear here as buyers view your profile and broadcasts arrive." data-i18n-th="กิจกรรมจะแสดงที่นี่เมื่อมีผู้ชมโปรไฟล์หรือมีคำขอใหม่เข้ามา">Activity will appear here as buyers view your profile and broadcasts arrive.</div>
+                  </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script src="i18n.js"></script>
+<script src="dashboard-shell.js"></script>
+<script>profindleGuard('Provider Overview');initDashboard('promote', window.profindleI18n.t('Provider Overview','ภาพรวมผู้ให้บริการ'));
+window.addEventListener('profindle:lang-change', () => {
+  const h = document.querySelector('.page-title');
+  if (h) h.textContent = window.profindleI18n.t('Provider Overview','ภาพรวมผู้ให้บริการ');
+});</script>
+</body>
+</html>
