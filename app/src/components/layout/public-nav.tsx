@@ -42,50 +42,58 @@ export function PublicNav({ locale, dict, dark = false }: PublicNavProps) {
 
       {/* Right nav */}
       <div className="flex items-center gap-5">
-        {/* Language Toggle */}
-        <div className="flex items-center gap-1">
+        {/* Language pill toggle */}
+        <div className={cn(
+          'flex items-center rounded-full p-[3px] gap-[2px]',
+          dark ? 'bg-white/10' : 'bg-[#E4E7ED]'
+        )}>
           <Link
             href={`/en${pathname.slice(3)}`}
             className={cn(
-              'text-[13px] font-semibold transition-colors no-underline',
+              'text-[12px] font-bold px-3 py-1 rounded-full no-underline transition-all duration-150',
               locale === 'en'
-                ? (dark ? 'text-white' : 'text-[#0F6F73]')
-                : (dark ? 'text-white/40 hover:text-white/70' : 'text-[#9AA0AE] hover:text-[#444B5A]')
+                ? 'bg-white text-[#171A21] shadow-sm'
+                : (dark ? 'text-white/50 hover:text-white/80' : 'text-[#9AA0AE] hover:text-[#444B5A]')
             )}
           >
             EN
           </Link>
-          <span className={cn('text-[11px]', dark ? 'text-white/25' : 'text-[#C8CDD7]')}>|</span>
           <Link
             href={`/th${pathname.slice(3)}`}
             className={cn(
-              'text-[13px] font-semibold transition-colors no-underline',
+              'text-[12px] font-bold px-3 py-1 rounded-full no-underline transition-all duration-150',
               locale === 'th'
-                ? (dark ? 'text-white' : 'text-[#0F6F73]')
-                : (dark ? 'text-white/40 hover:text-white/70' : 'text-[#9AA0AE] hover:text-[#444B5A]')
+                ? 'bg-white text-[#171A21] shadow-sm'
+                : (dark ? 'text-white/50 hover:text-white/80' : 'text-[#9AA0AE] hover:text-[#444B5A]')
             )}
           >
             TH
           </Link>
         </div>
 
+        {/* Join as Provider FREE */}
         <Link
-          href={`/${locale}/search-providers`}
+          href={`/${locale}/signup`}
           className={cn(
-            'text-[13px] font-semibold transition-colors no-underline hidden sm:block',
-            dark ? 'text-white/70 hover:text-white' : 'text-[#444B5A] hover:text-[#0F6F73]'
+            'text-[13px] font-semibold no-underline hidden sm:block transition-colors',
+            dark ? 'text-white/80 hover:text-white' : 'text-[#444B5A] hover:text-[#0F6F73]'
           )}
         >
-          {dict.nav.findProviders}
+          {locale === 'th' ? (
+            <>สมัครเป็นผู้ให้บริการ <strong style={{ color: '#F77F00' }}>ฟรี</strong></>
+          ) : (
+            <>Join as Provider <strong style={{ color: '#F77F00' }}>FREE</strong></>
+          )}
         </Link>
 
+        {/* Sign In */}
         <Link
           href={`/${locale}/login`}
           className={cn(
             'text-[13px] font-semibold px-4 py-2 rounded-[10px] no-underline transition-all duration-150',
             dark
-              ? 'bg-white/10 text-white border border-white/20 hover:bg-white/20'
-              : 'bg-gradient-to-br from-[#0F6F73] to-[#1A9DA3] text-white hover:brightness-110'
+              ? 'bg-white/12 text-white border border-white/20 hover:bg-white/20'
+              : 'bg-[#171A21] text-white hover:bg-[#2A2D38]'
           )}
         >
           {dict.nav.signIn}
