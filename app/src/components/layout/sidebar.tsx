@@ -126,13 +126,13 @@ export function Sidebar({ locale, dict, hasCompany = false, user }: SidebarProps
       {/* Header / Logo */}
       <div className="sidebar-header">
         <Link href={`/${locale}`} className="flex items-center gap-2.5 no-underline">
-          <div className="w-8 h-8 rounded-[8px] bg-gradient-to-br from-[#0F6F73] to-[#1A9DA3] flex items-center justify-center flex-shrink-0">
-            <svg width="18" height="18" viewBox="0 0 32 32" fill="none">
-              <circle cx="16" cy="11" r="6" fill="white" opacity="0.9" />
-              <path d="M6 28c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
-              <circle cx="22" cy="18" r="3" fill="#F77F00" />
-            </svg>
-          </div>
+          <svg width="26" height="34" viewBox="-3 -3 44 56" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+            <circle cx="18.56" cy="18.56" r="16" fill="none" stroke="white" strokeWidth="5.12" />
+            <path d="M18.56 8.96C23.8619 8.96 28.16 13.2581 28.16 18.56" stroke="#F77F00" strokeWidth="5.12" strokeLinecap="round" />
+            <path d="M5.76001 47.36C5.76001 47.36 5.76001 34.56 18.56 34.56" stroke="white" strokeWidth="5.12" strokeLinecap="round" />
+            <path d="M18.56 34.56L31.36 47.36" stroke="white" strokeWidth="5.12" strokeLinecap="round" />
+            <circle cx="18.56" cy="34.56" r="3.84" fill="#F77F00" />
+          </svg>
           <span className="text-[20px] font-bold tracking-tight">
             <span style={{ color: '#1A9DA3' }}>Pro</span>
             <span style={{ color: '#F77F00' }}>find</span>
