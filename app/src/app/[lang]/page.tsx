@@ -64,48 +64,38 @@ export default async function LandingPage({ params }: { params: Promise<{ lang: 
             width: '100%',
             margin: '0 auto',
           }}>
-            {/* Service field */}
-            <div style={{
-              display: 'flex', alignItems: 'flex-start', gap: '12px',
-              padding: '13px 16px',
-              borderBottom: '1px solid #F0F0F0',
-            }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '2px' }}>
-                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            {/* Service Type field */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '13px 16px', borderBottom: '1px solid #F0F0F0', position: 'relative' }}>
+              {/* Briefcase icon — matches original exactly */}
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2.2" strokeLinecap="round" style={{ flexShrink: 0, marginTop: '1px' }}>
+                <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
               </svg>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '3px' }}>
-                  {t.searchServiceLabel}
-                </div>
+                <label style={{ fontSize: '13px', fontWeight: 600, color: '#171A21', display: 'block', marginBottom: '3px' }}>
+                  {lang === 'th' ? 'ประเภทบริการ' : 'Service Type'}
+                </label>
                 <input
                   type="text"
-                  placeholder={t.searchServicePh}
-                  style={{
-                    width: '100%', fontSize: '13px', color: '#444B5A', border: 'none',
-                    outline: 'none', background: 'transparent', caretColor: '#0F6F73',
-                  }}
+                  placeholder={lang === 'th' ? 'จัดอีเวนต์, การตลาด, ออกแบบ…' : 'Event Planning, Marketing, Design…'}
+                  style={{ width: '100%', fontSize: '13px', color: '#444B5A', border: 'none', outline: 'none', background: 'transparent', caretColor: '#0F6F73', fontFamily: 'inherit' }}
                 />
               </div>
             </div>
-            {/* Location field */}
-            <div style={{
-              display: 'flex', alignItems: 'flex-start', gap: '12px',
-              padding: '13px 16px',
-            }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '2px' }}>
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+            {/* Additional Information field */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '13px 16px' }}>
+              {/* Pin icon */}
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2.2" strokeLinecap="round" style={{ flexShrink: 0, marginTop: '1px' }}>
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
               </svg>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '3px' }}>
-                  {t.searchLocationLabel}
-                </div>
+                <label style={{ fontSize: '13px', fontWeight: 600, color: '#171A21', display: 'block', marginBottom: '3px' }}>
+                  <span>{lang === 'th' ? 'ข้อมูลเพิ่มเติม' : 'Additional Information'}</span>
+                  {' '}<span style={{ color: '#9AA0AE', fontWeight: 400 }}>{lang === 'th' ? '(ไม่บังคับ)' : '(Optional)'}</span>
+                </label>
                 <input
                   type="text"
-                  placeholder={t.searchLocationPh}
-                  style={{
-                    width: '100%', fontSize: '13px', color: '#444B5A', border: 'none',
-                    outline: 'none', background: 'transparent',
-                  }}
+                  placeholder={lang === 'th' ? 'กรุงเทพฯ, CentralWorld, ABC Corporation…' : 'Bangkok, CentralWorld, ABC Corporation…'}
+                  style={{ width: '100%', fontSize: '13px', color: '#444B5A', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit' }}
                 />
               </div>
             </div>
@@ -113,16 +103,20 @@ export default async function LandingPage({ params }: { params: Promise<{ lang: 
             <Link
               href={`/${lang}/search-providers`}
               style={{
-                display: 'block', width: '100%', padding: '13px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                width: '100%', padding: '13px',
                 background: 'linear-gradient(135deg, #0F6F73 0%, #1A9DA3 100%)',
                 color: 'white', fontWeight: 600, fontSize: '15px',
-                border: 'none', borderRadius: '14px', textAlign: 'center',
+                borderRadius: '14px', textAlign: 'center',
                 boxShadow: '0 2px 8px rgba(15,111,115,0.25)',
-                textDecoration: 'none', cursor: 'pointer',
-                transition: 'all 150ms',
+                textDecoration: 'none', cursor: 'pointer', transition: 'all 150ms',
+                boxSizing: 'border-box',
               }}
             >
-              {t.searchBtn}
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+              {lang === 'th' ? 'ค้นหาผู้ให้บริการ' : 'Search Providers'}
             </Link>
           </div>
 
