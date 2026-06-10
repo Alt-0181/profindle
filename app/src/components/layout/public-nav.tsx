@@ -43,58 +43,54 @@ export function PublicNav({ locale, dict, dark = false }: PublicNavProps) {
       {/* Right nav */}
       <div className="flex items-center gap-5">
         {/* Language pill toggle */}
-        <div className={cn(
-          'flex items-center rounded-full p-[3px] gap-[2px]',
-          dark ? 'bg-white/10' : 'bg-[#E4E7ED]'
-        )}>
-          <Link
-            href={`/en${pathname.slice(3)}`}
-            className={cn(
-              'text-[12px] font-bold px-3 py-1 rounded-full no-underline transition-all duration-150',
-              locale === 'en'
-                ? 'bg-white text-[#171A21] shadow-sm'
-                : (dark ? 'text-white/50 hover:text-white/80' : 'text-[#9AA0AE] hover:text-[#444B5A]')
-            )}
-          >
-            EN
-          </Link>
-          <Link
-            href={`/th${pathname.slice(3)}`}
-            className={cn(
-              'text-[12px] font-bold px-3 py-1 rounded-full no-underline transition-all duration-150',
-              locale === 'th'
-                ? 'bg-white text-[#171A21] shadow-sm'
-                : (dark ? 'text-white/50 hover:text-white/80' : 'text-[#9AA0AE] hover:text-[#444B5A]')
-            )}
-          >
-            TH
-          </Link>
+        <div style={{
+          display: 'flex', alignItems: 'center', borderRadius: '999px', padding: '3px', gap: '2px',
+          background: dark ? 'rgba(255,255,255,0.12)' : '#E4E7ED',
+          border: dark ? '1px solid rgba(255,255,255,0.15)' : 'none',
+        }}>
+          {(['en', 'th'] as const).map((l) => (
+            <Link
+              key={l}
+              href={`/${l}${pathname.slice(3)}`}
+              style={{
+                fontSize: '12px', fontWeight: 700, padding: '4px 14px', borderRadius: '999px',
+                textDecoration: 'none', transition: 'all 150ms',
+                background: locale === l ? 'white' : 'transparent',
+                color: locale === l ? '#171A21' : (dark ? 'rgba(255,255,255,0.55)' : '#9AA0AE'),
+                boxShadow: locale === l ? '0 1px 4px rgba(0,0,0,0.15)' : 'none',
+              }}
+            >
+              {l.toUpperCase()}
+            </Link>
+          ))}
         </div>
 
         {/* Join as Provider FREE */}
         <Link
           href={`/${locale}/signup`}
-          className={cn(
-            'text-[13px] font-semibold no-underline hidden sm:block transition-colors',
-            dark ? 'text-white/80 hover:text-white' : 'text-[#444B5A] hover:text-[#0F6F73]'
-          )}
+          style={{
+            fontSize: '14px', fontWeight: 500, textDecoration: 'none', transition: 'color 150ms',
+            color: dark ? 'rgba(255,255,255,0.75)' : '#444B5A',
+          }}
+          className="hidden sm:block"
         >
           {locale === 'th' ? (
-            <>สมัครเป็นผู้ให้บริการ <strong style={{ color: '#F77F00' }}>ฟรี</strong></>
+            <>สมัครเป็นผู้ให้บริการ <strong style={{ color: '#F77F00', fontWeight: 700 }}>ฟรี</strong></>
           ) : (
-            <>Join as Provider <strong style={{ color: '#F77F00' }}>FREE</strong></>
+            <>Join as Provider <strong style={{ color: '#F77F00', fontWeight: 700 }}>FREE</strong></>
           )}
         </Link>
 
         {/* Sign In */}
         <Link
           href={`/${locale}/login`}
-          className={cn(
-            'text-[13px] font-semibold px-4 py-2 rounded-[10px] no-underline transition-all duration-150',
-            dark
-              ? 'bg-white/12 text-white border border-white/20 hover:bg-white/20'
-              : 'bg-[#171A21] text-white hover:bg-[#2A2D38]'
-          )}
+          style={{
+            fontSize: '13px', fontWeight: 600, padding: '8px 18px', borderRadius: '10px',
+            textDecoration: 'none', transition: 'all 150ms',
+            background: dark ? 'rgba(255,255,255,0.12)' : '#171A21',
+            color: 'white',
+            border: dark ? '1.5px solid rgba(255,255,255,0.2)' : 'none',
+          }}
         >
           {dict.nav.signIn}
         </Link>
