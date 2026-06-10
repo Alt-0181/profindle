@@ -66,36 +66,34 @@ export default async function LandingPage({ params }: { params: Promise<{ lang: 
           }}>
             {/* Service Type field */}
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '13px 16px', borderBottom: '1px solid #F0F0F0', position: 'relative' }}>
-              {/* Briefcase icon — matches original exactly */}
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2.2" strokeLinecap="round" style={{ flexShrink: 0, marginTop: '1px' }}>
                 <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
               </svg>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: '#171A21', display: 'block', marginBottom: '3px' }}>
+              <div style={{ flex: 1, textAlign: 'left' }}>
+                <label style={{ fontSize: '13px', fontWeight: 600, color: '#171A21', display: 'block', marginBottom: '3px', textAlign: 'left' }}>
                   {lang === 'th' ? 'ประเภทบริการ' : 'Service Type'}
                 </label>
                 <input
                   type="text"
                   placeholder={lang === 'th' ? 'จัดอีเวนต์, การตลาด, ออกแบบ…' : 'Event Planning, Marketing, Design…'}
-                  style={{ width: '100%', fontSize: '13px', color: '#444B5A', border: 'none', outline: 'none', background: 'transparent', caretColor: '#0F6F73', fontFamily: 'inherit' }}
+                  style={{ width: '100%', fontSize: '13px', color: '#444B5A', border: 'none', outline: 'none', background: 'transparent', caretColor: '#0F6F73', fontFamily: 'inherit', textAlign: 'left' }}
                 />
               </div>
             </div>
             {/* Additional Information field */}
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '13px 16px' }}>
-              {/* Pin icon */}
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2.2" strokeLinecap="round" style={{ flexShrink: 0, marginTop: '1px' }}>
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
               </svg>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: '#171A21', display: 'block', marginBottom: '3px' }}>
+              <div style={{ flex: 1, textAlign: 'left' }}>
+                <label style={{ fontSize: '13px', fontWeight: 600, color: '#171A21', display: 'block', marginBottom: '3px', textAlign: 'left' }}>
                   <span>{lang === 'th' ? 'ข้อมูลเพิ่มเติม' : 'Additional Information'}</span>
                   {' '}<span style={{ color: '#9AA0AE', fontWeight: 400 }}>{lang === 'th' ? '(ไม่บังคับ)' : '(Optional)'}</span>
                 </label>
                 <input
                   type="text"
                   placeholder={lang === 'th' ? 'กรุงเทพฯ, CentralWorld, ABC Corporation…' : 'Bangkok, CentralWorld, ABC Corporation…'}
-                  style={{ width: '100%', fontSize: '13px', color: '#444B5A', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit' }}
+                  style={{ width: '100%', fontSize: '13px', color: '#444B5A', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit', textAlign: 'left' }}
                 />
               </div>
             </div>
