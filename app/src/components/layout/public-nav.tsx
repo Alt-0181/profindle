@@ -16,14 +16,15 @@ export function PublicNav({ locale, dict, dark = false }: PublicNavProps) {
 
   return (
     <nav
-      className={cn(
-        'fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between',
-        'max-[640px]:px-5',
-        dark
-          ? 'bg-transparent'
-          : 'bg-white/95 backdrop-blur-sm border-b border-[#E4E7ED]'
-      )}
-      style={{ padding: '0 48px' }}
+      style={{
+        position: dark ? 'absolute' : 'sticky',
+        top: 0, left: 0, right: 0, zIndex: 50,
+        height: '64px', padding: '0 48px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        background: dark ? 'transparent' : 'rgba(255,255,255,0.95)',
+        backdropFilter: dark ? 'none' : 'blur(8px)',
+        borderBottom: dark ? 'none' : '1px solid #E4E7ED',
+      }}
     >
       {/* Logo */}
       <Link href={`/${locale}`} className="flex items-center gap-2.5 no-underline">

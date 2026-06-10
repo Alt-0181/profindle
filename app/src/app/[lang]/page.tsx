@@ -184,94 +184,68 @@ export default async function LandingPage({ params }: { params: Promise<{ lang: 
           display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px',
           maxWidth: '780px', width: '100%',
         }}>
-          {/* Buyers Card */}
-          <div style={{
-            borderRadius: '20px', padding: '32px',
-            background: '#F0F9F9', border: '1px solid rgba(15,111,115,0.12)',
-            display: 'flex', flexDirection: 'column',
-          }}>
+          {/* For Clients Card */}
+          <div style={{ borderRadius: '20px', padding: '32px', background: '#F0F9F9', border: '1px solid rgba(15,111,115,0.12)', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-              <div style={{
-                width: '36px', height: '36px', borderRadius: '10px',
-                background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-              </div>
-              <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#171A21' }}>{t.forBuyersTitle}</h3>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2.2" strokeLinecap="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+              </svg>
+              <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#171A21' }}>{lang === 'th' ? 'สำหรับลูกค้า' : 'For Clients'}</h3>
             </div>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '14px', flex: 1 }}>
-              {[t.buyerFeature1, t.buyerFeature2, t.buyerFeature3, t.buyerFeature4].map((feat, i) => (
+            <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '14px', flex: 1 }}>
+              {(lang === 'th' ? [
+                'ค้นหาผู้ให้บริการได้ง่ายด้วยตัวกรองอัจฉริยะ',
+                'ประกาศคำขอ — ผู้ให้บริการทุกรายที่ตรงกับจะได้รับแจ้งผ่าน LINE ทันที',
+                'ฟรี 100% สำหรับลูกค้า — ไม่มีค่าใช้จ่ายแอบแฝง',
+              ] : [
+                'Search service providers easily with smart filters',
+                'Broadcast your request — every matching provider gets pinged on LINE instantly',
+                '100% free for clients — no hidden fees',
+              ]).map((feat, i) => (
                 <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '14px', color: '#444B5A', lineHeight: 1.55 }}>
-                  <div style={{
-                    width: '18px', height: '18px', borderRadius: '999px', flexShrink: 0, marginTop: '2px',
-                    border: '1.5px solid #0F6F73', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
+                  <div style={{ width: '18px', height: '18px', borderRadius: '999px', flexShrink: 0, marginTop: '2px', border: '1.5px solid #0F6F73', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
                   </div>
                   {feat}
                 </li>
               ))}
             </ul>
             <div style={{ marginTop: '28px' }}>
-              <Link href={`/${lang}/signup`} style={{
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
-                padding: '10px 20px', borderRadius: '10px', fontSize: '13px', fontWeight: 600,
-                background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white',
-                textDecoration: 'none',
-              }}>
-                {t.getStartedFree}
+              <Link href={`/${lang}/search-providers`} style={{ display: 'inline-flex', alignItems: 'center', padding: '9px 18px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, border: '1.5px solid #0F6F73', color: '#0F6F73', textDecoration: 'none', background: 'transparent' }}>
+                {lang === 'th' ? 'ค้นหาผู้ให้บริการ →' : 'Find providers →'}
               </Link>
             </div>
           </div>
 
-          {/* Providers Card */}
-          <div style={{
-            borderRadius: '20px', padding: '32px',
-            background: 'linear-gradient(135deg, #171A21 0%, #0F6F73 100%)',
-            display: 'flex', flexDirection: 'column',
-          }}>
+          {/* For Service Providers Card */}
+          <div style={{ borderRadius: '20px', padding: '32px', background: 'linear-gradient(135deg, #0B2B2C 0%, #0F6F73 100%)', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-              <div style={{
-                width: '36px', height: '36px', borderRadius: '10px',
-                background: 'rgba(255,255,255,0.12)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-                </svg>
-              </div>
-              <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'white' }}>{t.forProvidersTitle}</h3>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2.2" strokeLinecap="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+              <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'white' }}>{lang === 'th' ? 'สำหรับผู้ให้บริการ' : 'For Service Providers'}</h3>
             </div>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '14px', flex: 1 }}>
-              {[t.providerFeature1, t.providerFeature2, t.providerFeature3, t.providerFeature4].map((feat, i) => (
+            <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '14px', flex: 1 }}>
+              {(lang === 'th' ? [
+                'ลงประกาศฟรี — นำเสนอธุรกิจของคุณได้โดยไม่มีค่าใช้จ่าย',
+                'รับการแจ้งเตือน LINE ทันทีเมื่อลูกค้าค้นหาบริการของคุณ',
+                'ถูกค้นพบโดยลูกค้าที่กำลังมองหาสิ่งที่คุณเสนอ',
+              ] : [
+                'Free listing — showcase your business at no cost',
+                'Receive instant LINE notifications when clients search for your services',
+                'Get discovered by more clients actively searching for what you offer',
+              ]).map((feat, i) => (
                 <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '14px', color: 'rgba(255,255,255,0.75)', lineHeight: 1.55 }}>
-                  <div style={{
-                    width: '18px', height: '18px', borderRadius: '999px', flexShrink: 0, marginTop: '2px',
-                    border: '1.5px solid rgba(255,255,255,0.3)',
-                    background: 'rgba(255,255,255,0.08)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
+                  <div style={{ width: '18px', height: '18px', borderRadius: '999px', flexShrink: 0, marginTop: '2px', border: '1.5px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
                   </div>
                   {feat}
                 </li>
               ))}
             </ul>
             <div style={{ marginTop: '28px' }}>
-              <Link href={`/${lang}/signup`} style={{
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
-                padding: '10px 20px', borderRadius: '10px', fontSize: '13px', fontWeight: 600,
-                background: 'rgba(255,255,255,0.15)', color: 'white',
-                textDecoration: 'none', border: '1px solid rgba(255,255,255,0.2)',
-              }}>
-                {t.viewAllProviders}
+              <Link href={`/${lang}/signup`} style={{ display: 'inline-flex', alignItems: 'center', padding: '9px 18px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, background: 'rgba(255,255,255,0.12)', color: 'white', border: '1.5px solid rgba(255,255,255,0.2)', textDecoration: 'none' }}>
+                {lang === 'th' ? 'สมัครฟรี →' : 'Join free →'}
               </Link>
             </div>
           </div>
