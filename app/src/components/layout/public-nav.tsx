@@ -17,12 +17,13 @@ export function PublicNav({ locale, dict, dark = false }: PublicNavProps) {
   return (
     <nav
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 h-16 px-12 flex items-center justify-between',
+        'fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between',
         'max-[640px]:px-5',
         dark
           ? 'bg-transparent'
           : 'bg-white/95 backdrop-blur-sm border-b border-[#E4E7ED]'
       )}
+      style={{ padding: '0 48px' }}
     >
       {/* Logo */}
       <Link href={`/${locale}`} className="flex items-center gap-2.5 no-underline">
@@ -33,10 +34,10 @@ export function PublicNav({ locale, dict, dark = false }: PublicNavProps) {
           <path d="M18.56 34.56L31.36 47.36" stroke={dark ? 'white' : '#0F6F73'} strokeWidth="5.12" strokeLinecap="round" />
           <circle cx="18.56" cy="34.56" r="3.84" fill="#F77F00" />
         </svg>
-        <span className={cn('text-[20px] font-bold tracking-tight', dark ? 'text-white' : 'text-[#171A21]')}>
-          <span className={dark ? 'text-[#2BBEC5]' : 'text-[#0F6F73]'}>Pro</span>
+        <span style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em' }}>
+          <span style={{ color: dark ? 'white' : '#0F6F73' }}>Pro</span>
           <span style={{ color: '#F77F00' }}>find</span>
-          <span className={dark ? 'text-[#2BBEC5]' : 'text-[#0F6F73]'}>le</span>
+          <span style={{ color: dark ? 'white' : '#0F6F73' }}>le</span>
         </span>
       </Link>
 
