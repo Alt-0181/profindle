@@ -43,8 +43,8 @@ function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; c
         {isTh ? `กลับไปที่ ${contact.companyName}` : `Back to ${contact.companyName}`}
       </button>
 
-      {/* Carousel — 16:9, sized to content column width */}
-      <div style={{ width: '100%', aspectRatio: '16/9', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px' }}>
+      {/* Carousel — 16:9, capped so it never dominates the page */}
+      <div style={{ width: '100%', aspectRatio: '16/9', maxHeight: '320px', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.65) 100%)' }} />
 
         {/* Counter */}
