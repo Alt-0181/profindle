@@ -165,7 +165,7 @@ export function SearchCard({ lang }: SearchCardProps) {
           background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(8px)',
           border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px',
           padding: '12px 16px', marginTop: '14px',
-          maxWidth: '520px', width: '100%',
+          maxWidth: '520px', width: '100%', margin: '14px auto 0',
         }}>
           <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'rgba(247,127,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F77F00" strokeWidth="2.5" strokeLinecap="round">
