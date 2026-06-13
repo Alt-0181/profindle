@@ -33,9 +33,9 @@ function parseResults(text: string): string[] {
 
 function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; contact: Contact; isTh: boolean; onBack: () => void }) {
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'white', zIndex: 200, overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'white', zIndex: 9999, overflowY: 'auto' }}>
       {/* Back nav */}
-      <div style={{ padding: '16px 24px', borderBottom: '1px solid #E4E7ED' }}>
+      <div style={{ padding: '14px 24px', borderBottom: '1px solid #E4E7ED', position: 'sticky', top: 0, background: 'white', zIndex: 1 }}>
         <button
           onClick={onBack}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#444B5A', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}
@@ -45,8 +45,8 @@ function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; c
         </button>
       </div>
 
-      {/* Full-width carousel */}
-      <div style={{ width: '100%', aspectRatio: '16/7', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', minHeight: '320px', maxHeight: '520px' }}>
+      {/* Full-width carousel — 16:9 landscape (matches social media publish dimensions) */}
+      <div style={{ width: '100%', aspectRatio: '16/9', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.65) 100%)' }} />
 
         {/* Counter */}
@@ -54,18 +54,18 @@ function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; c
           1/1
         </div>
 
-        {/* Prev arrow (disabled) */}
+        {/* Prev arrow */}
         <div style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3, zIndex: 2 }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#171A21" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6"/></svg>
         </div>
 
-        {/* Next arrow (disabled) */}
+        {/* Next arrow */}
         <div style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3, zIndex: 2 }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#171A21" strokeWidth="2.5" strokeLinecap="round"><path d="m9 18 6-6-6-6"/></svg>
         </div>
 
         {/* Dot indicator */}
-        <div style={{ position: 'absolute', bottom: '64px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 2 }}>
+        <div style={{ position: 'absolute', bottom: '56px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 2 }}>
           <div style={{ width: '18px', height: '6px', borderRadius: '3px', background: 'white' }} />
           <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.45)' }} />
           <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.45)' }} />
