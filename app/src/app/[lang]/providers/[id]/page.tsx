@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/server';
 import { PublicNav } from '@/components/layout/public-nav';
+import { PortfolioGrid } from './portfolio-grid';
 
 export default async function ProviderProfilePage({ params }: { params: Promise<{ lang: string; id: string }> }) {
   const { lang, id } = await params;
@@ -103,37 +104,11 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
             {projects.length > 0 && (
               <div style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', padding: '24px' }}>
                 <div style={{ fontSize: '11px', fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '16px' }}>{isTh ? 'ผลงานที่ผ่านมา' : 'Portfolio'}</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {projects.map((p) => (
-                    <div key={p.id} style={{ display: 'flex', gap: '14px', padding: '16px', borderRadius: '12px', border: '1px solid #F0F0F0', background: '#FAFAFA' }}>
-                      <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: p.cover_color ?? '#0F6F73', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
-                          <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
-                        </svg>
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '4px' }}>
-                          <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21' }}>{p.title}</div>
-                          <span style={{ fontSize: '11px', color: '#9AA0AE', flexShrink: 0 }}>{p.year}</span>
-                        </div>
-                        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                          {(p.confidential ? (isTh ? 'ลูกค้าลับ' : 'Confidential Client') : p.client) && (
-                            <span style={{ fontSize: '11px', color: '#6B7385' }}>{p.confidential ? (isTh ? 'ลูกค้าลับ' : 'Confidential Client') : p.client}</span>
-                          )}
-                          {p.budget && <><span style={{ fontSize: '11px', color: '#C8CDD7' }}>·</span><span style={{ fontSize: '11px', color: p.cover_color ?? '#0F6F73', fontWeight: 600 }}>{p.budget}</span></>}
-                          {p.category && <><span style={{ fontSize: '11px', color: '#C8CDD7' }}>·</span><span style={{ fontSize: '11px', color: '#9AA0AE' }}>{p.category}</span></>}
-                        </div>
-                        <p style={{ fontSize: '13px', color: '#6B7385', lineHeight: 1.6, margin: 0 }}>{isTh && p.description_th ? p.description_th : p.description}</p>
-                        {p.results && (
-                          <div style={{ marginTop: '8px', padding: '8px 10px', background: 'rgba(15,111,115,0.06)', borderRadius: '8px', borderLeft: `3px solid ${p.cover_color ?? '#0F6F73'}` }}>
-                            <span style={{ fontSize: '11px', fontWeight: 700, color: '#0F6F73' }}>{isTh ? 'ผลลัพธ์: ' : 'Results: '}</span>
-                            <span style={{ fontSize: '11px', color: '#444B5A' }}>{isTh && p.results_th ? p.results_th : p.results}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <PortfolioGrid
+                  projects={projects}
+                  contact={{ phone: company.phone ?? null, email: company.email ?? null, companyName: displayName }}
+                  isTh={isTh}
+                />
               </div>
             )}
           </div>
