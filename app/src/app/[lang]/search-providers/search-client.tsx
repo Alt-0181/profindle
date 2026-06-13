@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import type { Dictionary } from '@/dictionaries';
 import { PublicNav } from '@/components/layout/public-nav';
 import { SearchCard } from '../search-card';
@@ -205,9 +206,17 @@ export function SearchProvidersClient({ lang, dict, companies, provinces }: Sear
                   ))}
                 </div>
               </div>
-              <button style={{ width: '100%', padding: '13px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
-                {lang === 'th' ? 'ติดต่อผู้ให้บริการ' : 'Contact Provider'}
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <Link
+                  href={`/${lang}/providers/${drawerProvider.id}`}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '100%', padding: '13px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', borderRadius: '12px', textDecoration: 'none', textAlign: 'center', boxSizing: 'border-box' }}
+                >
+                  {lang === 'th' ? 'ดูโปรไฟล์เต็ม →' : 'View Full Profile →'}
+                </Link>
+                <button style={{ width: '100%', padding: '12px', background: 'transparent', color: '#0F6F73', fontWeight: 600, fontSize: '14px', border: '1.5px solid #0F6F73', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                  {lang === 'th' ? 'ติดต่อผู้ให้บริการ' : 'Contact Provider'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
