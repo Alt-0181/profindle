@@ -60,7 +60,7 @@ function ProjectDetail({ project, isTh, onBack, phone, email, providerName }: {
   const results = project.results
     ? parseResults(isTh && project.results_th ? project.results_th : project.results)
     : [];
-  const slides = [project.cover_color]; // extend when real images exist
+  const slides = [project.cover_color, '#F77F00', '#171A21']; // 3 demo slides until real images stored
 
   return (
     <div>
@@ -106,16 +106,14 @@ function ProjectDetail({ project, isTh, onBack, phone, email, providerName }: {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#171A21" strokeWidth="2.5" strokeLinecap="round"><path d="m9 18 6-6-6-6"/></svg>
         </div>
 
-        {/* Dots — always visible at bottom center */}
-        <div style={{ position: 'absolute', bottom: '64px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 3 }}>
-          {slides.map((_, i) => (
-            <div key={i} style={{ width: i === slideIdx ? '18px' : '6px', height: '6px', borderRadius: i === slideIdx ? '3px' : '50%', background: i === slideIdx ? 'white' : 'rgba(255,255,255,0.45)', transition: 'all 200ms' }} />
-          ))}
-        </div>
-
-        {/* Title — bottom left */}
-        <div style={{ position: 'relative', padding: '24px 32px', color: 'white', zIndex: 2 }}>
-          <div style={{ fontSize: '18px', fontWeight: 700, lineHeight: 1.25 }}>{project.title}</div>
+        {/* Bottom bar: title left + dots right, same row */}
+        <div style={{ position: 'relative', padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', zIndex: 2 }}>
+          <div style={{ fontSize: '18px', fontWeight: 700, lineHeight: 1.25, color: 'white' }}>{project.title}</div>
+          <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
+            {slides.map((_, i) => (
+              <div key={i} onClick={() => setSlideIdx(i)} style={{ width: i === slideIdx ? '18px' : '6px', height: '6px', borderRadius: i === slideIdx ? '3px' : '50%', background: i === slideIdx ? 'white' : 'rgba(255,255,255,0.5)', transition: 'all 220ms', cursor: 'pointer' }} />
+            ))}
+          </div>
         </div>
       </div>
 

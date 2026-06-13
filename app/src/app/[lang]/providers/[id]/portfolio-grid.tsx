@@ -32,6 +32,10 @@ function parseResults(text: string): string[] {
 }
 
 function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; contact: Contact; isTh: boolean; onBack: () => void }) {
+  const [slideIdx, setSlideIdx] = useState(0);
+  // 3 demo slides until real images are stored; each gets a distinct gradient
+  const slides = [project.cover_color, '#F77F00', '#171A21'];
+
   return (
     <div>
       {/* Back button */}
@@ -43,35 +47,52 @@ function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; c
         {isTh ? `กลับไปที่ ${contact.companyName}` : `Back to ${contact.companyName}`}
       </button>
 
-      {/* Carousel — 16:9, capped so it never dominates the page */}
+      {/* Carousel — 4:5 (IG/FB standard) */}
       <div style={{ width: '100%', aspectRatio: '4/5', maxHeight: '560px', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.65) 100%)' }} />
+
+        {/* Sliding track */}
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', transition: 'transform 320ms cubic-bezier(0.4,0,0.2,1)', transform: `translateX(-${slideIdx * 100}%)` }}>
+          {slides.map((c, i) => (
+            <div key={i} style={{ flex: '0 0 100%', height: '100%', background: coverGradient(c) }} />
+          ))}
+        </div>
+
+        {/* Gradient overlay */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.65) 100%)', zIndex: 1 }} />
 
         {/* Counter */}
-        <div style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(14,16,23,0.55)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '999px', backdropFilter: 'blur(4px)', zIndex: 2 }}>
-          1/1
+        <div style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(14,16,23,0.55)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '999px', backdropFilter: 'blur(4px)', zIndex: 3 }}>
+          {slideIdx + 1}/{slides.length}
         </div>
 
         {/* Prev arrow */}
-        <div style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3, zIndex: 2 }}>
+        <div
+          onClick={() => slideIdx > 0 && setSlideIdx(i => i - 1)}
+          style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: slideIdx === 0 ? 0.3 : 1, zIndex: 3, cursor: slideIdx === 0 ? 'default' : 'pointer', boxShadow: '0 2px 8px rgba(14,16,23,0.2)', transition: 'opacity 180ms' }}
+        >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#171A21" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6"/></svg>
         </div>
 
         {/* Next arrow */}
-        <div style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3, zIndex: 2 }}>
+        <div
+          onClick={() => slideIdx < slides.length - 1 && setSlideIdx(i => i + 1)}
+          style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: slideIdx === slides.length - 1 ? 0.3 : 1, zIndex: 3, cursor: slideIdx === slides.length - 1 ? 'default' : 'pointer', boxShadow: '0 2px 8px rgba(14,16,23,0.2)', transition: 'opacity 180ms' }}
+        >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#171A21" strokeWidth="2.5" strokeLinecap="round"><path d="m9 18 6-6-6-6"/></svg>
         </div>
 
-        {/* Dot indicator */}
-        <div style={{ position: 'absolute', bottom: '64px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 2 }}>
-          <div style={{ width: '18px', height: '6px', borderRadius: '3px', background: 'white' }} />
-          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.45)' }} />
-          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.45)' }} />
-        </div>
-
-        {/* Title overlay */}
-        <div style={{ position: 'relative', padding: '24px 32px', color: 'white', zIndex: 2 }}>
-          <div style={{ fontSize: '18px', fontWeight: 700, lineHeight: 1.25 }}>{project.title}</div>
+        {/* Bottom bar: title left + dots right, same row */}
+        <div style={{ position: 'relative', padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', zIndex: 2 }}>
+          <div style={{ fontSize: '18px', fontWeight: 700, lineHeight: 1.25, color: 'white' }}>{project.title}</div>
+          <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
+            {slides.map((_, i) => (
+              <div
+                key={i}
+                onClick={() => setSlideIdx(i)}
+                style={{ width: i === slideIdx ? '18px' : '6px', height: '6px', borderRadius: i === slideIdx ? '3px' : '50%', background: i === slideIdx ? 'white' : 'rgba(255,255,255,0.5)', transition: 'all 220ms', cursor: 'pointer' }}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
