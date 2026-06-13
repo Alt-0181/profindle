@@ -74,7 +74,7 @@ function ProjectDetail({ project, isTh, onBack, phone, email, providerName }: {
       </button>
 
       {/* Cover carousel */}
-      <div style={{ width: '100%', aspectRatio: '4/3', maxHeight: '420px', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px' }}>
+      <div style={{ width: '100%', aspectRatio: '4/5', maxHeight: '560px', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px' }}>
         {/* Gradient overlay */}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.65) 100%)' }} />
 
