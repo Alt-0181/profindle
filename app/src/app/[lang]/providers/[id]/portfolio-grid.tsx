@@ -71,7 +71,7 @@ function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; c
 
         {/* Title overlay */}
         <div style={{ position: 'relative', padding: '24px 32px', color: 'white', zIndex: 2 }}>
-          <div style={{ fontSize: '24px', fontWeight: 700, lineHeight: 1.25 }}>{project.title}</div>
+          <div style={{ fontSize: '18px', fontWeight: 700, lineHeight: 1.25 }}>{project.title}</div>
         </div>
       </div>
 
