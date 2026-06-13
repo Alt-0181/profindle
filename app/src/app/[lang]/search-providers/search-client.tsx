@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import type { Dictionary } from '@/dictionaries';
+import { PublicNav } from '@/components/layout/public-nav';
+import { SearchCard } from '../search-card';
 
 interface SearchProvidersClientProps {
   lang: string;
@@ -52,76 +54,50 @@ const MOCK_PROVIDERS = [
 
 export function SearchProvidersClient({ lang, dict }: SearchProvidersClientProps) {
   const t = dict.search;
-  const [serviceQuery, setServiceQuery] = useState('');
-  const [locationQuery, setLocationQuery] = useState('');
-  const [drawerProvider, setDrawerProvider] = useState<typeof MOCK_PROVIDERS[0] | null>(null);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [selectedProvince, setSelectedProvince] = useState('');
+  const [drawerProvider, setDrawerProvider] = useState<typeof MOCK_PROVIDERS[0] | null>(null);
 
   const filtered = MOCK_PROVIDERS.filter((p) => {
     if (verifiedOnly && !p.verified) return false;
-    if (serviceQuery && !p.services.some((s) => s.toLowerCase().includes(serviceQuery.toLowerCase()))) return false;
-    if (locationQuery && !p.province.toLowerCase().includes(locationQuery.toLowerCase())) return false;
+    if (selectedProvince && p.province !== selectedProvince) return false;
     return true;
   });
 
   return (
-    <div>
-      {/* Search Hero */}
+    <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif", minHeight: '100vh', background: '#F4F5F7' }}>
+      <PublicNav locale={lang} dict={dict} dark={false} />
+
+      {/* Hero */}
       <div style={{
         background: 'linear-gradient(140deg, #0E1017 0%, #0F6F73 100%)',
-        padding: '32px 24px 24px', position: 'relative',
+        padding: '48px 24px 40px', position: 'relative', overflow: 'hidden',
       }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 50% at 80% 50%, rgba(247,127,0,0.08) 0%, transparent 60%)' }} />
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: '1200px', margin: '0 auto' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'white', marginBottom: '4px' }}>{t.title}</h1>
-          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.55)', marginBottom: '20px' }}>{t.subtitle}</p>
-
-          {/* Search card */}
-          <div style={{
-            background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)',
-            borderRadius: '20px', padding: '6px', maxWidth: '540px',
-            boxShadow: '0 12px 48px rgba(15,111,115,0.22)',
-          }}>
-            <div style={{ display: 'flex', gap: '12px', padding: '12px 16px', borderBottom: '1px solid #F0F0F0' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '1px' }}>
-                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#171A21', marginBottom: '3px' }}>{t.serviceLabel}</div>
-                <input type="text" value={serviceQuery} onChange={(e) => setServiceQuery(e.target.value)} placeholder={t.servicePh} style={{ width: '100%', fontSize: '13px', color: '#444B5A', border: 'none', outline: 'none', background: 'transparent' }} />
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '12px', padding: '12px 16px' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '1px' }}>
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
-              </svg>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#171A21', marginBottom: '3px' }}>{t.locationLabel}</div>
-                <input type="text" value={locationQuery} onChange={(e) => setLocationQuery(e.target.value)} placeholder={t.locationPh} style={{ width: '100%', fontSize: '13px', color: '#444B5A', border: 'none', outline: 'none', background: 'transparent' }} />
-              </div>
-            </div>
-            <button style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '14px', cursor: 'pointer', fontFamily: 'inherit' }}>
-              {t.searchBtn}
-            </button>
-          </div>
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 50% at 80% 50%, rgba(247,127,0,0.08) 0%, transparent 60%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: '720px', margin: '0 auto', textAlign: 'center' }}>
+          <h1 style={{ fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 700, color: 'white', marginBottom: '8px', letterSpacing: '-0.02em' }}>
+            {lang === 'th' ? 'ค้นหาผู้ให้บริการ' : 'Find Service Providers'}
+          </h1>
+          <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.55)', marginBottom: '32px' }}>
+            {lang === 'th' ? 'ค้นหาผู้ให้บริการ B2B ที่ผ่านการตรวจสอบทั่วไทย — ไม่ต้องสมัครสมาชิก' : 'Browse verified Thai B2B service providers — no account needed'}
+          </p>
+          <SearchCard lang={lang} />
         </div>
       </div>
 
-      {/* Content area */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px', display: 'grid', gridTemplateColumns: '240px 1fr', gap: '24px', alignItems: 'start' }}>
+      {/* Results */}
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '28px 24px', display: 'grid', gridTemplateColumns: '220px 1fr', gap: '24px', alignItems: 'start' }}>
         {/* Filter rail */}
         <div style={{ position: 'sticky', top: '80px', background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', padding: '16px' }}>
           <div style={{ fontSize: '13px', fontWeight: 700, color: '#171A21', marginBottom: '16px' }}>{t.filters}</div>
-
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#444B5A', cursor: 'pointer', marginBottom: '12px' }}>
             <input type="checkbox" checked={verifiedOnly} onChange={(e) => setVerifiedOnly(e.target.checked)} style={{ accentColor: '#0F6F73', width: '16px', height: '16px' }} />
             {t.verified}
           </label>
-
           <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9AA0AE', marginBottom: '8px', marginTop: '16px' }}>{t.province}</div>
           {['Bangkok', 'Chiang Mai', 'Phuket', 'Khon Kaen', 'Chon Buri'].map((p) => (
             <label key={p} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#444B5A', cursor: 'pointer', marginBottom: '8px' }}>
-              <input type="checkbox" style={{ accentColor: '#0F6F73', width: '14px', height: '14px' }} />
+              <input type="checkbox" checked={selectedProvince === p} onChange={(e) => setSelectedProvince(e.target.checked ? p : '')} style={{ accentColor: '#0F6F73', width: '14px', height: '14px' }} />
               {p}
             </label>
           ))}
@@ -129,21 +105,52 @@ export function SearchProvidersClient({ lang, dict }: SearchProvidersClientProps
 
         {/* Provider grid */}
         <div>
-          <div style={{ fontSize: '14px', color: '#6B7385', marginBottom: '16px' }}>
-            <strong style={{ color: '#171A21' }}>{filtered.length}</strong> {t.providersFound}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <div style={{ fontSize: '14px', color: '#6B7385' }}>
+              {lang === 'th' ? 'แสดง' : 'Showing'} <strong style={{ color: '#171A21' }}>{filtered.length}</strong> {t.providersFound}
+            </div>
+            <select style={{ fontSize: '13px', color: '#444B5A', border: '1px solid #E4E7ED', borderRadius: '8px', padding: '6px 12px', background: 'white', fontFamily: 'inherit', cursor: 'pointer', outline: 'none' }}>
+              <option>{lang === 'th' ? 'เรียงตาม: ความเกี่ยวข้อง' : 'Sort: Relevance'}</option>
+              <option>{lang === 'th' ? 'เรียงตาม: ยอดนิยม' : 'Sort: Most Viewed'}</option>
+            </select>
           </div>
+
           {filtered.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 20px', border: '2px dashed #E4E7ED', borderRadius: '16px', color: '#9AA0AE' }}>
-              <div style={{ fontSize: '15px', fontWeight: 600, marginBottom: '6px' }}>{t.noResults}</div>
-              <div style={{ fontSize: '13px' }}>{t.noResultsSub}</div>
+            <div style={{
+              textAlign: 'center', padding: '60px 20px',
+              border: '2px dashed #E4E7ED', borderRadius: '16px',
+              background: 'white',
+            }}>
+              <div style={{ width: '56px', height: '56px', borderRadius: '14px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+              </div>
+              <div style={{ fontSize: '16px', fontWeight: 700, color: '#171A21', marginBottom: '8px' }}>
+                {lang === 'th' ? 'ไม่พบผู้ให้บริการที่ตรงกัน — ให้ผู้ให้บริการมาหาคุณ' : 'No exact match — let providers come to you'}
+              </div>
+              <p style={{ fontSize: '13px', color: '#6B7385', lineHeight: 1.6, maxWidth: '360px', margin: '0 auto 20px' }}>
+                {lang === 'th'
+                  ? 'ประกาศคำขอของคุณ และผู้ให้บริการที่ตรงกันทุกรายบน Profindle จะได้รับแจ้งผ่าน LINE ทันที '
+                  : 'Broadcast your request and every matching service provider on Profindle gets pinged on LINE instantly. '}
+                <strong style={{ color: '#F77F00' }}>{lang === 'th' ? 'ฟรี 100%' : '100% free'}</strong>
+                {lang === 'th' ? ' — ไม่มีค่าคอมมิชชั่น ไม่มีค่าใช้จ่ายแอบแฝง' : ' — no commission, no hidden fees.'}
+              </p>
+              <button style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 22px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                {lang === 'th' ? 'ประกาศคำขอของฉัน — ฟรี' : 'Broadcast my request — Free'}
+              </button>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
               {filtered.map((p) => (
-                <div key={p.id} style={{
-                  background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)',
-                  padding: '20px', cursor: 'pointer', transition: 'all 200ms',
-                }} onClick={() => setDrawerProvider(p)}>
+                <div
+                  key={p.id}
+                  style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', padding: '20px', cursor: 'pointer', transition: 'all 200ms' }}
+                  onClick={() => setDrawerProvider(p)}
+                >
                   <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
                     <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '16px', flexShrink: 0 }}>
                       {p.initial}
@@ -158,8 +165,8 @@ export function SearchProvidersClient({ lang, dict }: SearchProvidersClientProps
                         )}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#9AA0AE', marginTop: '2px' }}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
                         </svg>
                         {p.province}
                         {p.verified && (
@@ -194,26 +201,17 @@ export function SearchProvidersClient({ lang, dict }: SearchProvidersClientProps
         <div style={{ position: 'fixed', inset: 0, zIndex: 500 }} onClick={() => setDrawerProvider(null)}>
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(14,16,23,0.45)', backdropFilter: 'blur(3px)' }} />
           <div
-            style={{
-              position: 'absolute', top: 0, right: 0, bottom: 0, width: '540px', maxWidth: '100vw',
-              background: 'white', overflowY: 'auto',
-              animation: 'slideIn 250ms cubic-bezier(0.4,0,0.2,1)',
-            }}
+            style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: '540px', maxWidth: '100vw', background: 'white', overflowY: 'auto', animation: 'slideIn 250ms cubic-bezier(0.4,0,0.2,1)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Drawer header */}
             <div style={{ background: 'linear-gradient(135deg, #171A21 0%, #0F6F73 100%)', padding: '28px 24px', position: 'relative' }}>
-              <button onClick={() => setDrawerProvider(null)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white' }}>
-                ✕
-              </button>
+              <button onClick={() => setDrawerProvider(null)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white', fontSize: '16px' }}>✕</button>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div style={{ width: '72px', height: '72px', borderRadius: '18px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '24px', flexShrink: 0 }}>
                   {drawerProvider.initial}
                 </div>
                 <div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: 'white' }}>
-                    {lang === 'th' ? drawerProvider.name_th : drawerProvider.name}
-                  </div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: 'white' }}>{lang === 'th' ? drawerProvider.name_th : drawerProvider.name}</div>
                   <div style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
                     {drawerProvider.verified && <span style={{ background: 'rgba(255,255,255,0.15)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '999px' }}>✓ Verified</span>}
                     {drawerProvider.premium && <span style={{ background: 'linear-gradient(135deg, #F77F00, #E06B00)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '999px' }}>✦ Premium</span>}
@@ -221,10 +219,7 @@ export function SearchProvidersClient({ lang, dict }: SearchProvidersClientProps
                 </div>
               </div>
             </div>
-
-            {/* Drawer body */}
             <div style={{ padding: '20px 24px' }}>
-              {/* Stats */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
                 {[
                   { val: '0', label: lang === 'th' ? 'โปรเจกต์' : 'Projects' },
@@ -232,54 +227,23 @@ export function SearchProvidersClient({ lang, dict }: SearchProvidersClientProps
                   { val: drawerProvider.province, label: lang === 'th' ? 'จังหวัด' : 'Province' },
                 ].map((s) => (
                   <div key={s.label} style={{ background: '#F4F8F8', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '20px', fontWeight: 700, background: 'linear-gradient(90deg, #0F6F73, #F77F00)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{s.val}</div>
+                    <div style={{ fontSize: '18px', fontWeight: 700, color: '#0F6F73' }}>{s.val}</div>
                     <div style={{ fontSize: '11px', color: '#9AA0AE', marginTop: '2px' }}>{s.label}</div>
                   </div>
                 ))}
               </div>
-
-              {/* About */}
-              <div style={{ marginBottom: '24px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#171A21', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  {lang === 'th' ? 'เกี่ยวกับ' : 'About'}
-                </div>
-                <p style={{ fontSize: '14px', color: '#444B5A', lineHeight: 1.6 }}>
-                  {lang === 'th' ? drawerProvider.description_th : drawerProvider.description}
-                </p>
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>{lang === 'th' ? 'เกี่ยวกับ' : 'About'}</div>
+                <p style={{ fontSize: '14px', color: '#444B5A', lineHeight: 1.6 }}>{lang === 'th' ? drawerProvider.description_th : drawerProvider.description}</p>
               </div>
-
-              {/* Services */}
-              <div style={{ marginBottom: '24px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#171A21', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  {dict.search.services}
-                </div>
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>{dict.search.services}</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {drawerProvider.services.map((s) => (
                     <span key={s} style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '12px', fontWeight: 600, padding: '5px 12px', borderRadius: '999px' }}>{s}</span>
                   ))}
                 </div>
               </div>
-
-              {/* Contact */}
-              <div style={{ marginBottom: '24px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#171A21', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  {lang === 'th' ? 'ติดต่อ' : 'Contact'}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', border: '1px solid #E4E7ED', borderRadius: '10px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#F0F9F9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
-                      </svg>
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#9AA0AE', marginBottom: '2px' }}>Email</div>
-                      <div style={{ fontSize: '13px', color: '#171A21', fontWeight: 500 }}>contact@example.com</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               <button style={{ width: '100%', padding: '13px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
                 {lang === 'th' ? 'ติดต่อผู้ให้บริการ' : 'Contact Provider'}
               </button>
@@ -287,10 +251,7 @@ export function SearchProvidersClient({ lang, dict }: SearchProvidersClientProps
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-      `}</style>
+      <style>{`@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }`}</style>
     </div>
   );
 }
