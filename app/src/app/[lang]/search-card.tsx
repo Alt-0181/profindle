@@ -56,13 +56,13 @@ export function SearchCard({ lang }: SearchCardProps) {
   const showGuidance = service.trim().length > 0 && !open;
 
   return (
-    <>
+    <div style={{ maxWidth: '520px', width: '100%', margin: '0 auto' }}>
       {/* Search Card */}
       <div style={{
         background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)',
         border: '1px solid rgba(255,255,255,0.2)', borderRadius: '20px', padding: '6px',
         boxShadow: '0 20px 60px rgba(0,0,0,0.3), 0 4px 16px rgba(15,111,115,0.15)',
-        maxWidth: '520px', width: '100%', margin: '0 auto', position: 'relative',
+        width: '100%', position: 'relative',
       }}>
         {/* Service Type field */}
         <div ref={dropdownRef} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '13px 16px', borderBottom: '1px solid #F0F0F0', position: 'relative', zIndex: 50 }}>
@@ -165,7 +165,7 @@ export function SearchCard({ lang }: SearchCardProps) {
           background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(8px)',
           border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px',
           padding: '12px 16px', marginTop: '14px',
-          maxWidth: '520px', width: '100%', margin: '14px auto 0',
+          width: '100%',
         }}>
           <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'rgba(247,127,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F77F00" strokeWidth="2.5" strokeLinecap="round">
@@ -187,6 +187,6 @@ export function SearchCard({ lang }: SearchCardProps) {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
