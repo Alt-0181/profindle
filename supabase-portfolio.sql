@@ -65,7 +65,7 @@ select id, 'LINE OA Chatbot Integration', 'Central Retail', 2023, '500K–1M ฿
   '#F77F00', 2
 from companies where name = 'CodeCraft Studio';
 
-insert into portfolio_projects (company_id, title, client, year, budget, category, description, results, cover_color, sort_order)
+insert into portfolio_projects (company_id, title, client, confidential, year, budget, category, description, results, cover_color, sort_order)
 select id, 'Series A Investment Documentation', null, true, 2024, '200K–500K ฿', 'Corporate Law',
   'Full legal due diligence, shareholders'' agreement, and investment documentation for a ฿120M Series A fundraising round.',
   'Deal closed successfully. Zero post-closing disputes. Client secured lead investor from Japan.',
