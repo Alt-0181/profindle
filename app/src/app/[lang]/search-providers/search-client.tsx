@@ -4,61 +4,22 @@ import { useState } from 'react';
 import type { Dictionary } from '@/dictionaries';
 import { PublicNav } from '@/components/layout/public-nav';
 import { SearchCard } from '../search-card';
+import type { Company } from './page';
 
 interface SearchProvidersClientProps {
   lang: string;
   dict: Dictionary;
+  companies: Company[];
+  provinces: string[];
 }
 
-const MOCK_PROVIDERS = [
-  {
-    id: '1',
-    name: 'Digital Bridge Agency',
-    name_th: 'ดิจิทัล บริดจ์ เอเจนซี่',
-    province: 'Bangkok',
-    services: ['Digital Marketing', 'Social Media', 'SEO/SEM'],
-    description: 'Full-service digital marketing agency specializing in B2B growth.',
-    description_th: 'เอเจนซี่การตลาดดิจิทัลครบวงจร เชี่ยวชาญด้านการเติบโต B2B',
-    verified: true,
-    premium: true,
-    views: 124,
-    initial: 'DB',
-  },
-  {
-    id: '2',
-    name: 'CodeCraft Studio',
-    name_th: 'โค้ดคราฟต์ สตูดิโอ',
-    province: 'Chiang Mai',
-    services: ['Web Development', 'Mobile App', 'UI/UX Design'],
-    description: 'Award-winning web and mobile development studio.',
-    description_th: 'สตูดิโอพัฒนาเว็บและแอปที่ได้รับรางวัล',
-    verified: true,
-    premium: false,
-    views: 89,
-    initial: 'CC',
-  },
-  {
-    id: '3',
-    name: 'Legal Nexus Thailand',
-    name_th: 'ลีกัล เน็กซัส ไทยแลนด์',
-    province: 'Bangkok',
-    services: ['Corporate Law', 'Contract Review', 'IP & Trademark'],
-    description: 'Boutique law firm focused on technology and commercial law.',
-    description_th: 'สำนักงานกฎหมายเฉพาะทางด้านเทคโนโลยีและกฎหมายพาณิชย์',
-    verified: true,
-    premium: true,
-    views: 203,
-    initial: 'LN',
-  },
-];
-
-export function SearchProvidersClient({ lang, dict }: SearchProvidersClientProps) {
+export function SearchProvidersClient({ lang, dict, companies, provinces }: SearchProvidersClientProps) {
   const t = dict.search;
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [selectedProvince, setSelectedProvince] = useState('');
-  const [drawerProvider, setDrawerProvider] = useState<typeof MOCK_PROVIDERS[0] | null>(null);
+  const [drawerProvider, setDrawerProvider] = useState<Company | null>(null);
 
-  const filtered = MOCK_PROVIDERS.filter((p) => {
+  const filtered = companies.filter((p) => {
     if (verifiedOnly && !p.verified) return false;
     if (selectedProvince && p.province !== selectedProvince) return false;
     return true;
@@ -95,7 +56,7 @@ export function SearchProvidersClient({ lang, dict }: SearchProvidersClientProps
             {t.verified}
           </label>
           <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9AA0AE', marginBottom: '8px', marginTop: '16px' }}>{t.province}</div>
-          {['Bangkok', 'Chiang Mai', 'Phuket', 'Khon Kaen', 'Chon Buri'].map((p) => (
+          {provinces.map((p) => (
             <label key={p} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#444B5A', cursor: 'pointer', marginBottom: '8px' }}>
               <input type="checkbox" checked={selectedProvince === p} onChange={(e) => setSelectedProvince(e.target.checked ? p : '')} style={{ accentColor: '#0F6F73', width: '14px', height: '14px' }} />
               {p}
@@ -153,7 +114,7 @@ export function SearchProvidersClient({ lang, dict }: SearchProvidersClientProps
                 >
                   <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
                     <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '16px', flexShrink: 0 }}>
-                      {p.initial}
+                      {p.logo_initial ?? p.name.slice(0,2).toUpperCase()}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
@@ -208,7 +169,7 @@ export function SearchProvidersClient({ lang, dict }: SearchProvidersClientProps
               <button onClick={() => setDrawerProvider(null)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white', fontSize: '16px' }}>✕</button>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div style={{ width: '72px', height: '72px', borderRadius: '18px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '24px', flexShrink: 0 }}>
-                  {drawerProvider.initial}
+                  {drawerProvider.logo_initial ?? drawerProvider.name.slice(0,2).toUpperCase()}
                 </div>
                 <div>
                   <div style={{ fontSize: '20px', fontWeight: 700, color: 'white' }}>{lang === 'th' ? drawerProvider.name_th : drawerProvider.name}</div>
