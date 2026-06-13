@@ -33,20 +33,18 @@ function parseResults(text: string): string[] {
 
 function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; contact: Contact; isTh: boolean; onBack: () => void }) {
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'white', zIndex: 9999, overflowY: 'auto' }}>
-      {/* Back nav */}
-      <div style={{ padding: '14px 24px', borderBottom: '1px solid #E4E7ED', position: 'sticky', top: 0, background: 'white', zIndex: 1 }}>
-        <button
-          onClick={onBack}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#444B5A', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6"/></svg>
-          {isTh ? `กลับไปที่ ${contact.companyName}` : `Back to ${contact.companyName}`}
-        </button>
-      </div>
+    <div>
+      {/* Back button */}
+      <button
+        onClick={onBack}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, color: '#0F6F73', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0, marginBottom: '14px' }}
+      >
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        {isTh ? `กลับไปที่ ${contact.companyName}` : `Back to ${contact.companyName}`}
+      </button>
 
-      {/* Full-width carousel — 16:9 landscape (matches social media publish dimensions) */}
-      <div style={{ width: '100%', aspectRatio: '16/9', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end' }}>
+      {/* Carousel — 16:9, sized to content column width */}
+      <div style={{ width: '100%', aspectRatio: '16/9', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.65) 100%)' }} />
 
         {/* Counter */}
@@ -78,7 +76,7 @@ function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; c
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 24px 48px' }}>
+      <div>
 
         {/* CLIENT / YEAR */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: '1px solid #E4E7ED' }}>
