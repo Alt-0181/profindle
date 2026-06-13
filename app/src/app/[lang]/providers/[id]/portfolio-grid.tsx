@@ -44,7 +44,7 @@ function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; c
       </button>
 
       {/* Carousel — 16:9, capped so it never dominates the page */}
-      <div style={{ width: '100%', aspectRatio: '16/9', maxHeight: '320px', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px' }}>
+      <div style={{ width: '100%', aspectRatio: '4/3', maxHeight: '420px', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.65) 100%)' }} />
 
         {/* Counter */}
@@ -63,7 +63,7 @@ function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; c
         </div>
 
         {/* Dot indicator */}
-        <div style={{ position: 'absolute', bottom: '56px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 2 }}>
+        <div style={{ position: 'absolute', bottom: '64px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 2 }}>
           <div style={{ width: '18px', height: '6px', borderRadius: '3px', background: 'white' }} />
           <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.45)' }} />
           <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.45)' }} />

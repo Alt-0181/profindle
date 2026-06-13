@@ -74,7 +74,7 @@ function ProjectDetail({ project, isTh, onBack, phone, email, providerName }: {
       </button>
 
       {/* Cover carousel */}
-      <div style={{ width: '100%', aspectRatio: '16/9', maxHeight: '320px', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px' }}>
+      <div style={{ width: '100%', aspectRatio: '4/3', maxHeight: '420px', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px' }}>
         {/* Gradient overlay */}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.65) 100%)' }} />
 
@@ -107,7 +107,7 @@ function ProjectDetail({ project, isTh, onBack, phone, email, providerName }: {
         </div>
 
         {/* Dots — always visible at bottom center */}
-        <div style={{ position: 'absolute', bottom: '56px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 3 }}>
+        <div style={{ position: 'absolute', bottom: '64px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 3 }}>
           {slides.map((_, i) => (
             <div key={i} style={{ width: i === slideIdx ? '18px' : '6px', height: '6px', borderRadius: i === slideIdx ? '3px' : '50%', background: i === slideIdx ? 'white' : 'rgba(255,255,255,0.45)', transition: 'all 200ms' }} />
           ))}
