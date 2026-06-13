@@ -53,7 +53,7 @@ export function SearchCard({ lang }: SearchCardProps) {
     );
   }
 
-  const showGuidance = service.trim().length > 0;
+  const showGuidance = service.trim().length > 0 && !open;
 
   return (
     <>
