@@ -248,17 +248,21 @@ function PortfolioSection({ projects, isTh, onSelectProject }: {
           {isTh ? `ไม่มีผลงานในหมวด ${activeFilter}` : `No projects in ${activeFilter}`}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
           {filtered.map(p => (
             <button key={p.id} onClick={() => onSelectProject(p)}
               style={{ background: 'white', border: '1px solid #E4E7ED', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', padding: 0, textAlign: 'left', fontFamily: 'inherit', transition: 'transform 180ms, box-shadow 180ms, border-color 180ms', display: 'flex', flexDirection: 'column' }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 22px rgba(15,111,115,0.14)'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#0F6F73'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = ''; (e.currentTarget as HTMLButtonElement).style.boxShadow = ''; (e.currentTarget as HTMLButtonElement).style.borderColor = '#E4E7ED'; }}
             >
-              {/* 1:1 thumbnail */}
-              <div style={{ width: '100%', aspectRatio: '1/1', background: coverGradient(p.cover_color), position: 'relative' }} />
-              <div style={{ padding: '12px 14px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#171A21', lineHeight: 1.35, marginBottom: '3px', letterSpacing: '-0.01em' }}>{p.title}</div>
+              {/* 4:3 thumbnail */}
+              <div style={{ width: '100%', aspectRatio: '4/3', background: coverGradient(p.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end' }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.6) 100%)' }} />
+                <div style={{ position: 'relative', padding: '10px 12px', color: 'white' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 700, lineHeight: 1.3 }}>{p.title}</div>
+                </div>
+              </div>
+              <div style={{ padding: '8px 12px 10px' }}>
                 <div style={{ fontSize: '11px', color: '#9AA0AE' }}>
                   {p.confidential ? (isTh ? 'ลูกค้าลับ' : 'Confidential') : p.client}
                   {p.year ? ` · ${p.year}` : ''}
