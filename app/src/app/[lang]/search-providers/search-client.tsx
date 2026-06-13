@@ -106,14 +106,14 @@ function ProjectDetail({ project, isTh, onBack, phone, email, providerName }: {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#171A21" strokeWidth="2.5" strokeLinecap="round"><path d="m9 18 6-6-6-6"/></svg>
         </div>
 
-        {/* Bottom bar: title left + dots right, same row */}
-        <div style={{ position: 'relative', padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', zIndex: 2 }}>
-          <div style={{ fontSize: '18px', fontWeight: 700, lineHeight: 1.25, color: 'white' }}>{project.title}</div>
-          <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
+        {/* Bottom: dots centered, then title left-aligned */}
+        <div style={{ position: 'relative', padding: '14px 24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', zIndex: 2 }}>
+          <div style={{ display: 'flex', gap: '5px' }}>
             {slides.map((_, i) => (
               <div key={i} onClick={() => setSlideIdx(i)} style={{ width: i === slideIdx ? '18px' : '6px', height: '6px', borderRadius: i === slideIdx ? '3px' : '50%', background: i === slideIdx ? 'white' : 'rgba(255,255,255,0.5)', transition: 'all 220ms', cursor: 'pointer' }} />
             ))}
           </div>
+          <div style={{ width: '100%', fontSize: '18px', fontWeight: 700, lineHeight: 1.25, color: 'white' }}>{project.title}</div>
         </div>
       </div>
 
