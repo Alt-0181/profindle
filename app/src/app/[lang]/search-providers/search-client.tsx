@@ -74,47 +74,48 @@ function ProjectDetail({ project, isTh, onBack, phone, email, providerName }: {
       </button>
 
       {/* Cover carousel */}
-      <div style={{ width: '100%', aspectRatio: '16/9', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px' }}>
+      <div style={{ width: '100%', aspectRatio: '16/9', maxHeight: '320px', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px' }}>
+        {/* Gradient overlay */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.65) 100%)' }} />
+
         {/* Track */}
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', transition: 'transform 280ms cubic-bezier(0.4,0,0.2,1)' }}>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', transition: 'transform 280ms cubic-bezier(0.4,0,0.2,1)', transform: `translateX(-${slideIdx * 100}%)` }}>
           {slides.map((c, i) => (
-            <div key={i} style={{ flex: '0 0 100%', height: '100%', background: coverGradient(c), position: 'relative' }}>
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.55) 100%)' }} />
-            </div>
+            <div key={i} style={{ flex: '0 0 100%', height: '100%', background: coverGradient(c) }} />
           ))}
         </div>
 
-        {/* Counter */}
-        {slides.length > 1 && (
-          <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(14,16,23,0.6)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '999px', backdropFilter: 'blur(4px)', zIndex: 3 }}>
-            {slideIdx + 1}/{slides.length}
-          </div>
-        )}
+        {/* Counter — always visible */}
+        <div style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(14,16,23,0.55)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '999px', backdropFilter: 'blur(4px)', zIndex: 3 }}>
+          {slideIdx + 1}/{slides.length}
+        </div>
 
-        {/* Arrows */}
-        {slides.length > 1 && (
-          <>
-            <button disabled={slideIdx === 0} onClick={() => setSlideIdx(i => i - 1)} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', width: '34px', height: '34px', borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: slideIdx === 0 ? 0.35 : 1, zIndex: 3, boxShadow: '0 2px 8px rgba(14,16,23,0.2)' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#171A21" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
-            <button disabled={slideIdx === slides.length - 1} onClick={() => setSlideIdx(i => i + 1)} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', width: '34px', height: '34px', borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: slideIdx === slides.length - 1 ? 0.35 : 1, zIndex: 3, boxShadow: '0 2px 8px rgba(14,16,23,0.2)' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#171A21" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-          </>
-        )}
+        {/* Prev arrow — always visible, dimmed when disabled */}
+        <div
+          onClick={() => slideIdx > 0 && setSlideIdx(i => i - 1)}
+          style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: slideIdx === 0 ? 0.3 : 1, zIndex: 3, cursor: slideIdx === 0 ? 'default' : 'pointer', boxShadow: '0 2px 8px rgba(14,16,23,0.2)' }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#171A21" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6"/></svg>
+        </div>
 
-        {/* Dots */}
-        {slides.length > 1 && (
-          <div style={{ position: 'absolute', bottom: '12px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 3 }}>
-            {slides.map((_, i) => (
-              <div key={i} style={{ width: i === slideIdx ? '18px' : '7px', height: '7px', borderRadius: i === slideIdx ? '3px' : '50%', background: i === slideIdx ? 'white' : 'rgba(255,255,255,0.55)', transition: 'all 200ms', boxShadow: '0 1px 2px rgba(0,0,0,0.25)' }} />
-            ))}
-          </div>
-        )}
+        {/* Next arrow — always visible, dimmed when disabled */}
+        <div
+          onClick={() => slideIdx < slides.length - 1 && setSlideIdx(i => i + 1)}
+          style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: slideIdx === slides.length - 1 ? 0.3 : 1, zIndex: 3, cursor: slideIdx === slides.length - 1 ? 'default' : 'pointer', boxShadow: '0 2px 8px rgba(14,16,23,0.2)' }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#171A21" strokeWidth="2.5" strokeLinecap="round"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
 
-        {/* Title overlay */}
-        <div style={{ position: 'relative', padding: '18px 20px', color: 'white', zIndex: 2 }}>
-          <h3 style={{ fontSize: '20px', fontWeight: 700, lineHeight: 1.25, letterSpacing: '-0.01em', textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}>{project.title}</h3>
+        {/* Dots — always visible at bottom center */}
+        <div style={{ position: 'absolute', bottom: '56px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 3 }}>
+          {slides.map((_, i) => (
+            <div key={i} style={{ width: i === slideIdx ? '18px' : '6px', height: '6px', borderRadius: i === slideIdx ? '3px' : '50%', background: i === slideIdx ? 'white' : 'rgba(255,255,255,0.45)', transition: 'all 200ms' }} />
+          ))}
+        </div>
+
+        {/* Title — bottom left */}
+        <div style={{ position: 'relative', padding: '24px 32px', color: 'white', zIndex: 2 }}>
+          <div style={{ fontSize: '18px', fontWeight: 700, lineHeight: 1.25 }}>{project.title}</div>
         </div>
       </div>
 
