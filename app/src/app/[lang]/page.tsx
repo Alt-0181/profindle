@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { PublicNav } from '@/components/layout/public-nav';
+import { SearchCard } from './search-card';
 
 export default async function LandingPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
@@ -53,70 +54,7 @@ export default async function LandingPage({ params }: { params: Promise<{ lang: 
           </p>
 
           {/* Search Card */}
-          <div style={{
-            background: 'rgba(255,255,255,0.97)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: '20px',
-            padding: '6px',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3), 0 4px 16px rgba(15,111,115,0.15)',
-            maxWidth: '520px',
-            width: '100%',
-            margin: '0 auto',
-          }}>
-            {/* Service Type field */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '13px 16px', borderBottom: '1px solid #F0F0F0', position: 'relative' }}>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2.2" strokeLinecap="round" style={{ flexShrink: 0, marginTop: '1px' }}>
-                <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-              </svg>
-              <div style={{ flex: 1, textAlign: 'left' }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: '#171A21', display: 'block', marginBottom: '3px', textAlign: 'left' }}>
-                  {lang === 'th' ? 'ประเภทบริการ' : 'Service Type'}
-                </label>
-                <input
-                  type="text"
-                  placeholder={lang === 'th' ? 'จัดอีเวนต์, การตลาด, ออกแบบ…' : 'Event Planning, Marketing, Design…'}
-                  style={{ width: '100%', fontSize: '13px', color: '#444B5A', border: 'none', outline: 'none', background: 'transparent', caretColor: '#0F6F73', fontFamily: 'inherit', textAlign: 'left' }}
-                />
-              </div>
-            </div>
-            {/* Additional Information field */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '13px 16px' }}>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2.2" strokeLinecap="round" style={{ flexShrink: 0, marginTop: '1px' }}>
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-              </svg>
-              <div style={{ flex: 1, textAlign: 'left' }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: '#171A21', display: 'block', marginBottom: '3px', textAlign: 'left' }}>
-                  <span>{lang === 'th' ? 'ข้อมูลเพิ่มเติม' : 'Additional Information'}</span>
-                  {' '}<span style={{ color: '#9AA0AE', fontWeight: 400 }}>{lang === 'th' ? '(ไม่บังคับ)' : '(Optional)'}</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder={lang === 'th' ? 'กรุงเทพฯ, CentralWorld, ABC Corporation…' : 'Bangkok, CentralWorld, ABC Corporation…'}
-                  style={{ width: '100%', fontSize: '13px', color: '#444B5A', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit', textAlign: 'left' }}
-                />
-              </div>
-            </div>
-            {/* Search button */}
-            <Link
-              href={`/${lang}/search-providers`}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                width: '100%', padding: '13px',
-                background: 'linear-gradient(135deg, #0F6F73 0%, #1A9DA3 100%)',
-                color: 'white', fontWeight: 600, fontSize: '15px',
-                borderRadius: '14px', textAlign: 'center',
-                boxShadow: '0 2px 8px rgba(15,111,115,0.25)',
-                textDecoration: 'none', cursor: 'pointer', transition: 'all 150ms',
-                boxSizing: 'border-box',
-              }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-              </svg>
-              {lang === 'th' ? 'ค้นหาผู้ให้บริการ' : 'Search Providers'}
-            </Link>
-          </div>
+          <SearchCard lang={lang} />
 
           {/* How it works toggle */}
           <div style={{ marginTop: '24px' }}>
