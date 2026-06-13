@@ -188,6 +188,17 @@ export function PortfolioGrid({ projects, contact, isTh }: { projects: Project[]
   const countFor = (cat: string) => cat === 'All' ? projects.length : (categoryMap.get(cat) ?? 0);
   const filtered = activeCategory === 'All' ? projects : projects.filter(p => p.category === activeCategory);
 
+  if (selected) {
+    return (
+      <ProjectDetail
+        project={selected}
+        contact={contact}
+        isTh={isTh}
+        onBack={() => setSelected(null)}
+      />
+    );
+  }
+
   return (
     <>
       {/* Filter chips */}
@@ -240,16 +251,6 @@ export function PortfolioGrid({ projects, contact, isTh }: { projects: Project[]
           </div>
         ))}
       </div>
-
-      {/* Full-screen project detail */}
-      {selected && (
-        <ProjectDetail
-          project={selected}
-          contact={contact}
-          isTh={isTh}
-          onBack={() => setSelected(null)}
-        />
-      )}
     </>
   );
 }
