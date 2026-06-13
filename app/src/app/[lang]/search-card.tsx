@@ -158,37 +158,35 @@ export function SearchCard({ lang }: SearchCardProps) {
         </button>
       </div>
 
-      {/* Guidance pill */}
-      <div style={{
-        display: 'flex', alignItems: 'flex-start', gap: '10px',
-        background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(8px)',
-        border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px',
-        padding: '12px 16px', marginTop: '14px',
-        maxWidth: '520px', width: '100%',
-        opacity: showGuidance ? 1 : 0,
-        transform: showGuidance ? 'translateY(0)' : 'translateY(6px)',
-        transition: 'opacity 300ms, transform 300ms',
-        pointerEvents: showGuidance ? 'auto' : 'none',
-      }}>
-        <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'rgba(247,127,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F77F00" strokeWidth="2.5" strokeLinecap="round">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-          </svg>
+      {/* Guidance pill — only mounted when dropdown is closed and service is typed */}
+      {showGuidance && (
+        <div style={{
+          display: 'flex', alignItems: 'flex-start', gap: '10px',
+          background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px',
+          padding: '12px 16px', marginTop: '14px',
+          maxWidth: '520px', width: '100%',
+        }}>
+          <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'rgba(247,127,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F77F00" strokeWidth="2.5" strokeLinecap="round">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+          </div>
+          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, textAlign: 'left' }}>
+            {lang === 'th' ? (
+              <>คุณกำลังมองหาผู้ให้บริการที่มีความเชี่ยวชาญใน{' '}
+                <strong style={{ color: '#2BBEC5', fontWeight: 600 }}>{service}</strong>
+                {info && <>{' '}ใน / ที่{' '}<span style={{ color: '#F77F00', fontWeight: 600 }}>{info}</span></>}
+              </>
+            ) : (
+              <>You are looking for service providers with experience in{' '}
+                <strong style={{ color: '#2BBEC5', fontWeight: 600 }}>{service}</strong>
+                {info && <>{' '}with / at{' '}<span style={{ color: '#F77F00', fontWeight: 600 }}>{info}</span></>}
+              </>
+            )}
+          </div>
         </div>
-        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, textAlign: 'left' }}>
-          {lang === 'th' ? (
-            <>คุณกำลังมองหาผู้ให้บริการที่มีความเชี่ยวชาญใน{' '}
-              <strong style={{ color: '#2BBEC5', fontWeight: 600 }}>{service}</strong>
-              {info && <>{' '}ใน / ที่{' '}<span style={{ color: '#F77F00', fontWeight: 600 }}>{info}</span></>}
-            </>
-          ) : (
-            <>You are looking for service providers with experience in{' '}
-              <strong style={{ color: '#2BBEC5', fontWeight: 600 }}>{service}</strong>
-              {info && <>{' '}with / at{' '}<span style={{ color: '#F77F00', fontWeight: 600 }}>{info}</span></>}
-            </>
-          )}
-        </div>
-      </div>
+      )}
     </>
   );
 }
