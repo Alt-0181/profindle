@@ -4,23 +4,6 @@ import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/server';
 import { PublicNav } from '@/components/layout/public-nav';
 
-const MOCK_PORTFOLIO: Record<string, { title: string; client: string; year: number; budget: string; desc: string; color: string }[]> = {
-  'Digital Bridge Agency': [
-    { title: 'B2B Lead Generation Campaign', client: 'SCG Packaging', year: 2024, budget: '500K–1M ฿', desc: 'Full-funnel B2B demand generation across LinkedIn and Google, resulting in 340% increase in qualified leads.', color: '#0F6F73' },
-    { title: 'SEO Overhaul & Content Strategy', client: 'Kasikorn Bank', year: 2023, budget: '200K–500K ฿', desc: 'Rebuilt site architecture and content strategy, improving organic traffic by 180% in 6 months.', color: '#F77F00' },
-    { title: 'Social Media Brand Launch', client: 'Confidential Client', year: 2024, budget: '100K–200K ฿', desc: 'Launched brand presence across LINE, Facebook, and Instagram for a new F&B chain entering Thailand.', color: '#1A9DA3' },
-  ],
-  'CodeCraft Studio': [
-    { title: 'Enterprise Procurement Platform', client: 'PTT Global Chemical', year: 2024, budget: '2M–5M ฿', desc: 'Custom web platform handling 10,000+ SKUs, multi-vendor approvals, and real-time inventory sync.', color: '#0F6F73' },
-    { title: 'LINE OA Chatbot Integration', client: 'Central Retail', year: 2023, budget: '500K–1M ฿', desc: 'Built and deployed a LINE OA chatbot for customer service automation handling 50K+ monthly interactions.', color: '#F77F00' },
-  ],
-  'Legal Nexus Thailand': [
-    { title: 'Series A Investment Documentation', client: 'Confidential Startup', year: 2024, budget: '200K–500K ฿', desc: 'Full legal due diligence, SHA, and investment agreement for a ฿120M Series A round.', color: '#0F6F73' },
-    { title: 'IP Portfolio Protection', client: 'Confidential FMCG Brand', year: 2023, budget: '100K–200K ฿', desc: 'Registered 14 trademarks across ASEAN markets and successfully defended against 2 infringement cases.', color: '#F77F00' },
-    { title: 'Tech Startup Legal Setup', client: 'Confidential FinTech', year: 2024, budget: '50K–100K ฿', desc: 'Company formation, PDPA compliance framework, and SaaS customer agreement templates.', color: '#1A9DA3' },
-  ],
-};
-
 export default async function ProviderProfilePage({ params }: { params: Promise<{ lang: string; id: string }> }) {
   const { lang, id } = await params;
   if (!hasLocale(lang)) notFound();
@@ -30,11 +13,10 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
     createClient(),
   ]);
 
-  const { data: company } = await supabase
-    .from('companies')
-    .select('*')
-    .eq('id', id)
-    .single();
+  const [{ data: company }, { data: portfolio }] = await Promise.all([
+    supabase.from('companies').select('*').eq('id', id).single(),
+    supabase.from('portfolio_projects').select('*').eq('company_id', id).order('sort_order'),
+  ]);
 
   if (!company) notFound();
 
@@ -42,7 +24,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
   const displayName = isTh && company.name_th ? company.name_th : company.name;
   const displayDesc = isTh && company.description_th ? company.description_th : company.description;
   const initial = company.logo_initial ?? company.name.slice(0, 2).toUpperCase();
-  const portfolio = MOCK_PORTFOLIO[company.name] ?? [];
+  const projects = portfolio ?? [];
 
   return (
     <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif", minHeight: '100vh', background: '#F4F5F7' }}>
@@ -87,7 +69,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
               {[
                 { val: company.views ?? 0, label: isTh ? 'การเข้าชม' : 'Views' },
                 { val: company.services?.length ?? 0, label: isTh ? 'บริการ' : 'Services' },
-                { val: portfolio.length, label: isTh ? 'ผลงาน' : 'Projects' },
+                { val: projects.length, label: isTh ? 'ผลงาน' : 'Projects' },
                 { val: company.founded_year ?? '—', label: isTh ? 'ก่อตั้ง' : 'Founded' },
               ].map((s) => (
                 <div key={s.label} style={{ background: 'white', borderRadius: '14px', border: '1px solid rgba(15,111,115,0.10)', padding: '16px', textAlign: 'center' }}>
@@ -118,13 +100,13 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
             )}
 
             {/* Portfolio */}
-            {portfolio.length > 0 && (
+            {projects.length > 0 && (
               <div style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', padding: '24px' }}>
                 <div style={{ fontSize: '11px', fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '16px' }}>{isTh ? 'ผลงานที่ผ่านมา' : 'Portfolio'}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {portfolio.map((p, i) => (
-                    <div key={i} style={{ display: 'flex', gap: '14px', padding: '16px', borderRadius: '12px', border: '1px solid #F0F0F0', background: '#FAFAFA' }}>
-                      <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: p.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {projects.map((p) => (
+                    <div key={p.id} style={{ display: 'flex', gap: '14px', padding: '16px', borderRadius: '12px', border: '1px solid #F0F0F0', background: '#FAFAFA' }}>
+                      <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: p.cover_color ?? '#0F6F73', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
                           <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
                         </svg>
@@ -134,12 +116,20 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
                           <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21' }}>{p.title}</div>
                           <span style={{ fontSize: '11px', color: '#9AA0AE', flexShrink: 0 }}>{p.year}</span>
                         </div>
-                        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                          <span style={{ fontSize: '11px', color: '#6B7385' }}>{p.client}</span>
-                          <span style={{ fontSize: '11px', color: '#C8CDD7' }}>·</span>
-                          <span style={{ fontSize: '11px', color: p.color, fontWeight: 600 }}>{p.budget}</span>
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                          {(p.confidential ? (isTh ? 'ลูกค้าลับ' : 'Confidential Client') : p.client) && (
+                            <span style={{ fontSize: '11px', color: '#6B7385' }}>{p.confidential ? (isTh ? 'ลูกค้าลับ' : 'Confidential Client') : p.client}</span>
+                          )}
+                          {p.budget && <><span style={{ fontSize: '11px', color: '#C8CDD7' }}>·</span><span style={{ fontSize: '11px', color: p.cover_color ?? '#0F6F73', fontWeight: 600 }}>{p.budget}</span></>}
+                          {p.category && <><span style={{ fontSize: '11px', color: '#C8CDD7' }}>·</span><span style={{ fontSize: '11px', color: '#9AA0AE' }}>{p.category}</span></>}
                         </div>
-                        <p style={{ fontSize: '13px', color: '#6B7385', lineHeight: 1.6, margin: 0 }}>{p.desc}</p>
+                        <p style={{ fontSize: '13px', color: '#6B7385', lineHeight: 1.6, margin: 0 }}>{isTh && p.description_th ? p.description_th : p.description}</p>
+                        {p.results && (
+                          <div style={{ marginTop: '8px', padding: '8px 10px', background: 'rgba(15,111,115,0.06)', borderRadius: '8px', borderLeft: `3px solid ${p.cover_color ?? '#0F6F73'}` }}>
+                            <span style={{ fontSize: '11px', fontWeight: 700, color: '#0F6F73' }}>{isTh ? 'ผลลัพธ์: ' : 'Results: '}</span>
+                            <span style={{ fontSize: '11px', color: '#444B5A' }}>{isTh && p.results_th ? p.results_th : p.results}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
