@@ -12,12 +12,13 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
   const supabase = createClient();
 
   const [step, setStep] = useState<'register' | 'verify'>('register');
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [shake, setShake] = useState(false);
   const [showPw, setShowPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const t = isTh ? {
@@ -26,6 +27,7 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
     nameLabel: 'ชื่อ-นามสกุล', namePh: 'ชื่อจริงของคุณ',
     emailLabel: 'อีเมล', emailPh: 'you@company.com',
     pwLabel: 'รหัสผ่าน', pwPh: 'อย่างน้อย 8 ตัวอักษร',
+    confirmPwLabel: 'ยืนยันรหัสผ่าน', confirmPwPh: 'พิมพ์รหัสผ่านอีกครั้ง',
     btn: 'สร้างบัญชี',
     already: 'มีบัญชีอยู่แล้ว?', signIn: 'เข้าสู่ระบบ',
     verifyTitle: 'ยืนยันอีเมลของคุณ',
@@ -40,6 +42,7 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
     nameLabel: 'Full name', namePh: 'Your full name',
     emailLabel: 'Email address', emailPh: 'you@company.com',
     pwLabel: 'Password', pwPh: 'At least 8 characters',
+    confirmPwLabel: 'Confirm password', confirmPwPh: 'Re-enter your password',
     btn: 'Create Account',
     already: 'Already have an account?', signIn: 'Sign in',
     verifyTitle: 'Verify your email',
@@ -53,6 +56,7 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (form.password.length < 8) { setError(isTh ? 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' : 'Password must be at least 8 characters'); return; }
+    if (form.password !== form.confirmPassword) { setError(isTh ? 'รหัสผ่านไม่ตรงกัน' : 'Passwords do not match'); return; }
     setLoading(true);
     setError('');
     const { error } = await supabase.auth.signUp({
@@ -151,6 +155,24 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
                       }
                     </button>
                   </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#171A21', marginBottom: '8px' }}>{t.confirmPwLabel}</label>
+                  <div style={{ position: 'relative' }}>
+                    <input type={showConfirmPw ? 'text' : 'password'} value={form.confirmPassword} onChange={e => setForm({ ...form, confirmPassword: e.target.value })} placeholder={t.confirmPwPh} required style={{ ...inputStyle, paddingRight: '44px', borderColor: form.confirmPassword && form.confirmPassword !== form.password ? '#FF5A5F' : undefined }}
+                      onFocus={e => { e.target.style.borderColor = '#0F6F73'; e.target.style.boxShadow = '0 0 0 3px rgba(15,111,115,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = form.confirmPassword && form.confirmPassword !== form.password ? '#FF5A5F' : '#E4E7ED'; e.target.style.boxShadow = 'none'; }} />
+                    <button type="button" onClick={() => setShowConfirmPw(v => !v)} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9AA0AE', padding: '4px' }}>
+                      {showConfirmPw
+                        ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      }
+                    </button>
+                  </div>
+                  {form.confirmPassword && form.confirmPassword !== form.password && (
+                    <p style={{ fontSize: '12px', color: '#FF5A5F', marginTop: '4px' }}>{isTh ? 'รหัสผ่านไม่ตรงกัน' : 'Passwords do not match'}</p>
+                  )}
                 </div>
 
                 {error && <p style={{ fontSize: '13px', color: '#FF5A5F', margin: 0 }}>{error}</p>}
