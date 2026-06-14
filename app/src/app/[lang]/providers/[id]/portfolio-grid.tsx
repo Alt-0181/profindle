@@ -47,8 +47,8 @@ function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; c
         {isTh ? `กลับไปที่ ${contact.companyName}` : `Back to ${contact.companyName}`}
       </button>
 
-      {/* Carousel — 3:2 landscape (DSLR standard), max 720px centered */}
-      <div style={{ width: '100%', maxWidth: '720px', margin: '0 auto', aspectRatio: '3/2', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px' }}>
+      {/* Carousel — 16:9, max 760px centered */}
+      <div style={{ width: '100%', maxWidth: '760px', margin: '0 auto', aspectRatio: '16/9', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px' }}>
 
         {/* Sliding track */}
         <div style={{ position: 'absolute', inset: 0, display: 'flex', transition: 'transform 320ms cubic-bezier(0.4,0,0.2,1)', transform: `translateX(-${slideIdx * 100}%)` }}>
