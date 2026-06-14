@@ -500,8 +500,19 @@ export function SearchProvidersClient({ lang, dict, companies, provinces }: Sear
   const isTh = lang === 'th';
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [selectedProvince, setSelectedProvince] = useState('');
+  const [provinceOpen, setProvinceOpen] = useState(false);
   const [sort, setSort] = useState<SortKey>('relevance');
   const [drawerProvider, setDrawerProvider] = useState<Company | null>(null);
+  const provinceRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!provinceOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (!provinceRef.current?.contains(e.target as Node)) setProvinceOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [provinceOpen]);
 
   const filtered = companies
     .filter(p => {
@@ -550,6 +561,44 @@ export function SearchProvidersClient({ lang, dict, companies, provinces }: Sear
             >
               ✓ {isTh ? 'ยืนยันแล้ว' : 'Verified'}
             </button>
+
+            {/* Province dropdown */}
+            {provinces.length > 0 && (
+              <div ref={provinceRef} style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setProvinceOpen(o => !o)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', border: `1.5px solid ${selectedProvince ? '#0F6F73' : '#E4E7ED'}`, background: selectedProvince ? '#F0F9F9' : 'white', color: selectedProvince ? '#0F6F73' : '#6B7385', transition: 'all 150ms' }}
+                >
+                  {selectedProvince || (isTh ? 'จังหวัด' : 'Province')}
+                  {selectedProvince && (
+                    <span
+                      onClick={e => { e.stopPropagation(); setSelectedProvince(''); setProvinceOpen(false); }}
+                      style={{ marginLeft: '2px', opacity: 0.6, fontWeight: 700, fontSize: '13px', lineHeight: 1 }}
+                    >×</span>
+                  )}
+                  {!selectedProvince && (
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ transform: provinceOpen ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }}><polyline points="6 9 12 15 18 9"/></svg>
+                  )}
+                </button>
+
+                {provinceOpen && (
+                  <div style={{ position: 'absolute', top: 'calc(100% + 6px)', right: 0, background: 'white', border: '1px solid #E4E7ED', borderRadius: '12px', boxShadow: '0 8px 24px rgba(14,16,23,0.12)', zIndex: 200, minWidth: '180px', maxHeight: '280px', overflowY: 'auto', padding: '6px' }}>
+                    {provinces.map(p => (
+                      <button
+                        key={p}
+                        onClick={() => { setSelectedProvince(p === selectedProvince ? '' : p); setProvinceOpen(false); }}
+                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', borderRadius: '8px', border: 'none', background: p === selectedProvince ? '#F0F9F9' : 'transparent', color: p === selectedProvince ? '#0F6F73' : '#444B5A', fontSize: '13px', fontWeight: p === selectedProvince ? 600 : 400, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 120ms' }}
+                        onMouseEnter={e => { if (p !== selectedProvince) (e.currentTarget as HTMLButtonElement).style.background = '#F4F5F7'; }}
+                        onMouseLeave={e => { if (p !== selectedProvince) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             <select value={sort} onChange={e => setSort(e.target.value as SortKey)} style={{ fontSize: '13px', color: '#444B5A', border: '1px solid #E4E7ED', borderRadius: '8px', padding: '7px 12px', background: 'white', fontFamily: 'inherit', cursor: 'pointer', outline: 'none' }}>
               <option value="relevance">{isTh ? 'เรียง: ความเกี่ยวข้อง' : 'Sort: Relevance'}</option>
               <option value="views">{isTh ? 'เรียง: ยอดเข้าชม' : 'Sort: Most viewed'}</option>
@@ -557,17 +606,6 @@ export function SearchProvidersClient({ lang, dict, companies, provinces }: Sear
             </select>
           </div>
         </div>
-
-        {/* Province filter chips */}
-        {provinces.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '18px' }}>
-            {provinces.map(p => (
-              <button key={p} onClick={() => setSelectedProvince(selectedProvince === p ? '' : p)} style={{ fontSize: '12px', padding: '5px 10px', borderRadius: '999px', border: '1px solid #E4E7ED', background: selectedProvince === p ? '#0F6F73' : 'white', color: selectedProvince === p ? 'white' : '#4A5060', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 150ms' }}>
-                {p}
-              </button>
-            ))}
-          </div>
-        )}
 
         {/* Provider grid */}
         {filtered.length === 0 ? (
