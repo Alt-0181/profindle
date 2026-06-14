@@ -74,7 +74,7 @@ function ProjectDetail({ project, isTh, onBack, phone, email, providerName }: {
       </button>
 
       {/* Cover carousel */}
-      <div style={{ width: '100%', aspectRatio: '4/5', maxHeight: '560px', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px' }}>
+      <div style={{ width: '100%', maxWidth: '540px', margin: '0 auto', aspectRatio: '4/5', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px' }}>
         {/* Gradient overlay */}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.65) 100%)' }} />
 
@@ -106,14 +106,13 @@ function ProjectDetail({ project, isTh, onBack, phone, email, providerName }: {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#171A21" strokeWidth="2.5" strokeLinecap="round"><path d="m9 18 6-6-6-6"/></svg>
         </div>
 
-        {/* Dots — absolutely centered above the title */}
-        <div style={{ position: 'absolute', bottom: '54px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 3 }}>
-          {slides.map((_, i) => (
-            <div key={i} onClick={() => setSlideIdx(i)} style={{ width: i === slideIdx ? '18px' : '6px', height: '6px', borderRadius: i === slideIdx ? '3px' : '50%', background: i === slideIdx ? 'white' : 'rgba(255,255,255,0.5)', transition: 'all 220ms', cursor: 'pointer' }} />
-          ))}
-        </div>
-        {/* Title — flex-end child, sits at bottom-left */}
-        <div style={{ position: 'relative', padding: '16px 24px 20px', zIndex: 2 }}>
+        {/* Bottom bar — dots + title, both left-aligned */}
+        <div style={{ position: 'relative', padding: '14px 20px 20px', zIndex: 2 }}>
+          <div style={{ display: 'flex', gap: '5px', marginBottom: '8px' }}>
+            {slides.map((_, i) => (
+              <div key={i} onClick={() => setSlideIdx(i)} style={{ width: i === slideIdx ? '18px' : '6px', height: '6px', borderRadius: i === slideIdx ? '3px' : '50%', background: i === slideIdx ? 'white' : 'rgba(255,255,255,0.5)', transition: 'all 220ms', cursor: 'pointer' }} />
+            ))}
+          </div>
           <div style={{ fontSize: '18px', fontWeight: 700, lineHeight: 1.25, color: 'white' }}>{project.title}</div>
         </div>
       </div>
