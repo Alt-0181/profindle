@@ -24,7 +24,11 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
   const earlyBirdTotal = 100;
   const earlyBirdLeft = Math.max(0, earlyBirdTotal - (premiumCount ?? 0));
 
-  const hasCompany = false;
+  const { count: companyCount } = await supabase
+    .from('companies')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user?.id ?? '');
+  const hasCompany = (companyCount ?? 0) > 0;
   const emailVerified = true;
   const hasPortfolio = false;
   const lineConnected = false;

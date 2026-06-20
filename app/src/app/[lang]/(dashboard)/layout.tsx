@@ -33,8 +33,11 @@ export default async function DashboardLayout({
     company: null,
   };
 
-  // In production, check if user has a linked company
-  const hasCompany = false;
+  const { count: companyCount } = await supabase
+    .from('companies')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id);
+  const hasCompany = (companyCount ?? 0) > 0;
 
   return (
     <>

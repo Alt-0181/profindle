@@ -112,9 +112,54 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setSaving(false);
-    setSaved(true);
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Normalize website: add https:// if no protocol given
+      let website = form.website.trim();
+      if (website && !website.match(/^https?:\/\//i)) {
+        website = 'https://' + website;
+      }
+
+      const payload = {
+        name: form.nameEn || null,
+        name_th: form.nameTh || null,
+        description: form.descEn || null,
+        description_th: form.descTh || null,
+        industry: form.industry || null,
+        province: form.province || null,
+        address: form.address || null,
+        team_size: form.teamSize || null,
+        founded_year: form.foundedYear ? Number(form.foundedYear) : null,
+        website: website || null,
+        phone: form.phone || null,
+        email: form.emailPublic || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Check if company exists for this user
+      const { data: existing } = await supabase
+        .from('companies')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      let error;
+      if (existing?.id) {
+        ({ error } = await supabase.from('companies').update(payload).eq('id', existing.id));
+      } else {
+        ({ error } = await supabase.from('companies').insert({ ...payload, user_id: user.id }));
+      }
+
+      if (error) throw error;
+      setSaved(true);
+    } catch (err: any) {
+      console.error('Save failed:', err.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const inputStyle: React.CSSProperties = {
@@ -230,7 +275,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
           </div>
           <div>
             <label style={labelStyle}>{t.website}</label>
-            <input type="url" value={form.website} onChange={(e) => set('website', e.target.value)} style={inputStyle} placeholder={t.websitePh} />
+            <input type="text" value={form.website} onChange={(e) => set('website', e.target.value)} style={inputStyle} placeholder={t.websitePh} />
           </div>
         </div>
       </div>
