@@ -147,7 +147,7 @@ export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, use
         {navEntries.map((entry, i) => {
           if (entry.type === 'section') {
             return (
-              <div key={i} className="px-5 pt-5 pb-1 text-[10px] font-bold uppercase tracking-[0.08em] text-white/30">
+              <div key={i} style={{ padding: '20px 20px 4px 20px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.3)' }}>
                 {dict.nav[entry.labelKey]}
               </div>
             );
@@ -161,20 +161,25 @@ export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, use
               key={entry.id}
               href={href}
               title={entry.locked ? 'Add your company info to unlock' : undefined}
-              className={cn(
-                'flex items-center gap-2.5 px-5 py-2 mx-2 rounded-[8px]',
-                'text-[13px] font-medium no-underline transition-all duration-150',
-                isActive
-                  ? 'text-white bg-[rgba(15,111,115,0.3)] border-r-[3px] border-r-[#1A9DA3] rounded-r-none'
-                  : 'text-white/65 hover:text-white hover:bg-white/[0.06]',
-                entry.locked && 'opacity-60'
-              )}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '10px',
+                padding: '9px 20px', margin: '1px 8px',
+                borderRadius: isActive ? '8px 0 0 8px' : '8px',
+                fontSize: '13px', fontWeight: 500, textDecoration: 'none',
+                transition: 'all 150ms',
+                color: isActive ? 'white' : 'rgba(255,255,255,0.65)',
+                background: isActive ? 'rgba(15,111,115,0.3)' : 'transparent',
+                borderRight: isActive ? '3px solid #1A9DA3' : '3px solid transparent',
+                opacity: entry.locked ? 0.6 : 1,
+              }}
+              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'white'; } }}
+              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; } }}
             >
-              <span className="flex-shrink-0">{entry.icon}</span>
-              <span className="flex-1 min-w-0">{dict.nav[entry.labelKey]}</span>
+              <span style={{ flexShrink: 0, display: 'flex' }}>{entry.icon}</span>
+              <span style={{ flex: 1, minWidth: 0 }}>{dict.nav[entry.labelKey]}</span>
               {entry.locked && <LockIcon />}
               {entry.badge && !entry.locked && (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[rgba(247,127,0,0.2)] text-[#F77F00]">
+                <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'rgba(247,127,0,0.2)', color: '#F77F00' }}>
                   {entry.badge}
                 </span>
               )}
