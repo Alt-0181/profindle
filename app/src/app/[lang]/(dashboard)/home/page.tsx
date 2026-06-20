@@ -203,20 +203,26 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             {quickActions.map((qa) => (
               <Link key={qa.id} href={qa.locked ? `/${lang}/my-company?from=locked` : qa.href} style={{
-                background: qa.special ? 'linear-gradient(135deg,#FFFBF5,#FFF8EE)' : qa.locked ? '#FAFBFC' : 'white',
+                background: qa.special ? 'linear-gradient(135deg,#FFFBF5,#FFF8EE)' : qa.locked ? '#F4F5F7' : 'white',
                 borderRadius: '14px', padding: '20px',
-                border: `1.5px solid ${qa.special ? 'rgba(247,127,0,0.3)' : '#E4E7ED'}`,
+                border: `1.5px solid ${qa.special ? 'rgba(247,127,0,0.3)' : qa.locked ? '#E4E7ED' : '#E4E7ED'}`,
                 textDecoration: 'none', display: 'flex', flexDirection: 'column', gap: '10px',
                 position: 'relative', overflow: 'hidden', transition: 'all 200ms',
+                opacity: qa.locked ? 0.75 : 1,
               }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: qa.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{
+                  width: '38px', height: '38px', borderRadius: '10px',
+                  background: qa.locked ? '#D4D8E0' : qa.iconBg,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  filter: qa.locked ? 'grayscale(1)' : 'none',
+                }}>
                   {qa.icon}
                 </div>
                 <div style={{ fontSize: '14px', fontWeight: 700, color: qa.special ? '#E06B00' : qa.locked ? '#9AA0AE' : '#171A21' }}>{qa.title}</div>
                 <div style={{ fontSize: '12px', color: qa.special ? '#F77F00' : '#9AA0AE', lineHeight: 1.5 }}>{qa.desc}</div>
-                <div style={{ fontSize: '12px', color: qa.special ? '#F77F00' : '#0F6F73', fontWeight: 600, marginTop: '4px' }}>{qa.cta}</div>
+                <div style={{ fontSize: '12px', color: qa.special ? '#F77F00' : qa.locked ? '#C8CDD7' : '#0F6F73', fontWeight: 600, marginTop: '4px' }}>{qa.cta}</div>
                 {qa.locked && (
-                  <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'white', border: '1px solid #E4E7ED', borderRadius: '999px', padding: '3px 8px', fontSize: '10px', fontWeight: 600, color: '#6B7385' }}>
+                  <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'white', border: '1px solid #E4E7ED', borderRadius: '999px', padding: '3px 8px', fontSize: '10px', fontWeight: 600, color: '#9AA0AE' }}>
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
                     {isTh ? 'ล็อก' : 'Locked'}
                   </div>
