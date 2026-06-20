@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { Dictionary } from '@/dictionaries';
 
@@ -72,6 +73,7 @@ const EMPTY = {
 
 export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const t = dict.myCompany;
+  const router = useRouter();
   const [form, setForm] = useState(initialData ?? EMPTY);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -155,6 +157,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
 
       if (error) throw error;
       setSaved(true);
+      router.refresh();
     } catch (err: any) {
       console.error('Save failed:', err.message);
     } finally {
