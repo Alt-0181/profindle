@@ -98,10 +98,11 @@ interface SidebarProps {
   locale: string;
   dict: Dictionary;
   hasCompany?: boolean;
+  isAdmin?: boolean;
   user?: { initial: string; fullName: string; plan: string };
 }
 
-export function Sidebar({ locale, dict, hasCompany = false, user }: SidebarProps) {
+export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, user }: SidebarProps) {
   const pathname = usePathname();
 
   const navEntries: NavEntry[] = [
@@ -116,7 +117,7 @@ export function Sidebar({ locale, dict, hasCompany = false, user }: SidebarProps
     { type: 'item', id: 'history', labelKey: 'broadcastHistory', icon: <SendIcon />, href: `/${locale}/broadcast-history`, locked: !hasCompany },
     { type: 'section', labelKey: 'accountSec' },
     { type: 'item', id: 'settings', labelKey: 'settings', icon: <SettingsIcon />, href: `/${locale}/settings` },
-    { type: 'item', id: 'admin', labelKey: 'adminPanel', icon: <ShieldIcon />, href: `/${locale}/admin`, badge: 'Admin' },
+    ...(isAdmin ? [{ type: 'item' as const, id: 'admin', labelKey: 'adminPanel' as const, icon: <ShieldIcon />, href: `/${locale}/admin`, badge: 'Admin' }] : []),
   ];
 
   const currentUser = user || { initial: 'U', fullName: 'User', plan: 'free' };

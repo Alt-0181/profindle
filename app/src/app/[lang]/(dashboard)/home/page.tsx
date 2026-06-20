@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
+import { createClient } from '@/lib/supabase/server';
 
 export default async function DashboardHomePage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
@@ -8,9 +9,13 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
   const dict = await getDictionary(lang as Locale);
   const t = dict.dashboard;
 
-  const DEMO_USER = { firstName: 'Somchai', email: 'somchai@jaidee.co.th', company: 'Jaidee Solutions Co., Ltd.' };
-  const hasCompany = true;
-  const stepsCompleted = 1;
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const fullName: string = user?.user_metadata?.full_name || user?.email || 'User';
+  const firstName = fullName.split(' ')[0];
+
+  const hasCompany = false;
+  const stepsCompleted = 0;
 
   const kpis = [
     { label: t.profileViews, value: '—', delta: null },
@@ -121,10 +126,10 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 50% 60% at 80% 50%, rgba(247,127,0,0.1) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 20% 50%, rgba(43,190,197,0.12) 0%, transparent 55%)' }} />
         <div style={{ position: 'relative', zIndex: 1, flex: 1 }}>
           <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'white', letterSpacing: '-0.02em', marginBottom: '4px' }}>
-            {lang === 'th' ? `ยินดีต้อนรับ, ${DEMO_USER.firstName} 👋` : `Welcome back, ${DEMO_USER.firstName} 👋`}
+            {lang === 'th' ? `ยินดีต้อนรับ, ${firstName} 👋` : `Welcome back, ${firstName} 👋`}
           </h2>
           <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.55)', marginBottom: '16px' }}>
-            {lang === 'th' ? DEMO_USER.company : DEMO_USER.company} · {DEMO_USER.email}
+            {lang === 'th' ? 'กรอกข้อมูลโปรไฟล์เพื่อใช้ฟีเจอร์ทั้งหมด' : 'Complete your profile to unlock all platform features.'}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', maxWidth: '320px' }}>
             <div style={{ flex: 1, height: '5px', background: 'rgba(255,255,255,0.15)', borderRadius: '999px', overflow: 'hidden' }}>

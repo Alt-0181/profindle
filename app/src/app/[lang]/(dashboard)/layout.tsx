@@ -1,19 +1,8 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Topbar } from '@/components/layout/topbar';
-
-const DEMO_USER = {
-  initial: 'S',
-  fullName: 'Somchai J.',
-  firstName: 'Somchai',
-  plan: 'free' as const,
-  email: 'somchai@jaidee.co.th',
-  company: {
-    name: 'Jaidee Solutions Co., Ltd.',
-    name_th: 'บริษัท ใจดี โซลูชั่นส์ จำกัด',
-  },
-};
+import { createClient } from '@/lib/supabase/server';
 
 export default async function DashboardLayout({
   children,
@@ -26,8 +15,26 @@ export default async function DashboardLayout({
   if (!hasLocale(lang)) notFound();
   const dict = await getDictionary(lang as Locale);
 
-  // In production, read from session/auth
-  const hasCompany = true;
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect(`/${lang}/login`);
+
+  const fullName: string = user.user_metadata?.full_name || user.email || 'User';
+  const firstName = fullName.split(' ')[0];
+  const initial = firstName[0]?.toUpperCase() || 'U';
+  const isAdmin = user.user_metadata?.role === 'super_admin';
+
+  const currentUser = {
+    initial,
+    fullName: fullName.length > 20 ? firstName : fullName,
+    firstName,
+    plan: 'free' as const,
+    email: user.email || '',
+    company: null,
+  };
+
+  // In production, check if user has a linked company
+  const hasCompany = false;
 
   return (
     <>
@@ -35,10 +42,11 @@ export default async function DashboardLayout({
         locale={lang}
         dict={dict}
         hasCompany={hasCompany}
-        user={DEMO_USER}
+        user={currentUser}
+        isAdmin={isAdmin}
       />
       <div className="main-with-sidebar">
-        <Topbar locale={lang} dict={dict} user={DEMO_USER} />
+        <Topbar locale={lang} dict={dict} user={currentUser} />
         {children}
       </div>
     </>
