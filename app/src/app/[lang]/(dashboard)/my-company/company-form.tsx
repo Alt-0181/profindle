@@ -29,26 +29,24 @@ const INDUSTRIES = [
 interface MyCompanyFormProps {
   lang: string;
   dict: Dictionary;
+  initialData?: {
+    nameEn: string; nameTh: string; descEn: string; descTh: string;
+    industry: string; province: string; address: string;
+    teamSize: string; foundedYear: string; website: string;
+    phone: string; emailPublic: string;
+  };
 }
 
-const DEMO = {
-  nameEn: 'Jaidee Solutions Co., Ltd.',
-  nameTh: 'บริษัท ใจดี โซลูชั่นส์ จำกัด',
-  descEn: '',
-  descTh: '',
-  industry: 'Computer / IT',
-  province: 'Bangkok',
-  address: '',
-  teamSize: '6-15',
-  foundedYear: '',
-  website: '',
-  phone: '',
-  emailPublic: 'somchai@jaidee.co.th',
+const EMPTY = {
+  nameEn: '', nameTh: '', descEn: '', descTh: '',
+  industry: '', province: '', address: '',
+  teamSize: '', foundedYear: '', website: '',
+  phone: '', emailPublic: '',
 };
 
-export function MyCompanyForm({ lang, dict }: MyCompanyFormProps) {
+export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const t = dict.myCompany;
-  const [form, setForm] = useState(DEMO);
+  const [form, setForm] = useState(initialData ?? EMPTY);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
