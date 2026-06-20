@@ -191,7 +191,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
       </div>
 
       {/* Row 1: Getting Started (left) | Quick Actions (right) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px', alignItems: 'start', marginBottom: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '20px', alignItems: 'start', marginBottom: '20px' }}>
         {/* Left: Getting Started accordion */}
         <GettingStartedAccordion steps={gettingStartedSteps} lang={lang} completedCount={completedSteps} />
 
@@ -228,7 +228,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
       </div>
 
       {/* Row 2: Recent Activity (left) | Need Help (right) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '20px', alignItems: 'start' }}>
         {/* Recent Activity */}
         <div style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden' }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid #F4F5F7', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
