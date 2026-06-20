@@ -17,6 +17,13 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
   const firstName = fullName.split(' ')[0];
   const userEmail = user?.email || '';
 
+  const { count: premiumCount } = await supabase
+    .from('companies')
+    .select('id', { count: 'exact', head: true })
+    .eq('premium', true);
+  const earlyBirdTotal = 100;
+  const earlyBirdLeft = Math.max(0, earlyBirdTotal - (premiumCount ?? 0));
+
   const hasCompany = false;
   const emailVerified = true;
   const hasPortfolio = false;
@@ -64,7 +71,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
     {
       num: 4,
       title: isTh ? 'รับสิทธิ์ Early Bird' : 'Claim Early Bird offer',
-      desc: isTh ? 'รับฟีเจอร์ Premium ทั้งหมดฟรี — เหลือ 47 จาก 100 สิทธิ์' : 'Get all Premium features FREE — 47 of 100 spots left.',
+      desc: isTh ? `รับฟีเจอร์ Premium ทั้งหมดฟรี — เหลือ ${earlyBirdLeft} จาก ${earlyBirdTotal} สิทธิ์` : `Get all Premium features FREE — ${earlyBirdLeft} of ${earlyBirdTotal} spots left.`,
       done: false,
       status: isTh ? 'จำกัด' : 'Limited',
       bodyText: isTh ? '100 บริษัทแรกบน Profindle จะได้รับฟีเจอร์ Premium ทั้งหมดฟรีตลอดชีพ เมื่อสิทธิ์หมด จะไม่มีอีก' : 'First 100 companies on Profindle get all Premium features free for life. Once spots are gone, they\'re gone.',
@@ -110,7 +117,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
       iconBg: 'linear-gradient(135deg,#F77F00,#E06B00)',
       icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>,
       title: isTh ? 'สิทธิ์ Early Bird' : 'Early Bird Offer',
-      desc: isTh ? 'รับฟีเจอร์ Premium ทั้งหมดฟรี — เหลือ 47 จาก 100 สิทธิ์' : 'Get all Premium features FREE — 47 of 100 spots left.',
+      desc: isTh ? `รับฟีเจอร์ Premium ทั้งหมดฟรี — เหลือ ${earlyBirdLeft} จาก ${earlyBirdTotal} สิทธิ์` : `Get all Premium features FREE — ${earlyBirdLeft} of ${earlyBirdTotal} spots left.`,
       cta: isTh ? 'รับสิทธิ์ →' : 'Claim now →',
       href: `/${lang}/package`,
       locked: false,
