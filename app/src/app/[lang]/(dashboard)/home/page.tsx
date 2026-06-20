@@ -119,7 +119,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
   ];
 
   return (
-    <div className="page-body" style={{ maxWidth: '1200px' }}>
+    <div className="page-body">
 
       {/* Welcome Banner */}
       <div style={{ background: 'linear-gradient(135deg,#0E1017 0%,#0F6F73 100%)', borderRadius: '20px', padding: '28px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '24px', position: 'relative', overflow: 'hidden', marginBottom: '24px' }}>
