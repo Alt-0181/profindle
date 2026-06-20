@@ -120,6 +120,22 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
     }
   };
 
+  const handleDownload = async () => {
+    if (!previewUrl) return;
+    try {
+      const res = await fetch(previewUrl);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = uploadFile?.name ?? `DBD_Certificate.${dbdPath?.split('.').pop() ?? 'pdf'}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {}
+  };
+
   const set = (key: string, val: string) => {
     setForm((prev) => ({ ...prev, [key]: val }));
     setSaved(false);
@@ -369,10 +385,10 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
             <span style={{ fontSize: '13px', color: '#0F6F73', fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {uploadFile?.name ?? `DBD Certificate.${dbdPath?.split('.').pop() ?? 'pdf'}`}
             </span>
-            <a href={previewUrl} download target="_blank" rel="noopener" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '7px', background: 'white', border: '1px solid rgba(15,111,115,0.2)', color: '#0F6F73', fontSize: '12px', fontWeight: 600, textDecoration: 'none', flexShrink: 0 }}>
+            <button onClick={handleDownload} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '7px', background: 'white', border: '1px solid rgba(15,111,115,0.2)', color: '#0F6F73', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
               {lang === 'th' ? 'ดาวน์โหลด' : 'Download'}
-            </a>
+            </button>
           </div>
         )}
       </div>
