@@ -60,7 +60,7 @@ interface MyCompanyFormProps {
     nameEn: string; nameTh: string; descEn: string; descTh: string;
     industry: string; province: string; address: string;
     teamSize: string; foundedYear: string; website: string;
-    phone: string; emailPublic: string;
+    phone: string; emailPublic: string; dbdCertPath: string | null;
   };
 }
 
@@ -81,6 +81,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadDone, setUploadDone] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [dbdPath, setDbdPath] = useState<string | null>(initialData?.dbdCertPath ?? null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,7 +99,10 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
       const path = `${user.id}-${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from('company-docs').upload(path, file, { contentType: file.type || 'application/octet-stream' });
       if (error) throw error;
+      setDbdPath(path);
       setUploadDone(true);
+      // Save path to DB if company already exists
+      await supabase.from('companies').update({ dbd_certificate_url: path }).eq('user_id', user.id);
     } catch (err: any) {
       setUploadError(err.message ?? 'Upload failed');
     } finally {
@@ -138,6 +142,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         website: website || null,
         phone: form.phone || null,
         email: form.emailPublic || null,
+        ...(dbdPath ? { dbd_certificate_url: dbdPath } : {}),
         updated_at: new Date().toISOString(),
       };
 
