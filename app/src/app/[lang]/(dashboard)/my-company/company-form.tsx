@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import type { Dictionary } from '@/dictionaries';
 
 const PROVINCES = [
@@ -12,17 +13,29 @@ const PROVINCES = [
 const TEAM_SIZES = ['1-5', '6-15', '16-50', '51-200', '200+'];
 
 const INDUSTRIES = [
+  'Accounting / Finance / Audit',
   'Advertising / Marketing / Promotion / PR',
   'Architecture / Interior Design',
-  'Consulting',
-  'Computer / IT',
+  'Computer / IT / Software',
+  'Consulting / Business Advisory',
+  'Construction / Engineering',
   'Design / Creative',
+  'E-commerce / Retail',
   'Education / Training',
+  'Event Management / MICE',
+  'Healthcare / Medical',
   'HR / Recruitment',
+  'Insurance / Financial Services',
   'Legal / Law',
   'Logistics / Supply Chain',
   'Manufacturing',
   'Media / Publishing',
+  'Photography / Videography',
+  'Real Estate / Property',
+  'Research & Market Research',
+  'Security / Safety',
+  'Translation / Localization',
+  'Travel / Tourism / Hospitality',
   'Other',
 ];
 
@@ -49,6 +62,32 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const [form, setForm] = useState(initialData ?? EMPTY);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadDone, setUploadDone] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadFile(file);
+    setUploadError('');
+    setUploadDone(false);
+    setUploading(true);
+    try {
+      const supabase = createClient();
+      const ext = file.name.split('.').pop();
+      const path = `dbd-certificates/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('company-docs').upload(path, file, { upsert: true });
+      if (error) throw error;
+      setUploadDone(true);
+    } catch (err: any) {
+      setUploadError(err.message ?? 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const set = (key: string, val: string) => {
     setForm((prev) => ({ ...prev, [key]: val }));
@@ -200,19 +239,42 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
       <div style={sectionStyle}>
         <div style={{ fontSize: '16px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{t.verification}</div>
         <div style={{ fontSize: '13px', color: '#9AA0AE', marginBottom: '20px' }}>{t.verificationSub}</div>
-        <div style={{
-          border: '2px dashed #C8CDD7', borderRadius: '14px', padding: '32px',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px',
-          cursor: 'pointer', transition: 'all 150ms',
-        }}>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,.jpg,.jpeg,.png"
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
+        />
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            border: `2px dashed ${uploadDone ? '#0F6F73' : '#C8CDD7'}`,
+            borderRadius: '14px', padding: '32px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px',
+            cursor: 'pointer', transition: 'all 150ms',
+            background: uploadDone ? '#F0F9F9' : 'white',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = '#1A9DA3'; e.currentTarget.style.background = '#F0F9F9'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = uploadDone ? '#0F6F73' : '#C8CDD7'; e.currentTarget.style.background = uploadDone ? '#F0F9F9' : 'white'; }}
+        >
           <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'white', boxShadow: '0 2px 8px rgba(23,26,33,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
-            </svg>
+            {uploadDone
+              ? <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg>
+              : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
+            }
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '14px', fontWeight: 600, color: '#171A21' }}>{t.uploadDoc}</div>
-            <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '4px' }}>{t.uploadDocSub}</div>
+            {uploading && <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F6F73' }}>Uploading…</div>}
+            {uploadDone && <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F6F73' }}>✓ {uploadFile?.name}</div>}
+            {!uploading && !uploadDone && (
+              <>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: '#171A21' }}>{t.uploadDoc}</div>
+                <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '4px' }}>{t.uploadDocSub}</div>
+              </>
+            )}
+            {uploadError && <div style={{ fontSize: '12px', color: '#FF5A5F', marginTop: '4px' }}>{uploadError}</div>}
+            {uploadDone && <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '4px' }}>{lang === 'th' ? 'คลิกเพื่ออัปโหลดใหม่' : 'Click to replace'}</div>}
           </div>
         </div>
       </div>
