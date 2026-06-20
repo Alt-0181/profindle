@@ -79,7 +79,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const [saved, setSaved] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [uploadDone, setUploadDone] = useState(false);
+  const [uploadDone, setUploadDone] = useState(!!initialData?.dbdCertPath);
   const [uploadError, setUploadError] = useState('');
   const [dbdPath, setDbdPath] = useState<string | null>(initialData?.dbdCertPath ?? null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -334,7 +334,11 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
           </div>
           <div style={{ textAlign: 'center' }}>
             {uploading && <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F6F73' }}>Uploading…</div>}
-            {uploadDone && <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F6F73' }}>✓ {uploadFile?.name}</div>}
+            {uploadDone && (
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F6F73' }}>
+                ✓ {uploadFile?.name ?? (dbdPath ? `${dbdPath.split('.').pop()?.toUpperCase()} document on file` : 'Document uploaded')}
+              </div>
+            )}
             {!uploading && !uploadDone && (
               <>
                 <div style={{ fontSize: '14px', fontWeight: 600, color: '#171A21' }}>{t.uploadDoc}</div>

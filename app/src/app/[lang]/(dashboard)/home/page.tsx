@@ -26,13 +26,14 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
 
   const { data: company } = await supabase
     .from('companies')
-    .select('id, dbd_certificate_url')
+    .select('id, dbd_certificate_url, industry')
     .eq('user_id', user?.id ?? '')
     .maybeSingle();
   const hasCompany = !!company;
   const emailVerified = true;
   const hasPortfolio = false;
   const lineConnected = false;
+  const hasIndustry = !!company?.industry;
   const docsUploaded = !!company?.dbd_certificate_url;
   // Path format: {user_id}-{timestamp}.ext — extract just the extension for display
   const dbdCertPath = company?.dbd_certificate_url ?? null;
@@ -46,11 +47,11 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
       title: isTh ? 'กรอกข้อมูลโปรไฟล์ให้ครบ' : 'Complete your profile',
       desc: isTh ? 'เพิ่มบริการ คำอธิบาย และโลโก้ เพื่อปรากฏในการค้นหา' : 'Add services, description, and logo to appear in search.',
       done: hasCompany && emailVerified,
-      status: `${[emailVerified, hasCompany, false, docsUploaded].filter(Boolean).length} / 4`,
+      status: `${[emailVerified, hasCompany, hasIndustry, docsUploaded].filter(Boolean).length} / 4`,
       subTasks: [
         { title: isTh ? 'ยืนยันอีเมล' : 'Verify your email', sub: isTh ? `ยืนยันแล้วผ่าน ${userEmail}` : `Confirmed via ${userEmail}`, done: emailVerified, href: `/${lang}/settings` },
         { title: isTh ? 'เพิ่มข้อมูลบริษัทพื้นฐาน' : 'Add company basic info', sub: isTh ? 'ชื่อบริษัท อุตสาหกรรม และข้อมูลติดต่อ' : 'Company name, industry, and contact info', done: hasCompany, href: `/${lang}/my-company` },
-        { title: isTh ? 'เลือกอุตสาหกรรมและบริการ' : 'Select your industry & services', sub: isTh ? 'ช่วยให้ลูกค้าค้นหาคุณเจอ' : 'Helps clients find you in search', done: false, href: `/${lang}/my-company` },
+        { title: isTh ? 'เลือกอุตสาหกรรมและบริการ' : 'Select your industry & services', sub: isTh ? 'ช่วยให้ลูกค้าค้นหาคุณเจอ' : 'Helps clients find you in search', done: hasIndustry, href: `/${lang}/my-company` },
         {
           title: isTh ? 'อัปโหลดเอกสารยืนยันตัวตน' : 'Upload verification documents',
           sub: docsUploaded
