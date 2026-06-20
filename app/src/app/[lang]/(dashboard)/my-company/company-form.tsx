@@ -83,17 +83,13 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const [uploadError, setUploadError] = useState('');
   const [dbdPath, setDbdPath] = useState<string | null>(initialData?.dbdCertPath ?? null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewType, setPreviewType] = useState<'pdf' | 'image' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!dbdPath) return;
     const supabase = createClient();
     supabase.storage.from('company-docs').createSignedUrl(dbdPath, 3600).then(({ data }) => {
-      if (data?.signedUrl) {
-        setPreviewUrl(data.signedUrl);
-        setPreviewType(dbdPath.split('.').pop()?.toLowerCase() === 'pdf' ? 'pdf' : 'image');
-      }
+      if (data?.signedUrl) setPreviewUrl(data.signedUrl);
     });
   }, [dbdPath]);
 
@@ -104,7 +100,6 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
     setUploadError('');
     setUploadDone(false);
     setPreviewUrl(URL.createObjectURL(file));
-    setPreviewType(file.type === 'application/pdf' ? 'pdf' : 'image');
     setUploading(true);
     try {
       const supabase = createClient();
@@ -365,14 +360,19 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
           </div>
         </div>
 
-        {/* Inline preview of uploaded document */}
+        {/* File attachment card */}
         {previewUrl && !uploading && (
-          <div style={{ marginTop: '16px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #E4E7ED', background: '#F4F5F7' }} onClick={e => e.stopPropagation()}>
-            {previewType === 'pdf' ? (
-              <iframe src={previewUrl} width="100%" height="480px" style={{ border: 'none', display: 'block' }} title="DBD Certificate" />
-            ) : (
-              <img src={previewUrl} alt="DBD Certificate" style={{ width: '100%', maxHeight: '480px', objectFit: 'contain', display: 'block' }} />
-            )}
+          <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: '#F0F9F9', borderRadius: '10px', border: '1px solid rgba(15,111,115,0.15)' }} onClick={e => e.stopPropagation()}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
+            </svg>
+            <span style={{ fontSize: '13px', color: '#0F6F73', fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {uploadFile?.name ?? `DBD Certificate.${dbdPath?.split('.').pop() ?? 'pdf'}`}
+            </span>
+            <a href={previewUrl} download target="_blank" rel="noopener" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '7px', background: 'white', border: '1px solid rgba(15,111,115,0.2)', color: '#0F6F73', fontSize: '12px', fontWeight: 600, textDecoration: 'none', flexShrink: 0 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+              {lang === 'th' ? 'ดาวน์โหลด' : 'Download'}
+            </a>
           </div>
         )}
       </div>
