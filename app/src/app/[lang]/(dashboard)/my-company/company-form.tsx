@@ -90,9 +90,11 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
     setUploading(true);
     try {
       const supabase = createClient();
-      const ext = file.name.split('.').pop();
-      const path = `dbd-certificates/${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from('company-docs').upload(path, file, { upsert: true });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      const ext = file.name.split('.').pop() ?? 'pdf';
+      const path = `${user.id}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('company-docs').upload(path, file, { contentType: file.type || 'application/octet-stream' });
       if (error) throw error;
       setUploadDone(true);
     } catch (err: any) {
