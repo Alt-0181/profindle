@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { Dictionary } from '@/dictionaries';
@@ -82,7 +82,20 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const [uploadDone, setUploadDone] = useState(!!initialData?.dbdCertPath);
   const [uploadError, setUploadError] = useState('');
   const [dbdPath, setDbdPath] = useState<string | null>(initialData?.dbdCertPath ?? null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewType, setPreviewType] = useState<'pdf' | 'image' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!dbdPath) return;
+    const supabase = createClient();
+    supabase.storage.from('company-docs').createSignedUrl(dbdPath, 3600).then(({ data }) => {
+      if (data?.signedUrl) {
+        setPreviewUrl(data.signedUrl);
+        setPreviewType(dbdPath.split('.').pop()?.toLowerCase() === 'pdf' ? 'pdf' : 'image');
+      }
+    });
+  }, [dbdPath]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -90,6 +103,8 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
     setUploadFile(file);
     setUploadError('');
     setUploadDone(false);
+    setPreviewUrl(URL.createObjectURL(file));
+    setPreviewType(file.type === 'application/pdf' ? 'pdf' : 'image');
     setUploading(true);
     try {
       const supabase = createClient();
@@ -349,6 +364,17 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
             {uploadDone && <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '4px' }}>{lang === 'th' ? 'คลิกเพื่ออัปโหลดใหม่' : 'Click to replace'}</div>}
           </div>
         </div>
+
+        {/* Inline preview of uploaded document */}
+        {previewUrl && !uploading && (
+          <div style={{ marginTop: '16px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #E4E7ED', background: '#F4F5F7' }} onClick={e => e.stopPropagation()}>
+            {previewType === 'pdf' ? (
+              <iframe src={previewUrl} width="100%" height="480px" style={{ border: 'none', display: 'block' }} title="DBD Certificate" />
+            ) : (
+              <img src={previewUrl} alt="DBD Certificate" style={{ width: '100%', maxHeight: '480px', objectFit: 'contain', display: 'block' }} />
+            )}
+          </div>
+        )}
       </div>
 
       {/* Sticky footer */}
