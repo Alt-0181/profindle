@@ -201,13 +201,13 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
 
               <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#171A21', marginBottom: '12px' }}>{t.otpLabel}</label>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', marginBottom: '16px', animation: shake ? 'shake 0.4s ease' : undefined }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: '8px', marginBottom: '16px', animation: shake ? 'shake 0.4s ease' : undefined }}>
                 {otp.map((digit, i) => (
                   <input key={i} ref={el => { otpRefs.current[i] = el; }}
                     type="text" inputMode="numeric" maxLength={1} value={digit}
                     onChange={e => handleOtpChange(i, e.target.value)}
                     onKeyDown={e => handleOtpKeyDown(i, e)}
-                    style={{ height: '56px', textAlign: 'center', fontSize: '22px', fontWeight: 700, color: '#171A21', border: `1.5px solid ${error ? '#FF5A5F' : digit ? '#0F6F73' : '#E4E7ED'}`, borderRadius: '12px', background: digit ? '#F0F9F9' : 'white', outline: 'none', fontFamily: 'inherit' }}
+                    style={{ width: '100%', minWidth: 0, height: '52px', textAlign: 'center', fontSize: '20px', fontWeight: 700, color: '#171A21', border: `1.5px solid ${error ? '#FF5A5F' : digit ? '#0F6F73' : '#E4E7ED'}`, borderRadius: '12px', background: digit ? '#F0F9F9' : 'white', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
                   />
                 ))}
               </div>
