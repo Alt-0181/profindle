@@ -5,9 +5,22 @@ import { createClient } from '@/lib/supabase/client';
 import type { Dictionary } from '@/dictionaries';
 
 const PROVINCES = [
-  'Bangkok', 'Chiang Mai', 'Phuket', 'Khon Kaen', 'Chon Buri',
-  'Nakhon Ratchasima', 'Udon Thani', 'Songkhla', 'Surat Thani', 'Nonthaburi',
-  'Other',
+  'Bangkok', 'Amnat Charoen', 'Ang Thong', 'Bueng Kan', 'Buri Ram',
+  'Chachoengsao', 'Chai Nat', 'Chaiyaphum', 'Chanthaburi', 'Chiang Mai',
+  'Chiang Rai', 'Chon Buri', 'Chumphon', 'Kalasin', 'Kamphaeng Phet',
+  'Kanchanaburi', 'Khon Kaen', 'Krabi', 'Lampang', 'Lamphun',
+  'Loei', 'Lop Buri', 'Mae Hong Son', 'Maha Sarakham', 'Mukdahan',
+  'Nakhon Nayok', 'Nakhon Pathom', 'Nakhon Phanom', 'Nakhon Ratchasima', 'Nakhon Sawan',
+  'Nakhon Si Thammarat', 'Nan', 'Narathiwat', 'Nong Bua Lam Phu', 'Nong Khai',
+  'Nonthaburi', 'Pathum Thani', 'Pattani', 'Phang Nga', 'Phatthalung',
+  'Phayao', 'Phetchabun', 'Phetchaburi', 'Phichit', 'Phitsanulok',
+  'Phra Nakhon Si Ayutthaya', 'Phrae', 'Phuket', 'Prachin Buri', 'Prachuap Khiri Khan',
+  'Ranong', 'Ratchaburi', 'Rayong', 'Roi Et', 'Sa Kaeo',
+  'Sakon Nakhon', 'Samut Prakan', 'Samut Sakhon', 'Samut Songkhram', 'Sara Buri',
+  'Satun', 'Sing Buri', 'Si Sa Ket', 'Songkhla', 'Sukhothai',
+  'Suphan Buri', 'Surat Thani', 'Surin', 'Tak', 'Trang',
+  'Trat', 'Ubon Ratchathani', 'Udon Thani', 'Uthai Thani', 'Uttaradit',
+  'Yala', 'Yasothon',
 ];
 
 const TEAM_SIZES = ['1-5', '6-15', '16-50', '51-200', '200+'];
