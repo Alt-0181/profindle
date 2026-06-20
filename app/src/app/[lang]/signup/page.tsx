@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -13,12 +13,13 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
 
   const [step, setStep] = useState<'register' | 'verify'>('register');
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [shake, setShake] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const t = isTh ? {
     title: 'สร้างบัญชีของคุณ',
@@ -68,9 +69,27 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
     setLoading(false);
   };
 
+  const handleOtpChange = (index: number, value: string) => {
+    if (!/^[0-9]?$/.test(value)) return;
+    const next = [...otp]; next[index] = value; setOtp(next); setError('');
+    if (value && index < 5) otpRefs.current[index + 1]?.focus();
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) otpRefs.current[index - 1]?.focus();
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const digits = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6).split('');
+    const next = [...Array(6)].map((_, i) => digits[i] || '');
+    setOtp(next);
+    otpRefs.current[Math.min(digits.length, 5)]?.focus();
+  };
+
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
-    const code = otp.trim();
+    const code = otp.join('');
     if (code.length < 6) return;
     setLoading(true);
     setError('');
@@ -190,20 +209,21 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
 
               <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#171A21', marginBottom: '12px' }}>{t.otpLabel}</label>
 
-              <div style={{ animation: shake ? 'shake 0.4s ease' : undefined, marginBottom: '16px' }}>
-                <input
-                  type="text" inputMode="numeric" autoFocus autoComplete="one-time-code"
-                  value={otp} onChange={e => { setOtp(e.target.value.replace(/\D/g, '')); setError(''); }}
-                  placeholder="••••••••"
-                  style={{ width: '100%', height: '60px', textAlign: 'center', fontSize: '28px', fontWeight: 700, letterSpacing: '6px', color: '#171A21', border: `1.5px solid ${error ? '#FF5A5F' : otp ? '#0F6F73' : '#E4E7ED'}`, borderRadius: '12px', background: otp ? '#F0F9F9' : 'white', outline: 'none', fontFamily: 'monospace', boxSizing: 'border-box' }}
-                  onFocus={e => { if (!error) e.target.style.boxShadow = '0 0 0 3px rgba(15,111,115,0.12)'; }}
-                  onBlur={e => { e.target.style.boxShadow = 'none'; }}
-                />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: '8px', marginBottom: '16px', animation: shake ? 'shake 0.4s ease' : undefined }}>
+                {otp.map((digit, i) => (
+                  <input key={i} ref={el => { otpRefs.current[i] = el; }}
+                    type="text" inputMode="numeric" maxLength={1} value={digit} autoComplete="one-time-code"
+                    onChange={e => handleOtpChange(i, e.target.value)}
+                    onKeyDown={e => handleOtpKeyDown(i, e)}
+                    onPaste={handleOtpPaste}
+                    style={{ width: '100%', minWidth: 0, height: '56px', textAlign: 'center', fontSize: '22px', fontWeight: 700, color: '#171A21', border: `1.5px solid ${error ? '#FF5A5F' : digit ? '#0F6F73' : '#E4E7ED'}`, borderRadius: '12px', background: digit ? '#F0F9F9' : 'white', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
+                  />
+                ))}
               </div>
 
               {error && <p style={{ fontSize: '13px', color: '#FF5A5F', marginBottom: '12px' }}>{error}</p>}
 
-              <button type="submit" disabled={otp.length < 6 || loading} style={{ width: '100%', padding: '12px 16px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit', opacity: otp.length < 6 || loading ? 0.6 : 1 }}>
+              <button type="submit" disabled={otp.join('').length < 6 || loading} style={{ width: '100%', padding: '12px 16px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit', opacity: otp.join('').length < 6 || loading ? 0.6 : 1 }}>
                 {loading ? '…' : t.verifyBtn}
               </button>
             </form>
