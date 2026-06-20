@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { usePathname } from 'next/navigation';
 import type { Dictionary } from '@/dictionaries';
 
 interface TopbarProps {
@@ -13,48 +12,51 @@ interface TopbarProps {
 }
 
 export function Topbar({ locale, dict, title, user }: TopbarProps) {
-  const router = useRouter();
   const pathname = usePathname();
-  const otherLocale = locale === 'th' ? 'en' : 'th';
-  const otherPath = pathname.replace(`/${locale}`, `/${otherLocale}`);
 
   return (
     <header className="page-header">
       <div className="flex items-center gap-3">
         {title && (
-          <h1 className="text-[18px] font-bold text-[#171A21] tracking-tight">{title}</h1>
+          <h1 style={{ fontSize: '18px', fontWeight: 700, color: '#171A21', letterSpacing: '-0.01em', margin: 0 }}>{title}</h1>
         )}
       </div>
-      <div className="flex items-center gap-3">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         {/* Language Toggle */}
-        <div className="flex items-center gap-0 bg-[#F4F5F7] rounded-[8px] p-0.5">
-          <Link
-            href={`/en${pathname.slice(3)}`}
-            className={cn(
-              'px-3 py-1 text-[12px] font-semibold rounded-[6px] transition-all duration-150 no-underline',
-              locale === 'en'
-                ? 'bg-white text-[#0F6F73] shadow-[0_1px_4px_rgba(23,26,33,0.08)]'
-                : 'text-[#9AA0AE] hover:text-[#444B5A]'
-            )}
-          >
-            EN
-          </Link>
-          <Link
-            href={`/th${pathname.slice(3)}`}
-            className={cn(
-              'px-3 py-1 text-[12px] font-semibold rounded-[6px] transition-all duration-150 no-underline',
-              locale === 'th'
-                ? 'bg-white text-[#0F6F73] shadow-[0_1px_4px_rgba(23,26,33,0.08)]'
-                : 'text-[#9AA0AE] hover:text-[#444B5A]'
-            )}
-          >
-            TH
-          </Link>
+        <div style={{ display: 'flex', alignItems: 'center', background: '#F0F2F5', borderRadius: '10px', padding: '3px', gap: '2px' }}>
+          {(['en', 'th'] as const).map(lang => {
+            const isActive = locale === lang;
+            return (
+              <Link
+                key={lang}
+                href={`/${lang}${pathname.slice(3)}`}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '7px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  transition: 'all 150ms',
+                  background: isActive ? 'white' : 'transparent',
+                  color: isActive ? '#0F6F73' : '#9AA0AE',
+                  boxShadow: isActive ? '0 1px 4px rgba(23,26,33,0.10), 0 0 0 1px rgba(23,26,33,0.04)' : 'none',
+                  letterSpacing: '0.03em',
+                }}
+              >
+                {lang.toUpperCase()}
+              </Link>
+            );
+          })}
         </div>
 
         {/* User Avatar */}
         {user && (
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0F6F73] to-[#1A9DA3] flex items-center justify-center text-white text-[14px] font-bold cursor-pointer hover:brightness-110 transition-all">
+          <div style={{
+            width: '36px', height: '36px', borderRadius: '50%',
+            background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'white', fontSize: '14px', fontWeight: 700, cursor: 'pointer',
+          }}>
             {user.initial}
           </div>
         )}
