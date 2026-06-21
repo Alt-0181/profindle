@@ -80,7 +80,9 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const [saved, setSaved] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [uploadDone, setUploadDone] = useState(!!initialData?.dbdCertPath);
+  // Only treat as "done" if we have both a path AND a name (i.e. new-format uploads)
+  const hasNamedCert = !!(initialData?.dbdCertPath && initialData?.dbdCertName);
+  const [uploadDone, setUploadDone] = useState(hasNamedCert);
   const [uploadError, setUploadError] = useState('');
   const [dbdPath, setDbdPath] = useState<string | null>(initialData?.dbdCertPath ?? null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -124,8 +126,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const getCertFileName = () => {
     if (uploadFile) return uploadFile.name;
     if (initialData?.dbdCertName) return initialData.dbdCertName;
-    if (!dbdPath) return 'DBD Certificate.pdf';
-    return `DBD Certificate.${dbdPath.split('.').pop() ?? 'pdf'}`;
+    return null;
   };
 
   const handleDownload = async () => {
@@ -389,8 +390,8 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
           </div>
         </div>
 
-        {/* File attachment card */}
-        {dbdPath && !uploading && (
+        {/* File attachment card — only show when we know the filename */}
+        {getCertFileName() && !uploading && (
           <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: '#F0F9F9', borderRadius: '10px', border: '1px solid rgba(15,111,115,0.15)' }} onClick={e => e.stopPropagation()}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
