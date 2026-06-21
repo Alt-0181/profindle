@@ -105,8 +105,8 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
-      const ext = file.name.split('.').pop() ?? 'pdf';
-      const path = `${user.id}-${Date.now()}.${ext}`;
+      // Embed original filename so we can recover it: userId/timestamp_originalname
+      const path = `${user.id}/${Date.now()}_${file.name}`;
       const { error } = await supabase.storage.from('company-docs').upload(path, file, { contentType: file.type || 'application/octet-stream' });
       if (error) throw error;
       setDbdPath(path);
@@ -120,9 +120,19 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
     }
   };
 
+  // Extract original filename from path. New format: "userId/timestamp_originalname"
+  // Legacy format: "userId-timestamp.ext" → falls back to generic label
+  const getCertFileName = () => {
+    if (uploadFile) return uploadFile.name;
+    if (!dbdPath) return 'DBD Certificate.pdf';
+    const afterSlash = dbdPath.split('/').pop() ?? '';
+    if (afterSlash) return afterSlash.replace(/^\d+_/, '') || afterSlash;
+    return `DBD Certificate.${dbdPath.split('.').pop() ?? 'pdf'}`;
+  };
+
   const handleDownload = async () => {
     if (!dbdPath) return;
-    const fileName = uploadFile?.name ?? `DBD_Certificate.${dbdPath.split('.').pop() ?? 'pdf'}`;
+    const fileName = getCertFileName();
     if (uploadFile && previewUrl) {
       // Newly uploaded file — blob URL works directly
       const a = document.createElement('a');
@@ -367,7 +377,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
             {uploading && <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F6F73' }}>Uploading…</div>}
             {uploadDone && (
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F6F73' }}>
-                ✓ {uploadFile?.name ?? (dbdPath ? `${dbdPath.split('.').pop()?.toUpperCase()} document on file` : 'Document uploaded')}
+                ✓ {getCertFileName()}
               </div>
             )}
             {!uploading && !uploadDone && (
@@ -388,7 +398,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
             </svg>
             <span style={{ fontSize: '13px', color: '#0F6F73', fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {uploadFile?.name ?? `DBD Certificate.${dbdPath?.split('.').pop() ?? 'pdf'}`}
+              {getCertFileName()}
             </span>
             <button onClick={handleDownload} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '7px', background: 'white', border: '1px solid rgba(15,111,115,0.2)', color: '#0F6F73', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
