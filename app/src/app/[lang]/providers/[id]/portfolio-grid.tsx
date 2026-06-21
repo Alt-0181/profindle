@@ -14,6 +14,7 @@ type Project = {
   results: string | null;
   results_th: string | null;
   cover_color: string | null;
+  images: string[] | null;
 };
 
 type Contact = { phone: string | null; email: string | null; companyName: string };
@@ -33,8 +34,8 @@ function parseResults(text: string): string[] {
 
 function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; contact: Contact; isTh: boolean; onBack: () => void }) {
   const [slideIdx, setSlideIdx] = useState(0);
-  // 3 demo slides until real images are stored; each gets a distinct gradient
-  const slides = [project.cover_color, '#F77F00', '#171A21'];
+  const hasImages = project.images && project.images.length > 0;
+  const slides = hasImages ? project.images! : [project.cover_color];
 
   return (
     <div>
@@ -52,9 +53,13 @@ function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; c
 
         {/* Sliding track */}
         <div style={{ position: 'absolute', inset: 0, display: 'flex', transition: 'transform 320ms cubic-bezier(0.4,0,0.2,1)', transform: `translateX(-${slideIdx * 100}%)` }}>
-          {slides.map((c, i) => (
-            <div key={i} style={{ flex: '0 0 100%', height: '100%', background: coverGradient(c) }} />
-          ))}
+          {slides.map((src, i) =>
+            hasImages ? (
+              <img key={i} src={src} alt={project.title} style={{ flex: '0 0 100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <div key={i} style={{ flex: '0 0 100%', height: '100%', background: coverGradient(src) }} />
+            )
+          )}
         </div>
 
         {/* Gradient overlay */}
@@ -254,6 +259,9 @@ export function PortfolioGrid({ projects, contact, isTh }: { projects: Project[]
             onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = ''; }}
           >
             <div style={{ aspectRatio: '4/3', background: coverGradient(p.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end' }}>
+              {p.images && p.images.length > 0 && (
+                <img src={p.images[0]} alt={p.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+              )}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.6) 100%)' }} />
               <div style={{ position: 'relative', padding: '10px 12px', color: 'white' }}>
                 <div style={{ fontSize: '13px', fontWeight: 700, lineHeight: 1.3 }}>{p.title}</div>
