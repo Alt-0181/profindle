@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { verifyLineSignature, replyMessage, makeWelcomeMessage, makeStatusReplyMessage } from '@/lib/line';
+import { verifyLineSignature, replyMessage, makeWelcomeMessage, makeUidReplyMessage, makeVipStatusMessage } from '@/lib/line';
 
 function adminClient() {
   return createClient(
@@ -45,8 +45,22 @@ async function handleEvent(event: any) {
 
   if (event.type === 'message' && event.message?.type === 'text' && event.replyToken && userId) {
     const text: string = (event.message.text ?? '').trim();
+
+    if (/^get\s*uid$/i.test(text)) {
+      await replyMessage(event.replyToken, [makeUidReplyMessage(userId)]);
+      return;
+    }
+
     if (/^(status|สถานะ)$/i.test(text)) {
-      await replyMessage(event.replyToken, [makeStatusReplyMessage(userId)]);
+      const { data: company } = await adminClient()
+        .from('companies')
+        .select('plan, plan_expires_at')
+        .eq('line_user_id', userId)
+        .maybeSingle();
+      const plan = (company as any)?.plan ?? 'free';
+      const planExpiresAt = (company as any)?.plan_expires_at ?? null;
+      await replyMessage(event.replyToken, [makeVipStatusMessage(plan, planExpiresAt)]);
+      return;
     }
   }
 }

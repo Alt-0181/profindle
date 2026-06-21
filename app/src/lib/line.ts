@@ -142,9 +142,26 @@ export function makeWelcomeMessage(lineUserId: string): object {
   };
 }
 
-export function makeStatusReplyMessage(lineUserId: string): object {
+export function makeUidReplyMessage(lineUserId: string): object {
   return {
     type: 'text',
-    text: `Your LINE User ID:\n${lineUserId}\n\nCopy this into:\nProfindle → Settings → LINE Connect\n\nYou'll then receive broadcast notifications when clients post matching requests.`,
+    text: `LINE UID:\n${lineUserId}\n\nTrigger Message: GET UID`,
+  };
+}
+
+export function makeVipStatusMessage(plan: string | null, planExpiresAt: string | null): object {
+  if (plan === 'vip' || plan === 'premium') {
+    const expiry = planExpiresAt
+      ? new Date(planExpiresAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+      : null;
+    const expiryLine = expiry ? `Active until ${expiry}` : 'Lifetime membership';
+    return {
+      type: 'text',
+      text: `✨ VIP Member\n${expiryLine}\n\nYou receive priority broadcast notifications when buyers post matching requests.`,
+    };
+  }
+  return {
+    type: 'text',
+    text: `📋 Free Plan\n\nUpgrade to VIP for priority matching and more broadcast notifications.\n\nVisit Profindle → Package to upgrade.`,
   };
 }
