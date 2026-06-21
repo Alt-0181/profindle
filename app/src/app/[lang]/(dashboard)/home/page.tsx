@@ -31,8 +31,15 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
     .maybeSingle();
   const hasCompany = !!company;
   const emailVerified = true;
-  const hasPortfolio = false;
   const lineConnected = false;
+
+  const { count: portfolioCount } = company
+    ? await supabase
+        .from('portfolio_projects')
+        .select('id', { count: 'exact', head: true })
+        .eq('company_id', company.id)
+    : { count: 0 };
+  const hasPortfolio = (portfolioCount ?? 0) > 0;
   const hasIndustry = !!company?.industry;
   const docsUploaded = !!company?.dbd_certificate_url;
   // Path format: {user_id}-{timestamp}.ext — extract just the extension for display
@@ -67,7 +74,9 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
       title: isTh ? 'เพิ่มผลงาน' : 'Add portfolio',
       desc: isTh ? 'นำเสนอผลงานจริงเพื่อสร้างความเชื่อมั่นกับลูกค้า' : 'Showcase real work to build trust with potential clients.',
       done: hasPortfolio,
-      status: isTh ? 'ยังไม่ได้เริ่ม' : 'Not started',
+      status: hasPortfolio
+        ? (isTh ? `${portfolioCount} ผลงาน` : `${portfolioCount} project${portfolioCount === 1 ? '' : 's'}`)
+        : (isTh ? 'ยังไม่ได้เริ่ม' : 'Not started'),
       bodyText: isTh ? 'เพิ่มอย่างน้อย 3 ผลงาน พร้อมรูปภาพ ผลลัพธ์ และบริการที่ส่งมอบ ผลงานที่ยืนยันแล้วจะปรากฏในการค้นหาสูงกว่า' : 'Add at least 3 projects with images, results, and the services delivered. Verified projects rank higher in client search.',
       ctaLabel: isTh ? 'เพิ่มผลงาน →' : 'Add a project →',
       ctaHref: `/${lang}/portfolio`,
