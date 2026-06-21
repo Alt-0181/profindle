@@ -228,7 +228,15 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         id: projectId,
         title: form.title,
         client: form.confidential ? (lang === 'th' ? 'ไม่เปิดเผย' : 'Confidential') : form.client,
+        confidential: form.confidential,
         year: form.year,
+        budget: form.budget,
+        category: '',
+        descEn: form.descEn,
+        descTh: form.descTh,
+        resultsEn: form.resultsEn,
+        resultsTh: form.resultsTh,
+        images: imageUrls,
         coverImage: imageUrls[0] ?? null,
       }]);
 
