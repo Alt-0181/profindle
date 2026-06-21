@@ -26,48 +26,116 @@ const PROVINCES = [
 
 const TEAM_SIZES = ['1-5', '6-15', '16-50', '51-200', '200+'];
 
-const INDUSTRIES = [
-  'Accounting / Finance / Audit',
-  'Advertising / Marketing / Promotion / PR',
-  'Architecture / Interior Design',
-  'Computer / IT / Software',
-  'Consulting / Business Advisory',
-  'Construction / Engineering',
-  'Design / Creative',
-  'E-commerce / Retail',
-  'Education / Training',
-  'Event Management / MICE',
-  'Healthcare / Medical',
-  'HR / Recruitment',
-  'Insurance / Financial Services',
-  'Legal / Law',
-  'Logistics / Supply Chain',
-  'Manufacturing',
-  'Media / Publishing',
-  'Photography / Videography',
-  'Real Estate / Property',
-  'Research & Market Research',
-  'Security / Safety',
-  'Translation / Localization',
-  'Travel / Tourism / Hospitality',
-  'Other',
+const SERVICES: { label: string; industry: string }[] = [
+  { label: 'Accounting', industry: 'Accounting / Finance / Audit' },
+  { label: 'Bookkeeping', industry: 'Accounting / Finance / Audit' },
+  { label: 'Tax Consulting', industry: 'Accounting / Finance / Audit' },
+  { label: 'Audit & Assurance', industry: 'Accounting / Finance / Audit' },
+  { label: 'Financial Planning', industry: 'Accounting / Finance / Audit' },
+  { label: 'Advertising', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'Brand Strategy', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'Content Marketing', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'Digital Marketing', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'Influencer Marketing', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'PR / Public Relations', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'SEO / SEM', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'Social Media Marketing', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'Architecture', industry: 'Architecture / Interior Design' },
+  { label: 'Interior Design', industry: 'Architecture / Interior Design' },
+  { label: 'Space Planning', industry: 'Architecture / Interior Design' },
+  { label: 'AI / Machine Learning', industry: 'Computer / IT / Software' },
+  { label: 'Cloud Computing', industry: 'Computer / IT / Software' },
+  { label: 'Cybersecurity', industry: 'Computer / IT / Software' },
+  { label: 'Data Analytics', industry: 'Computer / IT / Software' },
+  { label: 'IT Consulting', industry: 'Computer / IT / Software' },
+  { label: 'Mobile App Development', industry: 'Computer / IT / Software' },
+  { label: 'Software Development', industry: 'Computer / IT / Software' },
+  { label: 'Web Development', industry: 'Computer / IT / Software' },
+  { label: 'Business Consulting', industry: 'Consulting / Business Advisory' },
+  { label: 'Management Consulting', industry: 'Consulting / Business Advisory' },
+  { label: 'Operations Consulting', industry: 'Consulting / Business Advisory' },
+  { label: 'Strategy Consulting', industry: 'Consulting / Business Advisory' },
+  { label: 'Civil Engineering', industry: 'Construction / Engineering' },
+  { label: 'Construction', industry: 'Construction / Engineering' },
+  { label: 'Project Management', industry: 'Construction / Engineering' },
+  { label: 'Branding & Identity', industry: 'Design / Creative' },
+  { label: 'Graphic Design', industry: 'Design / Creative' },
+  { label: 'Motion Graphics', industry: 'Design / Creative' },
+  { label: 'Packaging Design', industry: 'Design / Creative' },
+  { label: 'UI/UX Design', industry: 'Design / Creative' },
+  { label: 'E-commerce Solutions', industry: 'E-commerce / Retail' },
+  { label: 'Online Store Setup', industry: 'E-commerce / Retail' },
+  { label: 'Coaching', industry: 'Education / Training' },
+  { label: 'Corporate Training', industry: 'Education / Training' },
+  { label: 'E-Learning', industry: 'Education / Training' },
+  { label: 'Conference & MICE', industry: 'Event Management / MICE' },
+  { label: 'Corporate Events', industry: 'Event Management / MICE' },
+  { label: 'Event Management', industry: 'Event Management / MICE' },
+  { label: 'Healthcare Consulting', industry: 'Healthcare / Medical' },
+  { label: 'Executive Search', industry: 'HR / Recruitment' },
+  { label: 'HR Consulting', industry: 'HR / Recruitment' },
+  { label: 'Payroll Services', industry: 'HR / Recruitment' },
+  { label: 'Recruitment', industry: 'HR / Recruitment' },
+  { label: 'Contract Review', industry: 'Legal / Law' },
+  { label: 'Legal Consulting', industry: 'Legal / Law' },
+  { label: 'Freight & Shipping', industry: 'Logistics / Supply Chain' },
+  { label: 'Logistics', industry: 'Logistics / Supply Chain' },
+  { label: 'Supply Chain Consulting', industry: 'Logistics / Supply Chain' },
+  { label: 'Animation', industry: 'Media / Publishing' },
+  { label: 'Podcast Production', industry: 'Media / Publishing' },
+  { label: 'Video Production', industry: 'Media / Publishing' },
+  { label: 'Photography', industry: 'Photography / Videography' },
+  { label: 'Product Photography', industry: 'Photography / Videography' },
+  { label: 'Videography', industry: 'Photography / Videography' },
+  { label: 'Property Management', industry: 'Real Estate / Property' },
+  { label: 'Real Estate Consulting', industry: 'Real Estate / Property' },
+  { label: 'Market Research', industry: 'Research & Market Research' },
+  { label: 'Survey & Research', industry: 'Research & Market Research' },
+  { label: 'Interpretation', industry: 'Translation / Localization' },
+  { label: 'Localization', industry: 'Translation / Localization' },
+  { label: 'Translation', industry: 'Translation / Localization' },
+  { label: 'Hospitality Consulting', industry: 'Travel / Tourism / Hospitality' },
+  { label: 'Tourism Planning', industry: 'Travel / Tourism / Hospitality' },
 ];
+
+function deriveIndustry(selected: string[]): string {
+  if (!selected.length) return '';
+  const counts = new Map<string, number>();
+  for (const s of selected) {
+    const svc = SERVICES.find(v => v.label === s);
+    if (svc) counts.set(svc.industry, (counts.get(svc.industry) ?? 0) + 1);
+  }
+  let best = ''; let bestN = 0;
+  for (const [ind, n] of counts) {
+    if (n > bestN || (n === bestN && ind < best)) { best = ind; bestN = n; }
+  }
+  return best;
+}
+
+function fuzzyMatch(query: string, target: string): boolean {
+  const q = query.toLowerCase(); const t = target.toLowerCase();
+  if (t.includes(q)) return true;
+  let qi = 0;
+  for (let i = 0; i < t.length && qi < q.length; i++) { if (t[i] === q[qi]) qi++; }
+  return qi === q.length;
+}
 
 interface MyCompanyFormProps {
   lang: string;
   dict: Dictionary;
   initialData?: {
     nameEn: string; nameTh: string; descEn: string; descTh: string;
-    industry: string; province: string; address: string;
+    province: string; address: string;
     teamSize: string; foundedYear: string; website: string;
     phone: string; emailPublic: string;
     dbdCertPath: string | null; dbdCertName: string | null;
+    services: string[];
   };
 }
 
 const EMPTY = {
   nameEn: '', nameTh: '', descEn: '', descTh: '',
-  industry: '', province: '', address: '',
+  province: '', address: '',
   teamSize: '', foundedYear: '', website: '',
   phone: '', emailPublic: '',
 };
@@ -76,6 +144,9 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const t = dict.myCompany;
   const router = useRouter();
   const [form, setForm] = useState(initialData ?? EMPTY);
+  const [selectedServices, setSelectedServices] = useState<string[]>(initialData?.services ?? []);
+  const [serviceSearch, setServiceSearch] = useState('');
+  const [showServiceSuggestions, setShowServiceSuggestions] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -182,7 +253,8 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         name_th: form.nameTh || null,
         description: form.descEn || null,
         description_th: form.descTh || null,
-        industry: form.industry || null,
+        services: selectedServices.length > 0 ? selectedServices : null,
+        industry: deriveIndustry(selectedServices) || null,
         province: form.province || null,
         address: form.address || null,
         team_size: form.teamSize || null,
@@ -290,22 +362,87 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
           </div>
         </div>
 
-        {/* Industry + Province */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
-          <div>
-            <label style={labelStyle}>{t.industry}</label>
-            <select value={form.industry} onChange={(e) => set('industry', e.target.value)} style={inputStyle}>
-              <option value="">{t.selectIndustry}</option>
-              {INDUSTRIES.map((ind) => <option key={ind} value={ind}>{ind}</option>)}
-            </select>
+        {/* Services multi-select with fuzzy search */}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={labelStyle}>
+            {lang === 'th' ? 'บริการของคุณ' : 'Services'}
+            <span style={{ fontSize: '11px', color: '#9AA0AE', fontWeight: 400, marginLeft: '6px' }}>
+              {lang === 'th' ? '— อุตสาหกรรมจะถูกเติมอัตโนมัติ' : '— industry will be auto-detected'}
+            </span>
+          </label>
+
+          {/* Selected service tags */}
+          {selectedServices.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+              {selectedServices.map(s => (
+                <span key={s} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#F0F9F9', color: '#0F6F73', fontSize: '12px', fontWeight: 600, padding: '4px 10px 4px 12px', borderRadius: '999px', border: '1px solid rgba(15,111,115,0.2)' }}>
+                  {s}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedServices(prev => prev.filter(x => x !== s))}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9AA0AE', padding: '0 0 0 2px', fontSize: '16px', lineHeight: 1, display: 'flex', alignItems: 'center' }}
+                  >×</button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Search input */}
+          <div style={{ position: 'relative' }}>
+            <input
+              type="text"
+              value={serviceSearch}
+              onChange={e => { setServiceSearch(e.target.value); setShowServiceSuggestions(true); }}
+              onFocus={() => setShowServiceSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowServiceSuggestions(false), 150)}
+              placeholder={lang === 'th' ? 'พิมพ์เพื่อค้นหาบริการ เช่น "กราฟิก", "Marketing"…' : 'Type to search, e.g. "Design", "Marketing", "IT"…'}
+              style={inputStyle}
+            />
+            {showServiceSuggestions && serviceSearch.length >= 1 && (
+              <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: '1px solid #E4E7ED', borderRadius: '12px', boxShadow: '0 8px 24px rgba(23,26,33,0.12)', zIndex: 50, maxHeight: '280px', overflowY: 'auto' }}>
+                {SERVICES.filter(s => !selectedServices.includes(s.label) && fuzzyMatch(serviceSearch, s.label)).slice(0, 8).map(s => (
+                  <div
+                    key={s.label}
+                    onMouseDown={() => { setSelectedServices(prev => [...prev, s.label]); setServiceSearch(''); setShowServiceSuggestions(false); setSaved(false); }}
+                    style={{ padding: '10px 14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #F4F5F7' }}
+                    onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = '#F8FFFE'}
+                    onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'white'}
+                  >
+                    <span style={{ fontSize: '13px', color: '#171A21' }}>{s.label}</span>
+                    <span style={{ fontSize: '11px', color: '#9AA0AE' }}>{s.industry.split(' / ')[0]}</span>
+                  </div>
+                ))}
+                {SERVICES.filter(s => !selectedServices.includes(s.label) && fuzzyMatch(serviceSearch, s.label)).length === 0 && (
+                  <div style={{ padding: '12px 14px', fontSize: '13px', color: '#9AA0AE' }}>No matching services</div>
+                )}
+              </div>
+            )}
           </div>
-          <div>
-            <label style={labelStyle}>{t.province}</label>
-            <select value={form.province} onChange={(e) => set('province', e.target.value)} style={inputStyle}>
-              <option value="">{t.selectProvince}</option>
-              {PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
-            </select>
-          </div>
+
+          {/* Auto-derived industry */}
+          {selectedServices.length > 0 && (
+            <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#6B7385' }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1A9DA3" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              {lang === 'th' ? 'อุตสาหกรรม:' : 'Industry auto-set to:'}
+              <strong style={{ color: '#0F6F73' }}>{deriveIndustry(selectedServices)}</strong>
+            </div>
+          )}
+          {selectedServices.length === 0 && (
+            <div style={{ marginTop: '8px', fontSize: '12px', color: '#9AA0AE' }}>
+              {lang === 'th'
+                ? 'เพิ่มบริการที่นี่ หรือสร้างโปรเจกต์พอร์ตโฟลิโอเพื่อให้ระบบตรวจจับอุตสาหกรรมโดยอัตโนมัติ'
+                : 'Add services here, or create portfolio projects — your industry will be set automatically.'}
+            </div>
+          )}
+        </div>
+
+        {/* Province */}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={labelStyle}>{t.province}</label>
+          <select value={form.province} onChange={(e) => set('province', e.target.value)} style={inputStyle}>
+            <option value="">{t.selectProvince}</option>
+            {PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
         </div>
 
         {/* Team size + Founded year */}

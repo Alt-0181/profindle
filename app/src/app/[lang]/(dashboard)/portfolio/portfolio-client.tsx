@@ -17,6 +17,8 @@ interface Project {
   descTh: string;
   resultsEn: string;
   resultsTh: string;
+  challengeEn: string;
+  challengeTh: string;
   images: string[];
   coverImage?: string | null;
 }
@@ -41,6 +43,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
     title: '', client: '',
     year: new Date().getFullYear().toString(),
     descEn: '', descTh: '', resultsEn: '', resultsTh: '',
+    challengeEn: '', challengeTh: '',
     budget: '', confidential: false,
   });
   const [clientSearch, setClientSearch] = useState('');
@@ -88,6 +91,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       title: '', client: '',
       year: new Date().getFullYear().toString(),
       descEn: '', descTh: '', resultsEn: '', resultsTh: '',
+      challengeEn: '', challengeTh: '',
       budget: '', confidential: false,
     });
     setClientSearch('');
@@ -107,6 +111,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       descTh: proj.descTh,
       resultsEn: proj.resultsEn,
       resultsTh: proj.resultsTh,
+      challengeEn: proj.challengeEn,
+      challengeTh: proj.challengeTh,
       budget: proj.budget,
       confidential: proj.confidential,
     });
@@ -154,6 +160,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         description_th: form.descTh || null,
         results: form.resultsEn || null,
         results_th: form.resultsTh || null,
+        challenge: form.challengeEn || null,
+        challenge_th: form.challengeTh || null,
         images: imageUrls,
       }).eq('id', editingId);
       if (error) throw error;
@@ -169,6 +177,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         descTh: form.descTh,
         resultsEn: form.resultsEn,
         resultsTh: form.resultsTh,
+        challengeEn: form.challengeEn,
+        challengeTh: form.challengeTh,
         images: imageUrls,
         coverImage: imageUrls[0] ?? p.coverImage ?? null,
       } : p));
@@ -220,6 +230,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         description_th: form.descTh || null,
         results: form.resultsEn || null,
         results_th: form.resultsTh || null,
+        challenge: form.challengeEn || null,
+        challenge_th: form.challengeTh || null,
         images: imageUrls,
       });
       if (insertErr) throw insertErr;
@@ -236,6 +248,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         descTh: form.descTh,
         resultsEn: form.resultsEn,
         resultsTh: form.resultsTh,
+        challengeEn: form.challengeEn,
+        challengeTh: form.challengeTh,
         images: imageUrls,
         coverImage: imageUrls[0] ?? null,
       }]);
@@ -432,6 +446,36 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                     <span style={{ background: '#FFF6EC', color: '#E06B00', fontSize: '10px', padding: '1px 6px', borderRadius: '999px', fontWeight: 600 }}>TH</span>
                   </label>
                   <textarea value={form.descTh} onChange={(e) => set('descTh', e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }} />
+                </div>
+              </div>
+
+              {/* Challenge / What made it difficult */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>
+                    What made it difficult
+                    <span style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '10px', padding: '1px 6px', borderRadius: '999px', fontWeight: 600 }}>EN</span>
+                  </label>
+                  <textarea
+                    value={form.challengeEn}
+                    onChange={(e) => set('challengeEn', e.target.value)}
+                    rows={3}
+                    placeholder="e.g. Delivered in 3 days while coordinating with a K-POP group"
+                    style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>
+                    ความท้าทายของโปรเจคนี้คือ
+                    <span style={{ background: '#FFF6EC', color: '#E06B00', fontSize: '10px', padding: '1px 6px', borderRadius: '999px', fontWeight: 600 }}>TH</span>
+                  </label>
+                  <textarea
+                    value={form.challengeTh}
+                    onChange={(e) => set('challengeTh', e.target.value)}
+                    rows={3}
+                    placeholder="เช่น ต้องจัดงานให้เสร็จใน 3 วัน พร้อมประสานงานกับศิลปินต่างชาติ"
+                    style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }}
+                  />
                 </div>
               </div>
 

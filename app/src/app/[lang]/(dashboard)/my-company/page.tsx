@@ -13,7 +13,7 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
 
   const { data: company } = await supabase
     .from('companies')
-    .select('name, name_th, description, description_th, industry, province, address, team_size, founded_year, website, phone, email, dbd_certificate_url, dbd_certificate_name')
+    .select('name, name_th, description, description_th, industry, province, address, team_size, founded_year, website, phone, email, dbd_certificate_url, dbd_certificate_name, services')
     .eq('user_id', user?.id ?? '')
     .maybeSingle();
 
@@ -22,8 +22,8 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
     nameTh: company.name_th ?? '',
     descEn: company.description ?? '',
     descTh: company.description_th ?? '',
-    industry: company.industry ?? '',
     province: company.province ?? '',
+    services: (company as any).services ?? [],
     address: company.address ?? '',
     teamSize: company.team_size ?? '',
     foundedYear: company.founded_year ?? '',

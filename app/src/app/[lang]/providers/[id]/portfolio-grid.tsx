@@ -13,6 +13,8 @@ type Project = {
   description_th: string | null;
   results: string | null;
   results_th: string | null;
+  challenge: string | null;
+  challenge_th: string | null;
   cover_color: string | null;
   images: string[] | null;
 };
@@ -134,6 +136,18 @@ function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; c
             </div>
             <p style={{ fontSize: '15px', color: '#444B5A', lineHeight: 1.75, margin: 0 }}>
               {isTh && project.description_th ? project.description_th : project.description}
+            </p>
+          </div>
+        )}
+
+        {/* What Made It Difficult */}
+        {(project.challenge || project.challenge_th) && (
+          <div style={{ padding: '20px 0', borderBottom: '1px solid #E4E7ED' }}>
+            <div style={{ fontSize: '10px', fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
+              {isTh ? 'ความท้าทายของโปรเจคนี้คือ' : 'What Made It Difficult'}
+            </div>
+            <p style={{ fontSize: '15px', color: '#444B5A', lineHeight: 1.75, margin: 0 }}>
+              {isTh && project.challenge_th ? project.challenge_th : project.challenge}
             </p>
           </div>
         )}
