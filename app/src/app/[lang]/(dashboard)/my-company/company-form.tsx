@@ -27,122 +27,161 @@ const PROVINCES = [
 const TEAM_SIZES = ['1-5', '6-15', '16-50', '51-200', '200+'];
 
 const SERVICES: { label: string; industry: string }[] = [
-  // Accounting / Finance / Audit
-  { label: 'Accounting', industry: 'Accounting / Finance / Audit' },
-  { label: 'Bookkeeping', industry: 'Accounting / Finance / Audit' },
-  { label: 'Tax Consulting', industry: 'Accounting / Finance / Audit' },
-  { label: 'Audit & Assurance', industry: 'Accounting / Finance / Audit' },
-  { label: 'Financial Planning', industry: 'Accounting / Finance / Audit' },
 
-  // Advertising / Marketing / Promotion / PR
-  { label: 'Advertising', industry: 'Advertising / Marketing / Promotion / PR' },
-  { label: 'Brand Strategy', industry: 'Advertising / Marketing / Promotion / PR' },
-  { label: 'Content Marketing', industry: 'Advertising / Marketing / Promotion / PR' },
-  { label: 'Copywriting', industry: 'Advertising / Marketing / Promotion / PR' },
-  { label: 'Digital Marketing', industry: 'Advertising / Marketing / Promotion / PR' },
-  { label: 'Influencer Marketing', industry: 'Advertising / Marketing / Promotion / PR' },
-  { label: 'PR / Public Relations', industry: 'Advertising / Marketing / Promotion / PR' },
-  { label: 'SEO / SEM', industry: 'Advertising / Marketing / Promotion / PR' },
-  { label: 'Social Media Marketing', industry: 'Advertising / Marketing / Promotion / PR' },
+  // === ACCOUNTING & FINANCE ===
+  { label: 'Accounting', industry: 'Accounting & Finance' },
+  { label: 'Audit & Assurance', industry: 'Accounting & Finance' },
+  { label: 'Bookkeeping', industry: 'Accounting & Finance' },
+  { label: 'Debt Consulting', industry: 'Accounting & Finance' },
+  { label: 'Financial Planning', industry: 'Accounting & Finance' },
+  { label: 'Payroll Services', industry: 'Accounting & Finance' },
+  { label: 'Tax Filing', industry: 'Accounting & Finance' },
+  { label: 'Tax Planning', industry: 'Accounting & Finance' },
 
-  // Architecture / Interior Design
-  { label: 'Architecture', industry: 'Architecture / Interior Design' },
-  { label: 'Interior Design', industry: 'Architecture / Interior Design' },
-  { label: 'Space Planning', industry: 'Architecture / Interior Design' },
+  // === MARKETING & PR ===
+  { label: 'Advertising', industry: 'Marketing & PR' },
+  { label: 'Brand Strategy', industry: 'Marketing & PR' },
+  { label: 'Content Marketing', industry: 'Marketing & PR' },
+  { label: 'Copywriting', industry: 'Marketing & PR' },
+  { label: 'Digital Marketing', industry: 'Marketing & PR' },
+  { label: 'Influencer Marketing', industry: 'Marketing & PR' },
+  { label: 'PR / Public Relations', industry: 'Marketing & PR' },
+  { label: 'SEO / SEM', industry: 'Marketing & PR' },
+  { label: 'Social Media Marketing', industry: 'Marketing & PR' },
 
-  // Computer / IT / Software
-  { label: 'AI / Machine Learning', industry: 'Computer / IT / Software' },
-  { label: 'Cloud Computing', industry: 'Computer / IT / Software' },
-  { label: 'Cybersecurity', industry: 'Computer / IT / Software' },
-  { label: 'Data Analytics', industry: 'Computer / IT / Software' },
-  { label: 'ERP / CRM Systems', industry: 'Computer / IT / Software' },
-  { label: 'IT Consulting', industry: 'Computer / IT / Software' },
-  { label: 'Mobile App Development', industry: 'Computer / IT / Software' },
-  { label: 'Network & Infrastructure', industry: 'Computer / IT / Software' },
-  { label: 'QA / Software Testing', industry: 'Computer / IT / Software' },
-  { label: 'Software Development', industry: 'Computer / IT / Software' },
-  { label: 'Web Development', industry: 'Computer / IT / Software' },
-  { label: 'Website Maintenance', industry: 'Computer / IT / Software' },
+  // === ARCHITECTURE & INTERIOR DESIGN ===
+  { label: 'Architecture', industry: 'Architecture & Interior Design' },
+  { label: 'Interior Design', industry: 'Architecture & Interior Design' },
+  { label: 'Space Planning', industry: 'Architecture & Interior Design' },
 
-  // Consulting / Business Advisory
-  { label: 'Business Consulting', industry: 'Consulting / Business Advisory' },
-  { label: 'Management Consulting', industry: 'Consulting / Business Advisory' },
-  { label: 'Operations Consulting', industry: 'Consulting / Business Advisory' },
-  { label: 'Strategy Consulting', industry: 'Consulting / Business Advisory' },
+  // === TECHNOLOGY & SOFTWARE ===
+  { label: 'AI / Machine Learning', industry: 'Technology & Software' },
+  { label: 'Blockchain / Crypto Development', industry: 'Technology & Software' },
+  { label: 'Cloud Computing', industry: 'Technology & Software' },
+  { label: 'Cybersecurity', industry: 'Technology & Software' },
+  { label: 'Data Analytics', industry: 'Technology & Software' },
+  { label: 'Data Recovery', industry: 'Technology & Software' },
+  { label: 'Desktop Application', industry: 'Technology & Software' },
+  { label: 'E-commerce Development', industry: 'Technology & Software' },
+  { label: 'ERP / CRM Systems', industry: 'Technology & Software' },
+  { label: 'Game Development', industry: 'Technology & Software' },
+  { label: 'IoT Solutions', industry: 'Technology & Software' },
+  { label: 'IT Consulting', industry: 'Technology & Software' },
+  { label: 'IT Project Management', industry: 'Technology & Software' },
+  { label: 'IT Support & Helpdesk', industry: 'Technology & Software' },
+  { label: 'Mobile App Development', industry: 'Technology & Software' },
+  { label: 'Network & Infrastructure', industry: 'Technology & Software' },
+  { label: 'QA / Software Testing', industry: 'Technology & Software' },
+  { label: 'RPA / Process Automation', industry: 'Technology & Software' },
+  { label: 'Software Development', industry: 'Technology & Software' },
+  { label: 'Web Development', industry: 'Technology & Software' },
+  { label: 'Website Maintenance', industry: 'Technology & Software' },
+  { label: 'WordPress Development', industry: 'Technology & Software' },
 
-  // Construction / Engineering
-  { label: 'Civil Engineering', industry: 'Construction / Engineering' },
-  { label: 'Construction', industry: 'Construction / Engineering' },
-  { label: 'Project Management', industry: 'Construction / Engineering' },
+  // === BUSINESS CONSULTING ===
+  { label: 'Business Consulting', industry: 'Business Consulting' },
+  { label: 'Management Consulting', industry: 'Business Consulting' },
+  { label: 'Market Research', industry: 'Business Consulting' },
+  { label: 'Operations Consulting', industry: 'Business Consulting' },
+  { label: 'Strategy Consulting', industry: 'Business Consulting' },
+  { label: 'Survey & Research', industry: 'Business Consulting' },
 
-  // Design / Creative
-  { label: 'Branding & Identity', industry: 'Design / Creative' },
-  { label: 'Graphic Design', industry: 'Design / Creative' },
-  { label: 'Illustration', industry: 'Design / Creative' },
-  { label: 'Motion Graphics', industry: 'Design / Creative' },
-  { label: 'Packaging Design', industry: 'Design / Creative' },
-  { label: 'Presentation Design', industry: 'Design / Creative' },
-  { label: 'UI/UX Design', industry: 'Design / Creative' },
+  // === CONSTRUCTION & ENGINEERING ===
+  { label: 'Civil Engineering', industry: 'Construction & Engineering' },
+  { label: 'Construction', industry: 'Construction & Engineering' },
+  { label: 'Project Management', industry: 'Construction & Engineering' },
+  { label: 'Renovation', industry: 'Construction & Engineering' },
 
-  // E-commerce / Retail
-  { label: 'E-commerce Solutions', industry: 'E-commerce / Retail' },
-  { label: 'Online Store Setup', industry: 'E-commerce / Retail' },
+  // === DESIGN & CREATIVE ===
+  { label: 'Art & Illustration', industry: 'Design & Creative' },
+  { label: 'Branding & Identity', industry: 'Design & Creative' },
+  { label: 'Graphic Design', industry: 'Design & Creative' },
+  { label: 'Motion Graphics', industry: 'Design & Creative' },
+  { label: 'Packaging Design', industry: 'Design & Creative' },
+  { label: 'Presentation Design', industry: 'Design & Creative' },
+  { label: 'UI/UX Design', industry: 'Design & Creative' },
 
-  // Education / Training
-  { label: 'Coaching', industry: 'Education / Training' },
-  { label: 'Corporate Training', industry: 'Education / Training' },
-  { label: 'E-Learning', industry: 'Education / Training' },
-  { label: 'Language Instruction', industry: 'Education / Training' },
-  { label: 'Private Tutoring', industry: 'Education / Training' },
+  // === EDUCATION & TRAINING ===
+  { label: 'Coaching', industry: 'Education & Training' },
+  { label: 'Corporate Training', industry: 'Education & Training' },
+  { label: 'E-Learning', industry: 'Education & Training' },
+  { label: 'Language Instruction', industry: 'Education & Training' },
+  { label: 'Private Tutoring', industry: 'Education & Training' },
 
-  // Event Management / MICE
-  { label: 'Catering', industry: 'Event Management / MICE' },
-  { label: 'Conference & MICE', industry: 'Event Management / MICE' },
-  { label: 'Corporate Events', industry: 'Event Management / MICE' },
-  { label: 'DJ / Entertainment', industry: 'Event Management / MICE' },
-  { label: 'Event Emcee / MC', industry: 'Event Management / MICE' },
-  { label: 'Event Management', industry: 'Event Management / MICE' },
-  { label: 'Exhibition Organizer', industry: 'Event Management / MICE' },
-  { label: 'Floral Design', industry: 'Event Management / MICE' },
-  { label: 'Stage & Lighting', industry: 'Event Management / MICE' },
-  { label: 'Venue Sourcing', industry: 'Event Management / MICE' },
+  // === EVENT MANAGEMENT & MICE ===
+  { label: 'Catering', industry: 'Event Management & MICE' },
+  { label: 'Conference & MICE', industry: 'Event Management & MICE' },
+  { label: 'Corporate Events', industry: 'Event Management & MICE' },
+  { label: 'DJ / Entertainment', industry: 'Event Management & MICE' },
+  { label: 'Event Emcee / MC', industry: 'Event Management & MICE' },
+  { label: 'Event Management', industry: 'Event Management & MICE' },
+  { label: 'Exhibition Organizer', industry: 'Event Management & MICE' },
+  { label: 'Floral Design', industry: 'Event Management & MICE' },
+  { label: 'Stage & Lighting', industry: 'Event Management & MICE' },
+  { label: 'Talent Booking', industry: 'Event Management & MICE' },
+  { label: 'Venue Sourcing', industry: 'Event Management & MICE' },
 
-  // Healthcare / Medical
-  { label: 'Healthcare Consulting', industry: 'Healthcare / Medical' },
+  // === HEALTH & WELLNESS ===
+  { label: 'Corporate Wellness', industry: 'Health & Wellness' },
+  { label: 'Healthcare Consulting', industry: 'Health & Wellness' },
+  { label: 'Occupational Health', industry: 'Health & Wellness' },
 
-  // HR / Recruitment
-  { label: 'Event Staffing', industry: 'HR / Recruitment' },
-  { label: 'Executive Search', industry: 'HR / Recruitment' },
-  { label: 'HR Consulting', industry: 'HR / Recruitment' },
-  { label: 'Payroll Services', industry: 'HR / Recruitment' },
-  { label: 'Recruitment', industry: 'HR / Recruitment' },
-  { label: 'Temporary Staffing', industry: 'HR / Recruitment' },
+  // === HR & RECRUITMENT ===
+  { label: 'Event Staffing', industry: 'HR & Recruitment' },
+  { label: 'Executive Search', industry: 'HR & Recruitment' },
+  { label: 'HR Consulting', industry: 'HR & Recruitment' },
+  { label: 'Recruitment', industry: 'HR & Recruitment' },
+  { label: 'Temporary Staffing', industry: 'HR & Recruitment' },
 
-  // Legal / Law
-  { label: 'Contract Review', industry: 'Legal / Law' },
-  { label: 'Legal Consulting', industry: 'Legal / Law' },
+  // === LEGAL & COMPLIANCE ===
+  { label: 'Business Licensing', industry: 'Legal & Compliance' },
+  { label: 'Company Registration', industry: 'Legal & Compliance' },
+  { label: 'Contract Review', industry: 'Legal & Compliance' },
+  { label: 'FDA / Regulatory Filing', industry: 'Legal & Compliance' },
+  { label: 'Legal Consulting', industry: 'Legal & Compliance' },
+  { label: 'Patent & Trademark', industry: 'Legal & Compliance' },
+  { label: 'Visa & Work Permit', industry: 'Legal & Compliance' },
 
-  // Logistics / Supply Chain
-  { label: 'Freight & Shipping', industry: 'Logistics / Supply Chain' },
-  { label: 'Logistics', industry: 'Logistics / Supply Chain' },
-  { label: 'Supply Chain Consulting', industry: 'Logistics / Supply Chain' },
+  // === LOGISTICS & SUPPLY CHAIN ===
+  { label: 'Freight & Shipping', industry: 'Logistics & Supply Chain' },
+  { label: 'Logistics', industry: 'Logistics & Supply Chain' },
+  { label: 'Supply Chain Consulting', industry: 'Logistics & Supply Chain' },
 
-  // Maintenance & Technical
+  // === MAINTENANCE & TECHNICAL ===
   { label: 'AC Service & Repair', industry: 'Maintenance & Technical' },
-  { label: 'Electrical Work', industry: 'Maintenance & Technical' },
-  { label: 'General Maintenance', industry: 'Maintenance & Technical' },
+  { label: 'Electrical Services', industry: 'Maintenance & Technical' },
+  { label: 'Facility Maintenance', industry: 'Maintenance & Technical' },
   { label: 'Pest Control', industry: 'Maintenance & Technical' },
-  { label: 'Plumbing', industry: 'Maintenance & Technical' },
+  { label: 'Plumbing Services', industry: 'Maintenance & Technical' },
+  { label: 'Repair Services', industry: 'Maintenance & Technical' },
 
-  // Media / Publishing
-  { label: 'Animation', industry: 'Media / Publishing' },
-  { label: 'Podcast Production', industry: 'Media / Publishing' },
-  { label: 'Script Writing', industry: 'Media / Publishing' },
-  { label: 'Video Production', industry: 'Media / Publishing' },
+  // === MANUFACTURING & OEM ===
+  { label: 'Clothing Manufacturing', industry: 'Manufacturing & OEM' },
+  { label: 'Cosmetics Manufacturing', industry: 'Manufacturing & OEM' },
+  { label: 'Food & Supplement Manufacturing', industry: 'Manufacturing & OEM' },
+  { label: 'OEM / Contract Manufacturing', industry: 'Manufacturing & OEM' },
+  { label: 'Packaging Manufacturing', industry: 'Manufacturing & OEM' },
 
-  // Music & Audio
+  // === MEDIA, PHOTO & VIDEO ===
+  { label: 'Animation', industry: 'Media, Photo & Video' },
+  { label: 'Color Grading', industry: 'Media, Photo & Video' },
+  { label: 'Drone Photography', industry: 'Media, Photo & Video' },
+  { label: 'Live Streaming', industry: 'Media, Photo & Video' },
+  { label: 'Photography', industry: 'Media, Photo & Video' },
+  { label: 'Podcast Production', industry: 'Media, Photo & Video' },
+  { label: 'Product Photography', industry: 'Media, Photo & Video' },
+  { label: 'Subtitling', industry: 'Media, Photo & Video' },
+  { label: 'VFX & CGI', industry: 'Media, Photo & Video' },
+  { label: 'Video Editing', industry: 'Media, Photo & Video' },
+  { label: 'Video Production', industry: 'Media, Photo & Video' },
+  { label: 'Videography', industry: 'Media, Photo & Video' },
+
+  // === MUSIC & AUDIO ===
+  { label: 'Audio Recording', industry: 'Music & Audio' },
   { label: 'Jingle Production', industry: 'Music & Audio' },
+  { label: 'Mixing & Mastering', industry: 'Music & Audio' },
   { label: 'Music Production', industry: 'Music & Audio' },
+  { label: 'Sound Design', industry: 'Music & Audio' },
   { label: 'Sound Engineering', industry: 'Music & Audio' },
   { label: 'Voiceover', industry: 'Music & Audio' },
 
@@ -153,32 +192,38 @@ const SERVICES: { label: string; industry: string }[] = [
   { label: 'Product Photography', industry: 'Photography / Videography' },
   { label: 'Videography', industry: 'Photography / Videography' },
 
-  // Print & Production
+  // === PRINT & PRODUCTION ===
   { label: 'Brochure & Flyer', industry: 'Print & Production' },
   { label: 'Printing', industry: 'Print & Production' },
   { label: 'Signage', industry: 'Print & Production' },
 
-  // Real Estate / Property
-  { label: 'Property Management', industry: 'Real Estate / Property' },
-  { label: 'Real Estate Consulting', industry: 'Real Estate / Property' },
+  // === REAL ESTATE & PROPERTY ===
+  { label: 'Property Management', industry: 'Real Estate & Property' },
+  { label: 'Real Estate Consulting', industry: 'Real Estate & Property' },
 
-  // Research & Market Research
-  { label: 'Market Research', industry: 'Research & Market Research' },
-  { label: 'Survey & Research', industry: 'Research & Market Research' },
+  // === SECURITY SERVICES ===
+  { label: 'Bodyguard', industry: 'Security Services' },
+  { label: 'Security Services', industry: 'Security Services' },
 
-  // Security / Safety
-  { label: 'Bodyguard', industry: 'Security / Safety' },
-  { label: 'Security Services', industry: 'Security / Safety' },
+  // === TRANSLATION & LOCALIZATION ===
+  { label: 'Interpretation', industry: 'Translation & Localization' },
+  { label: 'Localization', industry: 'Translation & Localization' },
+  { label: 'Proofreading', industry: 'Translation & Localization' },
+  { label: 'Translation', industry: 'Translation & Localization' },
 
-  // Translation / Localization
-  { label: 'Interpretation', industry: 'Translation / Localization' },
-  { label: 'Localization', industry: 'Translation / Localization' },
-  { label: 'Proofreading', industry: 'Translation / Localization' },
-  { label: 'Translation', industry: 'Translation / Localization' },
+  // === TRAVEL & HOSPITALITY ===
+  { label: 'Hospitality Consulting', industry: 'Travel & Hospitality' },
+  { label: 'Tourism Planning', industry: 'Travel & Hospitality' },
 
-  // Travel / Tourism / Hospitality
-  { label: 'Hospitality Consulting', industry: 'Travel / Tourism / Hospitality' },
-  { label: 'Tourism Planning', industry: 'Travel / Tourism / Hospitality' },
+  // === VEHICLE RENTAL ===
+  { label: 'Car Rental', industry: 'Vehicle Rental' },
+  { label: 'Van Rental', industry: 'Vehicle Rental' },
+  { label: 'Vehicle Rental', industry: 'Vehicle Rental' },
+
+  // === WRITING & CONTENT ===
+  { label: 'Article Writing', industry: 'Writing & Content' },
+  { label: 'Data Entry', industry: 'Writing & Content' },
+  { label: 'Script Writing', industry: 'Writing & Content' },
 ];
 
 function deriveIndustries(selected: string[]): string[] {
