@@ -86,7 +86,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!dbdPath) return;
+    if (!dbdPath || uploadFile) return;
     const supabase = createClient();
     supabase.storage.from('company-docs').createSignedUrl(dbdPath, 3600).then(({ data }) => {
       if (data?.signedUrl) setPreviewUrl(data.signedUrl);
@@ -121,19 +121,24 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   };
 
   const handleDownload = async () => {
-    if (!previewUrl) return;
-    try {
-      const res = await fetch(previewUrl);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
+    if (!dbdPath) return;
+    const fileName = uploadFile?.name ?? `DBD_Certificate.${dbdPath.split('.').pop() ?? 'pdf'}`;
+    if (uploadFile && previewUrl) {
+      // Newly uploaded file — blob URL works directly
       const a = document.createElement('a');
-      a.href = url;
-      a.download = uploadFile?.name ?? `DBD_Certificate.${dbdPath?.split('.').pop() ?? 'pdf'}`;
-      document.body.appendChild(a);
+      a.href = previewUrl;
+      a.download = fileName;
       a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch {}
+      return;
+    }
+    // Existing file — get a signed URL with Content-Disposition: attachment
+    const supabase = createClient();
+    const { data } = await supabase.storage.from('company-docs').createSignedUrl(dbdPath, 60, { download: fileName });
+    if (data?.signedUrl) {
+      const a = document.createElement('a');
+      a.href = data.signedUrl;
+      a.click();
+    }
   };
 
   const set = (key: string, val: string) => {
@@ -377,7 +382,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         </div>
 
         {/* File attachment card */}
-        {previewUrl && !uploading && (
+        {dbdPath && !uploading && (
           <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: '#F0F9F9', borderRadius: '10px', border: '1px solid rgba(15,111,115,0.15)' }} onClick={e => e.stopPropagation()}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
