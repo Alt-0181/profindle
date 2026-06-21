@@ -24,6 +24,9 @@ export default async function LangLayout({
   return (
     <html lang={lang}>
       <head>
+        <link rel="icon" type="image/svg+xml" href="/assets/logo-mark.svg" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/assets/logo-mark.png" />
+        <link rel="apple-touch-icon" href="/assets/logo-square.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

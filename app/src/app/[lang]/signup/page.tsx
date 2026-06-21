@@ -115,9 +115,16 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
       <div style={{ background: 'linear-gradient(135deg, #171A21 0%, #0F6F73 100%)', padding: '48px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 60% at 70% 40%, rgba(26,157,163,0.2) 0%, transparent 65%)' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <Link href={`/${lang}`} style={{ textDecoration: 'none' }}>
-            <span style={{ fontSize: '18px', fontWeight: 700 }}>
-              <span style={{ color: '#2BBEC5' }}>Pro</span><span style={{ color: '#F77F00' }}>find</span><span style={{ color: '#2BBEC5' }}>le</span>
+          <Link href={`/${lang}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+            <svg width="26" height="34" viewBox="-3 -3 44 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="18.56" cy="18.56" r="16" fill="none" stroke="white" strokeWidth="5.12" />
+              <path d="M18.56 8.96C23.8619 8.96 28.16 13.2581 28.16 18.56" stroke="#F77F00" strokeWidth="5.12" strokeLinecap="round" />
+              <path d="M5.76001 47.36C5.76001 47.36 5.76001 34.56 18.56 34.56" stroke="white" strokeWidth="5.12" strokeLinecap="round" />
+              <path d="M18.56 34.56L31.36 47.36" stroke="white" strokeWidth="5.12" strokeLinecap="round" />
+              <circle cx="18.56" cy="34.56" r="3.84" fill="#F77F00" />
+            </svg>
+            <span style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '-0.02em' }}>
+              <span style={{ color: 'white' }}>Pro</span><span style={{ color: '#F77F00' }}>find</span><span style={{ color: 'white' }}>le</span>
             </span>
           </Link>
           <blockquote style={{ fontSize: '24px', fontWeight: 700, color: 'white', lineHeight: 1.4, maxWidth: '380px', marginTop: '40px' }}>

@@ -1,10 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 40" fill="none">
-  <g transform="translate(2, 2) scale(1.5)">
-    <path d="M8 11.93C10.2091 11.93 12 10.139 12 7.93C12 5.721 10.2091 3.93 8 3.93C5.7909 3.93 4 5.721 4 7.93C4 10.139 5.7909 11.93 8 11.93Z" stroke="white" stroke-width="1.5" stroke-linecap="round"></path>
-    <path d="M8 5.6C9.325 5.6 10.4 6.675 10.4 8" stroke="#F77F00" stroke-width="1.5" stroke-linecap="round"></path>
-    <path d="M4.8 18.2C4.8 18.2 4.8 11.93 8 11.93" stroke="white" stroke-width="1.5" stroke-linecap="round"></path>
-    <path d="M8 11.93L11.2 18.2" stroke="white" stroke-width="1.5" stroke-linecap="round"></path>
-    <circle cx="8" cy="11.93" r="0.96" fill="#F77F00"></circle>
-  </g>
-  <text x="34" y="28" font-family="Inter, -apple-system, sans-serif" font-weight="700" font-size="22" letter-spacing="-0.4" fill="white">Profindle</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 232 50" fill="none">
+  <path d="M18.56 34.56C27.3966 34.56 34.56 27.3966 34.56 18.56C34.56 9.72345 27.3966 2.56 18.56 2.56C9.72344 2.56 2.56 9.72345 2.56 18.56C2.56 27.3966 9.72344 34.56 18.56 34.56Z" stroke="white" stroke-width="5.12" stroke-linecap="round"></path>
+  <path d="M18.56 8.96C23.8619 8.96 28.16 13.2581 28.16 18.56" stroke="#F77F00" stroke-width="5.12" stroke-linecap="round"></path>
+  <path d="M5.76001 47.36C5.76001 47.36 5.76001 34.56 18.56 34.56" stroke="white" stroke-width="5.12" stroke-linecap="round"></path>
+  <path d="M18.56 34.56L31.36 47.36" stroke="white" stroke-width="5.12" stroke-linecap="round"></path>
+  <path d="M18.56 38.4C20.6807 38.4 22.4 36.6808 22.4 34.56C22.4 32.4392 20.6807 30.72 18.56 30.72C16.4392 30.72 14.72 32.4392 14.72 34.56C14.72 36.6808 16.4392 38.4 18.56 38.4Z" fill="#F77F00"></path>
+  <text x="46" y="33" font-family="Inter, -apple-system, sans-serif" font-weight="700" font-size="27" letter-spacing="-0.5"><tspan fill="white">Pro</tspan><tspan fill="#F77F00">find</tspan><tspan fill="white">le</tspan></text>
 </svg>

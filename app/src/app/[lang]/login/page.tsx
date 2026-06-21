@@ -69,15 +69,15 @@ export default function LoginPage({ params }: { params: Promise<{ lang: string }
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 60% at 70% 40%, rgba(26,157,163,0.2) 0%, transparent 65%)' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <Link href={`/${lang}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="16" height="16" viewBox="0 0 32 32" fill="none">
-                <circle cx="16" cy="11" r="6" fill="white" />
-                <path d="M6 28c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-                <circle cx="22" cy="18" r="3" fill="#F77F00" />
-              </svg>
-            </div>
+            <svg width="26" height="34" viewBox="-3 -3 44 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="18.56" cy="18.56" r="16" fill="none" stroke="white" strokeWidth="5.12" />
+              <path d="M18.56 8.96C23.8619 8.96 28.16 13.2581 28.16 18.56" stroke="#F77F00" strokeWidth="5.12" strokeLinecap="round" />
+              <path d="M5.76001 47.36C5.76001 47.36 5.76001 34.56 18.56 34.56" stroke="white" strokeWidth="5.12" strokeLinecap="round" />
+              <path d="M18.56 34.56L31.36 47.36" stroke="white" strokeWidth="5.12" strokeLinecap="round" />
+              <circle cx="18.56" cy="34.56" r="3.84" fill="#F77F00" />
+            </svg>
             <span style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '-0.02em' }}>
-              <span style={{ color: '#2BBEC5' }}>Pro</span><span style={{ color: '#F77F00' }}>find</span><span style={{ color: '#2BBEC5' }}>le</span>
+              <span style={{ color: 'white' }}>Pro</span><span style={{ color: '#F77F00' }}>find</span><span style={{ color: 'white' }}>le</span>
             </span>
           </Link>
           <blockquote style={{ fontSize: '24px', fontWeight: 700, color: 'white', lineHeight: 1.4, letterSpacing: '-0.02em', maxWidth: '380px', marginTop: '40px' }}>

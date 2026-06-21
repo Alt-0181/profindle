@@ -135,9 +135,9 @@ export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, use
             <circle cx="18.56" cy="34.56" r="3.84" fill="#F77F00" />
           </svg>
           <span className="text-[20px] font-bold tracking-tight">
-            <span style={{ color: '#1A9DA3' }}>Pro</span>
+            <span style={{ color: 'white' }}>Pro</span>
             <span style={{ color: '#F77F00' }}>find</span>
-            <span style={{ color: '#1A9DA3' }}>le</span>
+            <span style={{ color: 'white' }}>le</span>
           </span>
         </Link>
       </div>
