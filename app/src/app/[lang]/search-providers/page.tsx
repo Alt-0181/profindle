@@ -27,8 +27,14 @@ export type Company = {
   social_instagram: string | null;
 };
 
-export default async function SearchProvidersPage({ params }: { params: Promise<{ lang: string }> }) {
-  const { lang } = await params;
+export default async function SearchProvidersPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ lang: string }>;
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const [{ lang }, { q }] = await Promise.all([params, searchParams]);
   if (!hasLocale(lang)) notFound();
 
   const [dict, supabase] = await Promise.all([
@@ -44,5 +50,5 @@ export default async function SearchProvidersPage({ params }: { params: Promise<
 
   const provinces = [...new Set((companies ?? []).map((c) => c.province).filter(Boolean))] as string[];
 
-  return <SearchProvidersClient lang={lang} dict={dict} companies={companies ?? []} provinces={provinces} />;
+  return <SearchProvidersClient lang={lang} dict={dict} companies={companies ?? []} provinces={provinces} initialQuery={q ?? ''} />;
 }

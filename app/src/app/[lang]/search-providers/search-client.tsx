@@ -13,6 +13,7 @@ interface SearchProvidersClientProps {
   dict: Dictionary;
   companies: Company[];
   provinces: string[];
+  initialQuery: string;
 }
 
 type SortKey = 'relevance' | 'views' | 'az';
@@ -495,7 +496,7 @@ function ProfileDrawer({ provider, lang, isTh, dict, onClose }: {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-export function SearchProvidersClient({ lang, dict, companies, provinces }: SearchProvidersClientProps) {
+export function SearchProvidersClient({ lang, dict, companies, provinces, initialQuery }: SearchProvidersClientProps) {
   const t = dict.search;
   const isTh = lang === 'th';
   const [verifiedOnly, setVerifiedOnly] = useState(false);
@@ -518,6 +519,13 @@ export function SearchProvidersClient({ lang, dict, companies, provinces }: Sear
     .filter(p => {
       if (verifiedOnly && !p.verified) return false;
       if (selectedProvince && p.province !== selectedProvince) return false;
+      if (initialQuery) {
+        const q = initialQuery.toLowerCase();
+        const matchesService = p.services?.some(s => s.toLowerCase().includes(q));
+        const matchesName = p.name?.toLowerCase().includes(q) || p.name_th?.toLowerCase().includes(q);
+        const matchesDesc = p.description?.toLowerCase().includes(q) || p.description_th?.toLowerCase().includes(q);
+        if (!matchesService && !matchesName && !matchesDesc) return false;
+      }
       return true;
     })
     .sort((a, b) => {
