@@ -189,78 +189,147 @@ export function SettingsClient({ lang, dict, initialLineUserId, userEmail }: Set
             </div>
 
             <div style={sectionStyle}>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#171A21', marginBottom: '20px' }}>
-                {lineConnected ? t.lineConnected : t.lineNotConnected}
-              </h3>
-
               {!lineConnected ? (
                 <>
-                  {/* Step 1 */}
-                  <div style={{ border: '1px solid #E4E7ED', borderRadius: '14px', padding: '18px 20px', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#171A21', marginBottom: '6px' }}>
+                    {lang === 'th' ? 'เชื่อมต่อ LINE ใน 3 ขั้นตอน' : 'Connect LINE in 3 steps'}
+                  </h3>
+                  <p style={{ fontSize: '13px', color: '#9AA0AE', marginBottom: '24px' }}>
+                    {lang === 'th' ? 'ทำตามขั้นตอนด้านล่างเพื่อรับการแจ้งเตือนผ่าน LINE' : 'Follow the steps below to receive broadcast notifications on LINE'}
+                  </p>
+
+                  {/* Step 1 — Add OA as friend */}
+                  <div style={{ border: `1.5px solid ${lineStep > 1 ? '#06C755' : '#E4E7ED'}`, borderRadius: '14px', padding: '18px 20px', marginBottom: '12px', background: lineStep > 1 ? 'rgba(6,199,85,0.04)' : 'white' }}>
                     <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                      <div style={{ width: '30px', height: '30px', borderRadius: '999px', background: lineStep >= 1 ? 'linear-gradient(135deg, #06C755, #04a544)' : '#F4F5F7', color: lineStep >= 1 ? 'white' : '#9AA0AE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, flexShrink: 0 }}>
-                        1
+                      <div style={{ width: '30px', height: '30px', borderRadius: '999px', background: lineStep > 1 ? '#06C755' : 'linear-gradient(135deg,#06C755,#04a544)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, flexShrink: 0 }}>
+                        {lineStep > 1 ? (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                        ) : '1'}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{t.step1Title}</div>
-                        <div style={{ fontSize: '13px', color: '#9AA0AE' }}>{t.step1Sub}</div>
-                        <a href="#" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '12px', padding: '9px 16px', background: '#06C755', color: 'white', borderRadius: '10px', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>
-                          {lang === 'th' ? 'เพิ่ม @profindle' : 'Add @profindle on LINE'}
-                        </a>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: lineStep > 1 ? '#06C755' : '#171A21', marginBottom: '4px' }}>
+                          {lang === 'th' ? 'เพิ่ม @profindle เป็นเพื่อน' : 'Add @profindle as a LINE friend'}
+                        </div>
+                        <div style={{ fontSize: '13px', color: '#9AA0AE', marginBottom: lineStep === 1 ? '14px' : '0' }}>
+                          {lang === 'th' ? 'เปิด LINE และค้นหา @profindle แล้วกดเพิ่มเพื่อน' : 'Open LINE, search @profindle and tap Add Friend'}
+                        </div>
+                        {lineStep === 1 && (
+                          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                            <a href="https://line.me/R/ti/p/@profindle" target="_blank" rel="noopener" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: '#06C755', color: 'white', borderRadius: '10px', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>
+                              <svg width="14" height="14" viewBox="0 0 50 50" fill="white"><path d="M25 2C12.3 2 2 10.8 2 21.7c0 9.5 8.4 17.5 19.8 19.4.8.2 1.8.5 2.1 1.2.2.6.1 1.5 0 2.1l-.3 1.9c-.1.6-.5 2.4 2.1 1.3 2.6-1.1 14-8.2 19.1-14.1C48 30.1 48 26 48 21.7 48 10.8 37.7 2 25 2z" /></svg>
+                              {lang === 'th' ? 'เปิด LINE' : 'Open LINE'}
+                            </a>
+                            <button onClick={() => setLineStep(2)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: 'white', border: '1.5px solid #06C755', color: '#06C755', borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                              {lang === 'th' ? 'เพิ่มแล้ว ✓' : 'Done, I\'ve added ✓'}
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Step 2 */}
-                  <div style={{ border: `1px solid ${lineStep >= 2 ? '#06C755' : '#E4E7ED'}`, borderRadius: '14px', padding: '18px 20px', marginBottom: '20px' }}>
+                  {/* Step 2 — Send status */}
+                  <div style={{ border: `1.5px solid ${lineStep > 2 ? '#06C755' : lineStep === 2 ? '#0F6F73' : '#E4E7ED'}`, borderRadius: '14px', padding: '18px 20px', marginBottom: '12px', background: lineStep > 2 ? 'rgba(6,199,85,0.04)' : lineStep === 2 ? '#FAFCFC' : 'white', opacity: lineStep < 2 ? 0.45 : 1 }}>
                     <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                      <div style={{ width: '30px', height: '30px', borderRadius: '999px', background: lineStep >= 2 ? 'linear-gradient(135deg, #06C755, #04a544)' : '#F4F5F7', color: lineStep >= 2 ? 'white' : '#9AA0AE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, flexShrink: 0 }}>
-                        2
+                      <div style={{ width: '30px', height: '30px', borderRadius: '999px', background: lineStep > 2 ? '#06C755' : lineStep === 2 ? 'linear-gradient(135deg,#0F6F73,#1A9DA3)' : '#F4F5F7', color: lineStep >= 2 ? 'white' : '#9AA0AE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, flexShrink: 0 }}>
+                        {lineStep > 2 ? (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                        ) : '2'}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{t.step2Title}</div>
-                        <div style={{ fontSize: '13px', color: '#9AA0AE' }}>{t.step2Sub}</div>
-                        <button onClick={() => setLineStep(2)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '12px', padding: '9px 16px', background: '#06C755', color: 'white', borderRadius: '10px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
-                          {t.connectBtn}
-                        </button>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: lineStep > 2 ? '#06C755' : '#171A21', marginBottom: '4px' }}>
+                          {lang === 'th' ? 'ส่งข้อความ "status" ให้ @profindle' : 'Send "status" to @profindle'}
+                        </div>
+                        <div style={{ fontSize: '13px', color: '#9AA0AE', marginBottom: lineStep === 2 ? '14px' : '0' }}>
+                          {lang === 'th' ? 'บอทจะตอบกลับด้วย LINE User ID ของคุณ — คัดลอกไว้' : 'The bot will reply with your LINE User ID — copy it'}
+                        </div>
+                        {lineStep === 2 && (
+                          <>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', padding: '10px 16px', background: '#F0F9F9', border: '1px solid rgba(15,111,115,0.2)', borderRadius: '10px', marginBottom: '14px' }}>
+                              <span style={{ fontSize: '13px', color: '#444B5A' }}>{lang === 'th' ? 'พิมพ์ใน LINE:' : 'Type in LINE:'}</span>
+                              <code style={{ fontSize: '14px', fontWeight: 700, color: '#0F6F73', background: 'white', border: '1px solid #D4EEEF', borderRadius: '6px', padding: '3px 10px', letterSpacing: '0.02em' }}>status</code>
+                            </div>
+                            <br />
+                            <button onClick={() => setLineStep(3)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: 'white', border: '1.5px solid #0F6F73', color: '#0F6F73', borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                              {lang === 'th' ? 'ได้รับ ID แล้ว ✓' : 'Got my ID ✓'}
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Manual UID */}
-                  <details>
-                    <summary style={{ fontSize: '13px', fontWeight: 600, color: '#0F6F73', cursor: 'pointer', listStyle: 'none', marginBottom: '12px' }}>
-                      {t.manualUID}
-                    </summary>
-                    <p style={{ fontSize: '12px', color: '#9AA0AE', marginBottom: '8px' }}>{t.manualUIDSub}</p>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <input type="text" value={manualUID} onChange={(e) => setManualUID(e.target.value)} placeholder="Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" style={{ ...inputStyle, flex: 1 }} />
-                      <button
-                        disabled={!/^U[a-f0-9]{32}$/.test(manualUID) || lineLoading}
-                        onClick={() => handleLineConnect(manualUID)}
-                        style={{ padding: '10px 16px', background: '#06C755', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 600, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit', opacity: (/^U[a-f0-9]{32}$/.test(manualUID) && !lineLoading) ? 1 : 0.5 }}
-                      >
-                        {lineLoading ? '…' : (lang === 'th' ? 'ยืนยัน' : 'Link')}
-                      </button>
+                  {/* Step 3 — Paste UID */}
+                  <div style={{ border: `1.5px solid ${lineStep === 3 ? '#0F6F73' : '#E4E7ED'}`, borderRadius: '14px', padding: '18px 20px', background: lineStep === 3 ? '#FAFCFC' : 'white', opacity: lineStep < 3 ? 0.45 : 1 }}>
+                    <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+                      <div style={{ width: '30px', height: '30px', borderRadius: '999px', background: lineStep === 3 ? 'linear-gradient(135deg,#0F6F73,#1A9DA3)' : '#F4F5F7', color: lineStep === 3 ? 'white' : '#9AA0AE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, flexShrink: 0 }}>
+                        3
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>
+                          {lang === 'th' ? 'วาง LINE User ID ของคุณ' : 'Paste your LINE User ID'}
+                        </div>
+                        <div style={{ fontSize: '13px', color: '#9AA0AE', marginBottom: lineStep === 3 ? '14px' : '0' }}>
+                          {lang === 'th' ? 'รหัสที่บอทส่งให้ (ขึ้นต้นด้วย U ตามด้วยตัวอักษร 32 ตัว)' : 'The code the bot sent you — starts with U followed by 32 characters'}
+                        </div>
+                        {lineStep === 3 && (
+                          <>
+                            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                              <input
+                                type="text"
+                                value={manualUID}
+                                onChange={(e) => { setManualUID(e.target.value); setLineError(''); }}
+                                placeholder="Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                                style={{ ...inputStyle, flex: 1, borderColor: manualUID && !/^U[a-f0-9]{32}$/.test(manualUID) ? '#E04347' : '#E4E7ED' }}
+                                autoFocus
+                              />
+                              <button
+                                disabled={!/^U[a-f0-9]{32}$/.test(manualUID) || lineLoading}
+                                onClick={() => handleLineConnect(manualUID)}
+                                style={{ padding: '10px 20px', background: '#06C755', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: (/^U[a-f0-9]{32}$/.test(manualUID) && !lineLoading) ? 'pointer' : 'not-allowed', fontFamily: 'inherit', opacity: (/^U[a-f0-9]{32}$/.test(manualUID) && !lineLoading) ? 1 : 0.4, whiteSpace: 'nowrap' }}
+                              >
+                                {lineLoading ? (lang === 'th' ? 'กำลังเชื่อม…' : 'Linking…') : (lang === 'th' ? 'เชื่อมต่อ LINE' : 'Link LINE')}
+                              </button>
+                            </div>
+                            {manualUID && !/^U[a-f0-9]{32}$/.test(manualUID) && (
+                              <p style={{ fontSize: '12px', color: '#E04347' }}>
+                                {lang === 'th' ? 'รูปแบบไม่ถูกต้อง — ต้องขึ้นต้นด้วย U ตามด้วย 32 ตัวอักษร' : 'Invalid format — must start with U followed by 32 characters'}
+                              </p>
+                            )}
+                            {lineError && <p style={{ fontSize: '12px', color: '#E04347', marginTop: '4px' }}>{lineError}</p>}
+                          </>
+                        )}
+                      </div>
                     </div>
-                    {lineError && <p style={{ fontSize: '12px', color: '#E04347', marginTop: '8px' }}>{lineError}</p>}
-                  </details>
+                  </div>
                 </>
               ) : (
-                <div style={{ display: 'flex', gap: '14px', alignItems: 'center', padding: '14px 16px', border: '1px solid rgba(6,199,85,0.3)', borderRadius: '12px', background: 'rgba(6,199,85,0.08)' }}>
-                  <div style={{ width: '28px', height: '28px', borderRadius: '999px', background: '#06C755', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
+                <>
+                  <div style={{ display: 'flex', gap: '14px', alignItems: 'center', padding: '16px 18px', border: '1.5px solid rgba(6,199,85,0.35)', borderRadius: '14px', background: 'rgba(6,199,85,0.06)', marginBottom: '16px' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '999px', background: '#06C755', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21' }}>
+                        {lang === 'th' ? 'เชื่อมต่อ LINE แล้ว' : 'LINE connected'}
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#06C755', marginTop: '2px', fontWeight: 600 }}>@profindle</div>
+                      <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '2px' }}>
+                        {lang === 'th' ? 'คุณจะได้รับการแจ้งเตือน Broadcast ผ่าน LINE' : 'You\'ll receive broadcast notifications on LINE'}
+                      </div>
+                    </div>
+                    <button onClick={handleLineDisconnect} disabled={lineLoading} style={{ padding: '8px 16px', background: 'transparent', border: '1.5px solid #FFD6D7', color: '#E04347', borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: lineLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: lineLoading ? 0.5 : 1, whiteSpace: 'nowrap' }}>
+                      {lineLoading ? '…' : (lang === 'th' ? 'ยกเลิกการเชื่อม' : 'Disconnect')}
+                    </button>
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21' }}>{t.lineConnected}</div>
-                    <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '2px' }}>@profindle</div>
-                  </div>
-                  <button onClick={handleLineDisconnect} disabled={lineLoading} style={{ padding: '7px 14px', background: 'transparent', border: '1.5px solid #FFD6D7', color: '#E04347', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: lineLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: lineLoading ? 0.5 : 1 }}>
-                    {lineLoading ? '…' : t.disconnectBtn}
-                  </button>
-                </div>
+                  <p style={{ fontSize: '13px', color: '#9AA0AE' }}>
+                    {lang === 'th' ? 'หากต้องการเปลี่ยน LINE ให้ยกเลิกการเชื่อมก่อน แล้วเชื่อมใหม่' : 'To switch LINE accounts, disconnect first then reconnect with the new account.'}
+                  </p>
+                </>
               )}
             </div>
           </div>
