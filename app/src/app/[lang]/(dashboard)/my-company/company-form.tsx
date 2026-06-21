@@ -130,6 +130,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   };
 
   const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState('');
 
   const handleDownload = async () => {
     if (!dbdPath || downloading) return;
@@ -151,7 +152,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
       a.click();
       setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(objectUrl); }, 1000);
     } catch (err: any) {
-      setUploadError(err.message ?? 'Download failed');
+      setDownloadError(lang === 'th' ? 'ดาวน์โหลดไม่สำเร็จ — กรุณาลองใหม่' : 'Download failed — please try again');
     } finally {
       setDownloading(false);
     }
@@ -411,6 +412,9 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
               {downloading ? '…' : (lang === 'th' ? 'ดาวน์โหลด' : 'Download')}
             </button>
           </div>
+        )}
+        {downloadError && (
+          <div style={{ marginTop: '6px', fontSize: '12px', color: '#FF5A5F', paddingLeft: '4px' }}>{downloadError}</div>
         )}
       </div>
 
