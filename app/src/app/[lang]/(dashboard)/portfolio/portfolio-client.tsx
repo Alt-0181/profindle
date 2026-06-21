@@ -209,7 +209,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
 
       {/* Add project modal */}
       {showModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(14,16,23,0.55)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => { setShowModal(false); resetModal(); }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(14,16,23,0.55)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div style={{ background: 'white', borderRadius: '20px', maxWidth: '580px', width: '100%', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 24px 64px rgba(14,16,23,0.3)' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ padding: '24px 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#171A21' }}>{t.addProject}</h3>
