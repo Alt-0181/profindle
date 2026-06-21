@@ -3,8 +3,15 @@ import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/server';
 import { SettingsClient } from './settings-client';
 
-export default async function SettingsPage({ params }: { params: Promise<{ lang: string }> }) {
+export default async function SettingsPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ lang: string }>;
+  searchParams: Promise<{ line?: string; section?: string }>;
+}) {
   const { lang } = await params;
+  const { line, section } = await searchParams;
   if (!hasLocale(lang)) notFound();
   const dict = await getDictionary(lang as Locale);
 
@@ -22,7 +29,15 @@ export default async function SettingsPage({ params }: { params: Promise<{ lang:
 
   return (
     <div className="page-body">
-      <SettingsClient lang={lang} dict={dict} initialLineUserId={lineUserId} userEmail={user?.email ?? ''} userName={userName} />
+      <SettingsClient
+        lang={lang}
+        dict={dict}
+        initialLineUserId={lineUserId}
+        userEmail={user?.email ?? ''}
+        userName={userName}
+        lineOAuthResult={line ?? null}
+        initialSection={section ?? null}
+      />
     </div>
   );
 }
