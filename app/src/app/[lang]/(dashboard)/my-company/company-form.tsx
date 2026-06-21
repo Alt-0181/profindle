@@ -129,24 +129,32 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
     return null;
   };
 
-  const triggerDownload = (url: string, name: string) => {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = name;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  };
+  const [downloading, setDownloading] = useState(false);
 
   const handleDownload = async () => {
-    if (!dbdPath) return;
+    if (!dbdPath || downloading) return;
     const fileName = getCertFileName() ?? 'DBD_Certificate.pdf';
-    const supabase = createClient();
-    const { data } = await supabase.storage
-      .from('company-docs')
-      .createSignedUrl(dbdPath, 60, { download: fileName });
-    if (data?.signedUrl) triggerDownload(data.signedUrl, fileName);
+    setDownloading(true);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.storage.from('company-docs').createSignedUrl(dbdPath, 300);
+      if (error || !data?.signedUrl) throw new Error('Could not generate download link');
+      const response = await fetch(data.signedUrl);
+      if (!response.ok) throw new Error('File fetch failed');
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = fileName;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(objectUrl); }, 1000);
+    } catch (err: any) {
+      setUploadError(err.message ?? 'Download failed');
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const set = (key: string, val: string) => {
@@ -398,9 +406,9 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
             <span style={{ fontSize: '13px', color: '#0F6F73', fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {getCertFileName()}
             </span>
-            <button onClick={handleDownload} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '7px', background: 'white', border: '1px solid rgba(15,111,115,0.2)', color: '#0F6F73', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+            <button onClick={handleDownload} disabled={downloading} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '7px', background: 'white', border: '1px solid rgba(15,111,115,0.2)', color: '#0F6F73', fontSize: '12px', fontWeight: 600, cursor: downloading ? 'wait' : 'pointer', fontFamily: 'inherit', flexShrink: 0, opacity: downloading ? 0.6 : 1 }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-              {lang === 'th' ? 'ดาวน์โหลด' : 'Download'}
+              {downloading ? '…' : (lang === 'th' ? 'ดาวน์โหลด' : 'Download')}
             </button>
           </div>
         )}
