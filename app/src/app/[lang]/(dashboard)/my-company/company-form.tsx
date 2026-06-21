@@ -109,17 +109,17 @@ const SERVICES: { label: string; industry: string }[] = [
   { label: 'Private Tutoring', industry: 'Education / Training' },
 
   // === EVENT MANAGEMENT / MICE ===
-  { label: 'Catering', industry: 'Event Management / MICE' },
-  { label: 'Conference & MICE', industry: 'Event Management / MICE' },
-  { label: 'Corporate Events', industry: 'Event Management / MICE' },
-  { label: 'DJ / Entertainment', industry: 'Event Management / MICE' },
-  { label: 'Event Emcee / MC', industry: 'Event Management / MICE' },
-  { label: 'Event Management', industry: 'Event Management / MICE' },
-  { label: 'Exhibition Organizer', industry: 'Event Management / MICE' },
-  { label: 'Floral Design', industry: 'Event Management / MICE' },
-  { label: 'Stage & Lighting', industry: 'Event Management / MICE' },
-  { label: 'Talent Booking', industry: 'Event Management / MICE' },
-  { label: 'Venue Sourcing', industry: 'Event Management / MICE' },
+  { label: 'Catering', industry: 'Event Management' },
+  { label: 'Conference & MICE', industry: 'Event Management' },
+  { label: 'Corporate Events', industry: 'Event Management' },
+  { label: 'DJ / Entertainment', industry: 'Event Management' },
+  { label: 'Event Emcee / MC', industry: 'Event Management' },
+  { label: 'Event Management', industry: 'Event Management' },
+  { label: 'Exhibition Organizer', industry: 'Event Management' },
+  { label: 'Floral Design', industry: 'Event Management' },
+  { label: 'Stage & Lighting', industry: 'Event Management' },
+  { label: 'Talent Booking', industry: 'Event Management' },
+  { label: 'Venue Sourcing', industry: 'Event Management' },
 
   // === HEALTHCARE / MEDICAL / WELLNESS ===
   { label: 'Corporate Wellness', industry: 'Healthcare / Medical / Wellness' },
