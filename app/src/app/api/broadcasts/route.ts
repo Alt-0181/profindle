@@ -48,13 +48,13 @@ export async function POST(request: NextRequest) {
     .single();
   if (broadcastErr) return NextResponse.json({ error: broadcastErr.message }, { status: 500 });
 
-  // Find matching providers: any company with a LINE UID, excluding the buyer
-  // v1: notify all LINE-connected providers; add category/budget matching later
+  // Find providers whose services[] includes the broadcast category
   const { data: providers } = await admin
     .from('companies')
     .select('id, line_user_id')
     .not('line_user_id', 'is', null)
     .neq('id', buyerCompany.id)
+    .contains('services', [category])
     .order('premium', { ascending: false })
     .limit(50);
 

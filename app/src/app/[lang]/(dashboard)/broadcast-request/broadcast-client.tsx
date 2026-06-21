@@ -45,15 +45,39 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
   });
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [notified, setNotified] = useState<number | null>(null);
   const [serviceSearch, setServiceSearch] = useState('');
 
   const set = (key: string, val: string) => setForm((f) => ({ ...f, [key]: val }));
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    setSubmitting(false);
-    setSubmitted(true);
+    setSubmitError('');
+    try {
+      const budgetLabel = BUDGETS.find((b) => b.id === form.budget)?.label ?? form.budget;
+      const timelineLabel = TIMELINES.find((t) => t.id === form.timeline)?.label ?? form.timeline;
+      const res = await fetch('/api/broadcasts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: form.service,
+          descriptionEn: form.descEn,
+          descriptionTh: form.descTh || null,
+          budgetBand: budgetLabel,
+          timeline: timelineLabel,
+          locationPref: form.location !== 'anywhere' ? form.location : null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Submission failed');
+      setNotified(data.notified);
+      setSubmitted(true);
+    } catch (err: any) {
+      setSubmitError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const filteredServices = serviceSearch
@@ -92,8 +116,8 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
           <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#171A21', marginBottom: '8px' }}>{t.successTitle}</h2>
           <p style={{ fontSize: '14px', color: '#6B7385', marginBottom: '24px' }}>{t.successSub}</p>
           <div style={{ background: '#F0F9F9', borderRadius: '14px', padding: '20px', marginBottom: '28px' }}>
-            <div style={{ fontSize: '36px', fontWeight: 700, color: '#0F6F73', marginBottom: '4px' }}>12</div>
-            <div style={{ fontSize: '14px', color: '#6B7385' }}>{t.matchCount.replace('{count}', '12')}</div>
+            <div style={{ fontSize: '36px', fontWeight: 700, color: '#0F6F73', marginBottom: '4px' }}>{notified ?? 0}</div>
+            <div style={{ fontSize: '14px', color: '#6B7385' }}>{t.matchCount.replace('{count}', String(notified ?? 0))}</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left', marginBottom: '28px' }}>
             {[t.nextStep1, t.nextStep2, t.nextStep3].map((s, i) => (
@@ -105,7 +129,7 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
               </div>
             ))}
           </div>
-          <button onClick={() => { setSubmitted(false); setStep(1); setForm({ service: '', serviceIndustry: '', descEn: '', descTh: '', title: '', budget: '', timeline: '', location: 'anywhere' }); }} style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={() => { setSubmitted(false); setStep(1); setNotified(null); setSubmitError(''); setForm({ service: '', serviceIndustry: '', descEn: '', descTh: '', title: '', budget: '', timeline: '', location: 'anywhere' }); }} style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
             {t.newBroadcast}
           </button>
         </div>
@@ -319,11 +343,11 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
             ))}
           </div>
 
-          {/* Estimated match count */}
-          <div style={{ background: 'linear-gradient(135deg, #F0F9F9, #D4EEEF)', borderRadius: '14px', padding: '20px', margin: '20px 0', textAlign: 'center' }}>
-            <div style={{ fontSize: '36px', fontWeight: 700, color: '#0F6F73' }}>12</div>
-            <div style={{ fontSize: '14px', color: '#6B7385' }}>{t.matchCount.replace('{count}', '12')}</div>
-          </div>
+          {submitError && (
+            <div style={{ background: '#FFF5F5', border: '1px solid #FCA5A5', borderRadius: '10px', padding: '12px 16px', margin: '16px 0', fontSize: '13px', color: '#DC2626' }}>
+              {submitError}
+            </div>
+          )}
 
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <button onClick={() => setStep(3)} style={{ padding: '10px 20px', background: 'transparent', border: '1.5px solid #E4E7ED', color: '#444B5A', fontWeight: 600, fontSize: '14px', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
