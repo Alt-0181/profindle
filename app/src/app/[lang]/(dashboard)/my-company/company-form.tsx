@@ -60,7 +60,8 @@ interface MyCompanyFormProps {
     nameEn: string; nameTh: string; descEn: string; descTh: string;
     industry: string; province: string; address: string;
     teamSize: string; foundedYear: string; website: string;
-    phone: string; emailPublic: string; dbdCertPath: string | null;
+    phone: string; emailPublic: string;
+    dbdCertPath: string | null; dbdCertName: string | null;
   };
 }
 
@@ -105,14 +106,14 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
-      // Embed original filename so we can recover it: userId/timestamp_originalname
-      const path = `${user.id}/${Date.now()}_${file.name}`;
+      const ext = file.name.split('.').pop() ?? 'pdf';
+      const path = `${user.id}-${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from('company-docs').upload(path, file, { contentType: file.type || 'application/octet-stream' });
       if (error) throw error;
       setDbdPath(path);
       setUploadDone(true);
-      // Save path to DB if company already exists
-      await supabase.from('companies').update({ dbd_certificate_url: path }).eq('user_id', user.id);
+      // Save path + original name to DB if company already exists
+      await supabase.from('companies').update({ dbd_certificate_url: path, dbd_certificate_name: file.name }).eq('user_id', user.id);
     } catch (err: any) {
       setUploadError(err.message ?? 'Upload failed');
     } finally {
@@ -120,13 +121,10 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
     }
   };
 
-  // Extract original filename from path. New format: "userId/timestamp_originalname"
-  // Legacy format: "userId-timestamp.ext" → falls back to generic label
   const getCertFileName = () => {
     if (uploadFile) return uploadFile.name;
+    if (initialData?.dbdCertName) return initialData.dbdCertName;
     if (!dbdPath) return 'DBD Certificate.pdf';
-    const afterSlash = dbdPath.split('/').pop() ?? '';
-    if (afterSlash) return afterSlash.replace(/^\d+_/, '') || afterSlash;
     return `DBD Certificate.${dbdPath.split('.').pop() ?? 'pdf'}`;
   };
 
@@ -183,7 +181,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         website: website || null,
         phone: form.phone || null,
         email: form.emailPublic || null,
-        ...(dbdPath ? { dbd_certificate_url: dbdPath } : {}),
+        ...(dbdPath ? { dbd_certificate_url: dbdPath, dbd_certificate_name: uploadFile?.name ?? initialData?.dbdCertName ?? null } : {}),
         updated_at: new Date().toISOString(),
       };
 
