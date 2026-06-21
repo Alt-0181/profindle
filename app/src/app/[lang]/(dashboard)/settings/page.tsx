@@ -18,10 +18,11 @@ export default async function SettingsPage({ params }: { params: Promise<{ lang:
     .maybeSingle();
 
   const lineUserId = (company as any)?.line_user_id ?? null;
+  const userName: string = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
 
   return (
     <div className="page-body">
-      <SettingsClient lang={lang} dict={dict} initialLineUserId={lineUserId} userEmail={user?.email ?? ''} />
+      <SettingsClient lang={lang} dict={dict} initialLineUserId={lineUserId} userEmail={user?.email ?? ''} userName={userName} />
     </div>
   );
 }

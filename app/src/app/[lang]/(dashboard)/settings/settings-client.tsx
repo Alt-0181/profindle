@@ -3,23 +3,34 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Dictionary } from '@/dictionaries';
+import { createClient } from '@/lib/supabase/client';
 
 interface SettingsClientProps {
   lang: string;
   dict: Dictionary;
   initialLineUserId: string | null;
   userEmail: string;
+  userName: string;
 }
 
-export function SettingsClient({ lang, dict, initialLineUserId, userEmail }: SettingsClientProps) {
+export function SettingsClient({ lang, dict, initialLineUserId, userEmail, userName }: SettingsClientProps) {
   const t = dict.settings;
   const router = useRouter();
   const [activeSection, setActiveSection] = useState('account');
+
+  // Account
+  const [displayName, setDisplayName] = useState(userName);
+  const [accountSaving, setAccountSaving] = useState(false);
+  const [accountSaved, setAccountSaved] = useState(false);
+  const [accountError, setAccountError] = useState('');
+
+  // LINE
   const [lineConnected, setLineConnected] = useState(!!initialLineUserId);
   const [lineStep, setLineStep] = useState(1);
   const [manualUID, setManualUID] = useState('');
   const [lineLoading, setLineLoading] = useState(false);
   const [lineError, setLineError] = useState('');
+
   const [notifs, setNotifs] = useState({ broadcast: true, views: true, system: true });
   const [deleteEmail, setDeleteEmail] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -51,6 +62,24 @@ export function SettingsClient({ lang, dict, initialLineUserId, userEmail }: Set
     width: '100%', fontSize: '14px', padding: '10px 14px',
     border: '1.5px solid #E4E7ED', borderRadius: '12px',
     background: 'white', outline: 'none', color: '#171A21', fontFamily: 'inherit',
+  };
+
+  const handleAccountSave = async () => {
+    setAccountSaving(true);
+    setAccountError('');
+    setAccountSaved(false);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({ data: { full_name: displayName } });
+      if (error) throw error;
+      setAccountSaved(true);
+      router.refresh();
+      setTimeout(() => setAccountSaved(false), 3000);
+    } catch (err: any) {
+      setAccountError(err.message ?? 'Save failed');
+    } finally {
+      setAccountSaving(false);
+    }
   };
 
   const handleLineConnect = async (uid: string) => {
@@ -118,23 +147,54 @@ export function SettingsClient({ lang, dict, initialLineUserId, userEmail }: Set
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>{t.nameLabel}</label>
-                <input type="text" defaultValue="Somchai J." style={inputStyle} />
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => { setDisplayName(e.target.value); setAccountSaved(false); }}
+                  style={inputStyle}
+                />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>{t.emailLabel}</label>
-                <input type="email" defaultValue="somchai@jaidee.co.th" style={inputStyle} />
+                <input
+                  type="email"
+                  value={userEmail}
+                  readOnly
+                  style={{ ...inputStyle, background: '#F4F5F7', color: '#9AA0AE', cursor: 'not-allowed' }}
+                />
+                <p style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '4px' }}>
+                  {lang === 'th' ? 'อีเมลไม่สามารถเปลี่ยนได้' : 'Email cannot be changed'}
+                </p>
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>{t.langLabel}</label>
-                <select style={inputStyle} defaultValue={lang}>
+                <select
+                  style={inputStyle}
+                  value={lang}
+                  onChange={(e) => router.push(`/${e.target.value}/settings`)}
+                >
                   <option value="en">English</option>
                   <option value="th">ภาษาไทย</option>
                 </select>
               </div>
-              <div style={{ paddingTop: '8px' }}>
-                <button style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
-                  {t.saveBtn}
+              {accountError && (
+                <p style={{ fontSize: '13px', color: '#E04347', background: '#FFF5F5', border: '1px solid #FFCDD2', borderRadius: '8px', padding: '10px 14px' }}>
+                  {accountError}
+                </p>
+              )}
+              <div style={{ paddingTop: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <button
+                  onClick={handleAccountSave}
+                  disabled={accountSaving || !displayName.trim()}
+                  style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: (accountSaving || !displayName.trim()) ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: (accountSaving || !displayName.trim()) ? 0.6 : 1 }}
+                >
+                  {accountSaving ? (lang === 'th' ? 'กำลังบันทึก…' : 'Saving…') : t.saveBtn}
                 </button>
+                {accountSaved && (
+                  <span style={{ fontSize: '13px', color: '#06C755', fontWeight: 600 }}>
+                    {lang === 'th' ? '✓ บันทึกแล้ว' : '✓ Saved'}
+                  </span>
+                )}
               </div>
             </div>
           </div>
