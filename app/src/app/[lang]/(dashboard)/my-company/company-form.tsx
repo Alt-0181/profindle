@@ -129,25 +129,24 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
     return null;
   };
 
+  const triggerDownload = (url: string, name: string) => {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   const handleDownload = async () => {
     if (!dbdPath) return;
-    const fileName = getCertFileName();
-    if (uploadFile && previewUrl) {
-      // Newly uploaded file — blob URL works directly
-      const a = document.createElement('a');
-      a.href = previewUrl;
-      a.download = fileName;
-      a.click();
-      return;
-    }
-    // Existing file — get a signed URL with Content-Disposition: attachment
+    const fileName = getCertFileName() ?? 'DBD_Certificate.pdf';
     const supabase = createClient();
-    const { data } = await supabase.storage.from('company-docs').createSignedUrl(dbdPath, 60, { download: fileName });
-    if (data?.signedUrl) {
-      const a = document.createElement('a');
-      a.href = data.signedUrl;
-      a.click();
-    }
+    const { data } = await supabase.storage
+      .from('company-docs')
+      .createSignedUrl(dbdPath, 60, { download: fileName });
+    if (data?.signedUrl) triggerDownload(data.signedUrl, fileName);
   };
 
   const set = (key: string, val: string) => {
