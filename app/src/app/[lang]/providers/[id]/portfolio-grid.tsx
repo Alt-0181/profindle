@@ -55,7 +55,7 @@ function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; c
         <div style={{ position: 'absolute', inset: 0, display: 'flex', transition: 'transform 320ms cubic-bezier(0.4,0,0.2,1)', transform: `translateX(-${slideIdx * 100}%)` }}>
           {slides.map((src, i) =>
             hasImages ? (
-              <img key={i} src={src} alt={project.title} style={{ flex: '0 0 100%', height: '100%', objectFit: 'cover' }} />
+              <img key={i} src={src ?? ''} alt={project.title} style={{ flex: '0 0 100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               <div key={i} style={{ flex: '0 0 100%', height: '100%', background: coverGradient(src) }} />
             )
