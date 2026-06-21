@@ -150,7 +150,7 @@ export function makeUidReplyMessage(lineUserId: string): object {
 }
 
 export function makeVipStatusMessage(plan: string | null, planExpiresAt: string | null): object {
-  if (plan === 'vip' || plan === 'premium') {
+  if (plan === 'premium') {
     const expiry = planExpiresAt
       ? new Date(planExpiresAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
       : null;
