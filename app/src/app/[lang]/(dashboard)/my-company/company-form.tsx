@@ -27,73 +27,156 @@ const PROVINCES = [
 const TEAM_SIZES = ['1-5', '6-15', '16-50', '51-200', '200+'];
 
 const SERVICES: { label: string; industry: string }[] = [
+  // Accounting / Finance / Audit
   { label: 'Accounting', industry: 'Accounting / Finance / Audit' },
   { label: 'Bookkeeping', industry: 'Accounting / Finance / Audit' },
   { label: 'Tax Consulting', industry: 'Accounting / Finance / Audit' },
   { label: 'Audit & Assurance', industry: 'Accounting / Finance / Audit' },
   { label: 'Financial Planning', industry: 'Accounting / Finance / Audit' },
+
+  // Advertising / Marketing / Promotion / PR
   { label: 'Advertising', industry: 'Advertising / Marketing / Promotion / PR' },
   { label: 'Brand Strategy', industry: 'Advertising / Marketing / Promotion / PR' },
   { label: 'Content Marketing', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'Copywriting', industry: 'Advertising / Marketing / Promotion / PR' },
   { label: 'Digital Marketing', industry: 'Advertising / Marketing / Promotion / PR' },
   { label: 'Influencer Marketing', industry: 'Advertising / Marketing / Promotion / PR' },
   { label: 'PR / Public Relations', industry: 'Advertising / Marketing / Promotion / PR' },
   { label: 'SEO / SEM', industry: 'Advertising / Marketing / Promotion / PR' },
   { label: 'Social Media Marketing', industry: 'Advertising / Marketing / Promotion / PR' },
+
+  // Architecture / Interior Design
   { label: 'Architecture', industry: 'Architecture / Interior Design' },
   { label: 'Interior Design', industry: 'Architecture / Interior Design' },
   { label: 'Space Planning', industry: 'Architecture / Interior Design' },
+
+  // Computer / IT / Software
   { label: 'AI / Machine Learning', industry: 'Computer / IT / Software' },
   { label: 'Cloud Computing', industry: 'Computer / IT / Software' },
   { label: 'Cybersecurity', industry: 'Computer / IT / Software' },
   { label: 'Data Analytics', industry: 'Computer / IT / Software' },
+  { label: 'ERP / CRM Systems', industry: 'Computer / IT / Software' },
   { label: 'IT Consulting', industry: 'Computer / IT / Software' },
   { label: 'Mobile App Development', industry: 'Computer / IT / Software' },
+  { label: 'Network & Infrastructure', industry: 'Computer / IT / Software' },
+  { label: 'QA / Software Testing', industry: 'Computer / IT / Software' },
   { label: 'Software Development', industry: 'Computer / IT / Software' },
   { label: 'Web Development', industry: 'Computer / IT / Software' },
+  { label: 'Website Maintenance', industry: 'Computer / IT / Software' },
+
+  // Consulting / Business Advisory
   { label: 'Business Consulting', industry: 'Consulting / Business Advisory' },
   { label: 'Management Consulting', industry: 'Consulting / Business Advisory' },
   { label: 'Operations Consulting', industry: 'Consulting / Business Advisory' },
   { label: 'Strategy Consulting', industry: 'Consulting / Business Advisory' },
+
+  // Construction / Engineering
   { label: 'Civil Engineering', industry: 'Construction / Engineering' },
   { label: 'Construction', industry: 'Construction / Engineering' },
   { label: 'Project Management', industry: 'Construction / Engineering' },
+
+  // Design / Creative
   { label: 'Branding & Identity', industry: 'Design / Creative' },
   { label: 'Graphic Design', industry: 'Design / Creative' },
+  { label: 'Illustration', industry: 'Design / Creative' },
   { label: 'Motion Graphics', industry: 'Design / Creative' },
   { label: 'Packaging Design', industry: 'Design / Creative' },
+  { label: 'Presentation Design', industry: 'Design / Creative' },
   { label: 'UI/UX Design', industry: 'Design / Creative' },
+
+  // E-commerce / Retail
   { label: 'E-commerce Solutions', industry: 'E-commerce / Retail' },
   { label: 'Online Store Setup', industry: 'E-commerce / Retail' },
+
+  // Education / Training
   { label: 'Coaching', industry: 'Education / Training' },
   { label: 'Corporate Training', industry: 'Education / Training' },
   { label: 'E-Learning', industry: 'Education / Training' },
+  { label: 'Language Instruction', industry: 'Education / Training' },
+  { label: 'Private Tutoring', industry: 'Education / Training' },
+
+  // Event Management / MICE
+  { label: 'Catering', industry: 'Event Management / MICE' },
   { label: 'Conference & MICE', industry: 'Event Management / MICE' },
   { label: 'Corporate Events', industry: 'Event Management / MICE' },
+  { label: 'DJ / Entertainment', industry: 'Event Management / MICE' },
+  { label: 'Event Emcee / MC', industry: 'Event Management / MICE' },
   { label: 'Event Management', industry: 'Event Management / MICE' },
+  { label: 'Exhibition Organizer', industry: 'Event Management / MICE' },
+  { label: 'Floral Design', industry: 'Event Management / MICE' },
+  { label: 'Stage & Lighting', industry: 'Event Management / MICE' },
+  { label: 'Venue Sourcing', industry: 'Event Management / MICE' },
+
+  // Healthcare / Medical
   { label: 'Healthcare Consulting', industry: 'Healthcare / Medical' },
+
+  // HR / Recruitment
+  { label: 'Event Staffing', industry: 'HR / Recruitment' },
   { label: 'Executive Search', industry: 'HR / Recruitment' },
   { label: 'HR Consulting', industry: 'HR / Recruitment' },
   { label: 'Payroll Services', industry: 'HR / Recruitment' },
   { label: 'Recruitment', industry: 'HR / Recruitment' },
+  { label: 'Temporary Staffing', industry: 'HR / Recruitment' },
+
+  // Legal / Law
   { label: 'Contract Review', industry: 'Legal / Law' },
   { label: 'Legal Consulting', industry: 'Legal / Law' },
+
+  // Logistics / Supply Chain
   { label: 'Freight & Shipping', industry: 'Logistics / Supply Chain' },
   { label: 'Logistics', industry: 'Logistics / Supply Chain' },
   { label: 'Supply Chain Consulting', industry: 'Logistics / Supply Chain' },
+
+  // Maintenance & Technical
+  { label: 'AC Service & Repair', industry: 'Maintenance & Technical' },
+  { label: 'Electrical Work', industry: 'Maintenance & Technical' },
+  { label: 'General Maintenance', industry: 'Maintenance & Technical' },
+  { label: 'Pest Control', industry: 'Maintenance & Technical' },
+  { label: 'Plumbing', industry: 'Maintenance & Technical' },
+
+  // Media / Publishing
   { label: 'Animation', industry: 'Media / Publishing' },
   { label: 'Podcast Production', industry: 'Media / Publishing' },
+  { label: 'Script Writing', industry: 'Media / Publishing' },
   { label: 'Video Production', industry: 'Media / Publishing' },
+
+  // Music & Audio
+  { label: 'Jingle Production', industry: 'Music & Audio' },
+  { label: 'Music Production', industry: 'Music & Audio' },
+  { label: 'Sound Engineering', industry: 'Music & Audio' },
+  { label: 'Voiceover', industry: 'Music & Audio' },
+
+  // Photography / Videography
+  { label: 'Drone Photography', industry: 'Photography / Videography' },
+  { label: 'Live Streaming', industry: 'Photography / Videography' },
   { label: 'Photography', industry: 'Photography / Videography' },
   { label: 'Product Photography', industry: 'Photography / Videography' },
   { label: 'Videography', industry: 'Photography / Videography' },
+
+  // Print & Production
+  { label: 'Brochure & Flyer', industry: 'Print & Production' },
+  { label: 'Printing', industry: 'Print & Production' },
+  { label: 'Signage', industry: 'Print & Production' },
+
+  // Real Estate / Property
   { label: 'Property Management', industry: 'Real Estate / Property' },
   { label: 'Real Estate Consulting', industry: 'Real Estate / Property' },
+
+  // Research & Market Research
   { label: 'Market Research', industry: 'Research & Market Research' },
   { label: 'Survey & Research', industry: 'Research & Market Research' },
+
+  // Security / Safety
+  { label: 'Bodyguard', industry: 'Security / Safety' },
+  { label: 'Security Services', industry: 'Security / Safety' },
+
+  // Translation / Localization
   { label: 'Interpretation', industry: 'Translation / Localization' },
   { label: 'Localization', industry: 'Translation / Localization' },
+  { label: 'Proofreading', industry: 'Translation / Localization' },
   { label: 'Translation', industry: 'Translation / Localization' },
+
+  // Travel / Tourism / Hospitality
   { label: 'Hospitality Consulting', industry: 'Travel / Tourism / Hospitality' },
   { label: 'Tourism Planning', industry: 'Travel / Tourism / Hospitality' },
 ];
