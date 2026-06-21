@@ -98,18 +98,15 @@ const SERVICES: { label: string; industry: string }[] = [
   { label: 'Tourism Planning', industry: 'Travel / Tourism / Hospitality' },
 ];
 
-function deriveIndustry(selected: string[]): string {
-  if (!selected.length) return '';
-  const counts = new Map<string, number>();
+function deriveIndustries(selected: string[]): string[] {
+  if (!selected.length) return [];
+  const seen = new Set<string>();
+  const result: string[] = [];
   for (const s of selected) {
     const svc = SERVICES.find(v => v.label === s);
-    if (svc) counts.set(svc.industry, (counts.get(svc.industry) ?? 0) + 1);
+    if (svc && !seen.has(svc.industry)) { seen.add(svc.industry); result.push(svc.industry); }
   }
-  let best = ''; let bestN = 0;
-  for (const [ind, n] of counts) {
-    if (n > bestN || (n === bestN && ind < best)) { best = ind; bestN = n; }
-  }
-  return best;
+  return result;
 }
 
 function fuzzyMatch(query: string, target: string): boolean {
@@ -254,7 +251,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         description: form.descEn || null,
         description_th: form.descTh || null,
         services: selectedServices.length > 0 ? selectedServices : null,
-        industry: deriveIndustry(selectedServices) || null,
+        industry: deriveIndustries(selectedServices)[0] || null,
         province: form.province || null,
         address: form.address || null,
         team_size: form.teamSize || null,
@@ -419,12 +416,16 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
             )}
           </div>
 
-          {/* Auto-derived industry */}
+          {/* Auto-derived industries */}
           {selectedServices.length > 0 && (
-            <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#6B7385' }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1A9DA3" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              {lang === 'th' ? 'อุตสาหกรรม:' : 'Industry auto-set to:'}
-              <strong style={{ color: '#0F6F73' }}>{deriveIndustry(selectedServices)}</strong>
+            <div style={{ marginTop: '8px', display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '12px', color: '#6B7385', flexWrap: 'wrap' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1A9DA3" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                {lang === 'th' ? 'อุตสาหกรรม:' : 'Industries:'}
+              </span>
+              {deriveIndustries(selectedServices).map(ind => (
+                <span key={ind} style={{ background: '#F0F9F9', color: '#0F6F73', fontWeight: 600, padding: '2px 8px', borderRadius: '999px', border: '1px solid rgba(15,111,115,0.2)', fontSize: '11px' }}>{ind}</span>
+              ))}
             </div>
           )}
           {selectedServices.length === 0 && (
