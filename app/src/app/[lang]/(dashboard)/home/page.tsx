@@ -26,12 +26,12 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
 
   const { data: company } = await supabase
     .from('companies')
-    .select('id, dbd_certificate_url, industry')
+    .select('id, dbd_certificate_url, industry, line_user_id')
     .eq('user_id', user?.id ?? '')
     .maybeSingle();
   const hasCompany = !!company;
   const emailVerified = true;
-  const lineConnected = false;
+  const lineConnected = !!(company as any)?.line_user_id;
 
   const { count: portfolioCount } = company
     ? await supabase
@@ -46,7 +46,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
   const dbdCertPath = company?.dbd_certificate_url ?? null;
   const dbdFileExt = dbdCertPath ? dbdCertPath.split('.').pop()?.toUpperCase() : null;
 
-  const completedSteps = [hasCompany, hasPortfolio, lineConnected, false].filter(Boolean).length;
+  const completedSteps = [hasCompany, hasPortfolio, lineConnected, false /* early bird */].filter(Boolean).length;
 
   const gettingStartedSteps = [
     {
@@ -87,7 +87,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
       title: isTh ? 'เชื่อม LINE เพื่อรับการแจ้งเตือน' : 'Connect LINE for alerts',
       desc: isTh ? 'รับการแจ้งเตือนทันทีเมื่อลูกค้าโพสต์คำขอ' : 'Get instant broadcast alerts the moment a client posts a request.',
       done: lineConnected,
-      status: isTh ? 'ยังไม่ได้เชื่อม' : 'Not connected',
+      status: lineConnected ? (isTh ? 'เชื่อมแล้ว' : 'Connected') : (isTh ? 'ยังไม่ได้เชื่อม' : 'Not connected'),
       bodyText: isTh ? 'ไม่พลาดทุกคำขอจากลูกค้า เชื่อมบัญชี LINE ครั้งเดียว เราจะแจ้งเตือนทุกคำขอที่ตรงกับคุณ' : 'Never miss a client broadcast. Connect your LINE account once and we\'ll notify you on every matching request.',
       ctaLabel: isTh ? 'เชื่อม LINE' : 'Connect LINE',
       ctaHref: `/${lang}/settings`,

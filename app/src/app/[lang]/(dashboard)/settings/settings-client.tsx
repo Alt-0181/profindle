@@ -1,19 +1,25 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Dictionary } from '@/dictionaries';
 
 interface SettingsClientProps {
   lang: string;
   dict: Dictionary;
+  initialLineUserId: string | null;
+  userEmail: string;
 }
 
-export function SettingsClient({ lang, dict }: SettingsClientProps) {
+export function SettingsClient({ lang, dict, initialLineUserId, userEmail }: SettingsClientProps) {
   const t = dict.settings;
+  const router = useRouter();
   const [activeSection, setActiveSection] = useState('account');
-  const [lineConnected, setLineConnected] = useState(false);
+  const [lineConnected, setLineConnected] = useState(!!initialLineUserId);
   const [lineStep, setLineStep] = useState(1);
   const [manualUID, setManualUID] = useState('');
+  const [lineLoading, setLineLoading] = useState(false);
+  const [lineError, setLineError] = useState('');
   const [notifs, setNotifs] = useState({ broadcast: true, views: true, system: true });
   const [deleteEmail, setDeleteEmail] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -45,6 +51,44 @@ export function SettingsClient({ lang, dict }: SettingsClientProps) {
     width: '100%', fontSize: '14px', padding: '10px 14px',
     border: '1.5px solid #E4E7ED', borderRadius: '12px',
     background: 'white', outline: 'none', color: '#171A21', fontFamily: 'inherit',
+  };
+
+  const handleLineConnect = async (uid: string) => {
+    setLineLoading(true);
+    setLineError('');
+    try {
+      const res = await fetch('/api/line/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lineUserId: uid }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to connect');
+      }
+      setLineConnected(true);
+      setManualUID('');
+      router.refresh();
+    } catch (err: any) {
+      setLineError(err.message);
+    } finally {
+      setLineLoading(false);
+    }
+  };
+
+  const handleLineDisconnect = async () => {
+    setLineLoading(true);
+    setLineError('');
+    try {
+      const res = await fetch('/api/line/connect', { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to disconnect');
+      setLineConnected(false);
+      router.refresh();
+    } catch (err: any) {
+      setLineError(err.message);
+    } finally {
+      setLineLoading(false);
+    }
   };
 
   return (
@@ -176,7 +220,7 @@ export function SettingsClient({ lang, dict }: SettingsClientProps) {
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{t.step2Title}</div>
                         <div style={{ fontSize: '13px', color: '#9AA0AE' }}>{t.step2Sub}</div>
-                        <button onClick={() => { setLineConnected(true); }} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '12px', padding: '9px 16px', background: '#06C755', color: 'white', borderRadius: '10px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                        <button onClick={() => setLineStep(2)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '12px', padding: '9px 16px', background: '#06C755', color: 'white', borderRadius: '10px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
                           {t.connectBtn}
                         </button>
                       </div>
@@ -191,10 +235,15 @@ export function SettingsClient({ lang, dict }: SettingsClientProps) {
                     <p style={{ fontSize: '12px', color: '#9AA0AE', marginBottom: '8px' }}>{t.manualUIDSub}</p>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <input type="text" value={manualUID} onChange={(e) => setManualUID(e.target.value)} placeholder="Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" style={{ ...inputStyle, flex: 1 }} />
-                      <button disabled={!/^U[a-f0-9]{32}$/.test(manualUID)} onClick={() => setLineConnected(true)} style={{ padding: '10px 16px', background: '#06C755', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 600, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit', opacity: /^U[a-f0-9]{32}$/.test(manualUID) ? 1 : 0.5 }}>
-                        {lang === 'th' ? 'ยืนยัน' : 'Link'}
+                      <button
+                        disabled={!/^U[a-f0-9]{32}$/.test(manualUID) || lineLoading}
+                        onClick={() => handleLineConnect(manualUID)}
+                        style={{ padding: '10px 16px', background: '#06C755', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 600, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit', opacity: (/^U[a-f0-9]{32}$/.test(manualUID) && !lineLoading) ? 1 : 0.5 }}
+                      >
+                        {lineLoading ? '…' : (lang === 'th' ? 'ยืนยัน' : 'Link')}
                       </button>
                     </div>
+                    {lineError && <p style={{ fontSize: '12px', color: '#E04347', marginTop: '8px' }}>{lineError}</p>}
                   </details>
                 </>
               ) : (
@@ -208,8 +257,8 @@ export function SettingsClient({ lang, dict }: SettingsClientProps) {
                     <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21' }}>{t.lineConnected}</div>
                     <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '2px' }}>@profindle</div>
                   </div>
-                  <button onClick={() => setLineConnected(false)} style={{ padding: '7px 14px', background: 'transparent', border: '1.5px solid #FFD6D7', color: '#E04347', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                    {t.disconnectBtn}
+                  <button onClick={handleLineDisconnect} disabled={lineLoading} style={{ padding: '7px 14px', background: 'transparent', border: '1.5px solid #FFD6D7', color: '#E04347', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: lineLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: lineLoading ? 0.5 : 1 }}>
+                    {lineLoading ? '…' : t.disconnectBtn}
                   </button>
                 </div>
               )}
