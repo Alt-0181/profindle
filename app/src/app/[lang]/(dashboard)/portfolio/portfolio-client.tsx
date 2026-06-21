@@ -9,7 +9,15 @@ interface Project {
   id: string;
   title: string;
   client: string;
+  confidential: boolean;
   year: string;
+  budget: string;
+  category: string;
+  descEn: string;
+  descTh: string;
+  resultsEn: string;
+  resultsTh: string;
+  images: string[];
   coverImage?: string | null;
 }
 
@@ -26,6 +34,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
 
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [form, setForm] = useState({
@@ -86,6 +95,93 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
     setImageFiles(Array(5).fill(null));
     setImagePreviews(Array(5).fill(null));
     setSaveError('');
+  };
+
+  const openEdit = (proj: Project) => {
+    setEditingId(proj.id);
+    setForm({
+      title: proj.title,
+      client: proj.confidential ? '' : proj.client,
+      year: proj.year,
+      descEn: proj.descEn,
+      descTh: proj.descTh,
+      resultsEn: proj.resultsEn,
+      resultsTh: proj.resultsTh,
+      budget: proj.budget,
+      confidential: proj.confidential,
+    });
+    setClientSearch(proj.confidential ? '' : proj.client);
+    setImagePreviews([
+      proj.images[0] ?? null,
+      proj.images[1] ?? null,
+      proj.images[2] ?? null,
+      proj.images[3] ?? null,
+      proj.images[4] ?? null,
+    ]);
+    setShowModal(true);
+  };
+
+  const handleEdit = async () => {
+    if (!form.title || saving || !editingId) return;
+    setSaving(true);
+    setSaveError('');
+
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !companyId) throw new Error('No company profile');
+
+      const existing = projects.find(p => p.id === editingId);
+      const imageUrls: string[] = existing?.images ? [...existing.images] : [];
+
+      for (let i = 0; i < imageFiles.length; i++) {
+        const file = imageFiles[i];
+        if (!file) continue;
+        const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+        const path = `${user.id}/${editingId}/${i}.${ext}`;
+        await supabase.storage.from('portfolio-images').upload(path, file, { upsert: true });
+        const { data: urlData } = supabase.storage.from('portfolio-images').getPublicUrl(path);
+        imageUrls[i] = urlData.publicUrl;
+      }
+
+      const { error } = await supabase.from('portfolio_projects').update({
+        title: form.title,
+        client: form.confidential ? null : form.client || null,
+        confidential: form.confidential,
+        year: form.year ? parseInt(form.year) : null,
+        budget: form.budget || null,
+        description: form.descEn || null,
+        description_th: form.descTh || null,
+        results: form.resultsEn || null,
+        results_th: form.resultsTh || null,
+        images: imageUrls,
+      }).eq('id', editingId);
+      if (error) throw error;
+
+      setProjects(projects.map(p => p.id === editingId ? {
+        ...p,
+        title: form.title,
+        client: form.confidential ? (lang === 'th' ? 'ไม่เปิดเผย' : 'Confidential') : form.client,
+        confidential: form.confidential,
+        year: form.year,
+        budget: form.budget,
+        descEn: form.descEn,
+        descTh: form.descTh,
+        resultsEn: form.resultsEn,
+        resultsTh: form.resultsTh,
+        images: imageUrls,
+        coverImage: imageUrls[0] ?? p.coverImage ?? null,
+      } : p));
+
+      setShowModal(false);
+      setEditingId(null);
+      resetModal();
+      router.refresh();
+    } catch (err: any) {
+      setSaveError(lang === 'th' ? 'บันทึกไม่สำเร็จ — กรุณาลองใหม่' : err.message ?? 'Save failed — please try again');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleAdd = async () => {
@@ -172,7 +268,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       {/* Portfolio grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
         {projects.map((proj) => (
-          <div key={proj.id} style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden', cursor: 'pointer', transition: 'all 200ms' }}>
+          <div key={proj.id} onClick={() => openEdit(proj)} style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden', cursor: 'pointer', transition: 'all 200ms' }}>
             <div style={{ aspectRatio: '4/3', background: 'linear-gradient(135deg, #F0F9F9, #D4EEEF)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
               {proj.coverImage ? (
                 <img src={proj.coverImage} alt={proj.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -212,8 +308,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(14,16,23,0.55)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div style={{ background: 'white', borderRadius: '20px', maxWidth: '580px', width: '100%', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 24px 64px rgba(14,16,23,0.3)' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ padding: '24px 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#171A21' }}>{t.addProject}</h3>
-              <button onClick={() => { setShowModal(false); resetModal(); }} style={{ width: '32px', height: '32px', border: 'none', background: '#F4F5F7', borderRadius: '8px', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#171A21' }}>{editingId ? (lang === 'th' ? 'แก้ไขโปรเจกต์' : 'Edit Project') : t.addProject}</h3>
+              <button onClick={() => { setShowModal(false); setEditingId(null); resetModal(); }} style={{ width: '32px', height: '32px', border: 'none', background: '#F4F5F7', borderRadius: '8px', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
             </div>
             <div style={{ padding: '20px 24px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
@@ -338,10 +434,10 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
               )}
 
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', paddingTop: '8px' }}>
-                <button onClick={() => { setShowModal(false); resetModal(); }} style={{ padding: '10px 20px', background: 'transparent', border: '1.5px solid #E4E7ED', color: '#444B5A', fontWeight: 600, fontSize: '14px', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <button onClick={() => { setShowModal(false); setEditingId(null); resetModal(); }} style={{ padding: '10px 20px', background: 'transparent', border: '1.5px solid #E4E7ED', color: '#444B5A', fontWeight: 600, fontSize: '14px', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
                   {dict.common.cancel}
                 </button>
-                <button onClick={handleAdd} disabled={!form.title || saving} style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: (form.title && !saving) ? 'pointer' : 'not-allowed', opacity: (form.title && !saving) ? 1 : 0.5, fontFamily: 'inherit' }}>
+                <button onClick={editingId ? handleEdit : handleAdd} disabled={!form.title || saving} style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: (form.title && !saving) ? 'pointer' : 'not-allowed', opacity: (form.title && !saving) ? 1 : 0.5, fontFamily: 'inherit' }}>
                   {saving ? (lang === 'th' ? 'กำลังบันทึก…' : 'Saving…') : t.saveBtn}
                 </button>
               </div>

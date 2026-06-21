@@ -22,7 +22,7 @@ export default async function PortfolioPage({ params }: { params: Promise<{ lang
   const { data: projectRows } = companyId
     ? await supabase
         .from('portfolio_projects')
-        .select('id, title, client, confidential, year, images')
+        .select('id, title, client, confidential, year, budget, category, description, description_th, results, results_th, images')
         .eq('company_id', companyId)
         .order('sort_order', { ascending: true })
     : { data: [] };
@@ -30,10 +30,16 @@ export default async function PortfolioPage({ params }: { params: Promise<{ lang
   const initialProjects = (projectRows ?? []).map((p: any) => ({
     id: p.id,
     title: p.title,
-    client: p.confidential
-      ? (lang === 'th' ? 'ไม่เปิดเผย' : 'Confidential')
-      : (p.client ?? ''),
+    client: p.client ?? '',
+    confidential: p.confidential ?? false,
     year: p.year ? String(p.year) : '',
+    budget: p.budget ?? '',
+    category: p.category ?? '',
+    descEn: p.description ?? '',
+    descTh: p.description_th ?? '',
+    resultsEn: p.results ?? '',
+    resultsTh: p.results_th ?? '',
+    images: p.images ?? [],
     coverImage: (p.images && p.images.length > 0) ? p.images[0] : null,
   }));
 
