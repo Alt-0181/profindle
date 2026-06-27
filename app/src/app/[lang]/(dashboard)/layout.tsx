@@ -26,7 +26,7 @@ export default async function DashboardLayout({
 
   const currentUser = {
     initial,
-    fullName: fullName.length > 20 ? firstName : fullName,
+    fullName: fullName.length > 22 ? fullName.slice(0, 20) + '…' : fullName,
     firstName,
     plan: 'free' as const,
     email: user.email || '',

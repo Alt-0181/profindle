@@ -166,7 +166,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 50% 60% at 80% 50%,rgba(247,127,0,0.1) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 20% 50%,rgba(43,190,197,0.12) 0%,transparent 55%)' }} />
         <div style={{ position: 'relative', zIndex: 1, flex: 1 }}>
           <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'white', letterSpacing: '-0.02em', marginBottom: '4px' }}>
-            {isTh ? `ยินดีต้อนรับกลับมา ${firstName} 👋` : `Welcome back, ${firstName} 👋`}
+            {isTh ? `ยินดีต้อนรับกลับมา ${fullName} 👋` : `Welcome back, ${fullName} 👋`}
           </h2>
           <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.55)', marginBottom: '16px' }}>
             {isTh ? 'กรอกข้อมูลโปรไฟล์ให้ครบเพื่อปลดล็อกทุกฟีเจอร์' : 'Complete your profile to unlock all platform features.'}
