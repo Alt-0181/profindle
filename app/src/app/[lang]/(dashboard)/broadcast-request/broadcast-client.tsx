@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import type { Dictionary } from '@/dictionaries';
-import { INDUSTRIES } from '@/lib/mock/industries';
+import { SERVICES, searchServices } from '@/lib/services';
 
 interface BroadcastClientProps {
   lang: string;
@@ -28,7 +28,7 @@ const TIMELINES = [
   { id: 'flexible', label: 'Flexible' },
 ];
 
-const POPULAR_SERVICES = ['Digital Marketing', 'Web Development', 'SEO/SEM Services', 'Accounting / Auditing', 'Legal / Law', 'HR / Recruitment', 'Brand Identity Design', 'Mobile App Development'];
+const POPULAR_SERVICES = ['Digital Marketing', 'Web Development', 'SEO / SEM', 'Accounting', 'Legal Consulting', 'Recruitment', 'Branding & Identity', 'Mobile App Development'];
 
 export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
   const t = dict.broadcast;
@@ -86,9 +86,7 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
     }
   };
 
-  const filteredServices = serviceSearch
-    ? INDUSTRIES.flatMap((i) => i.services.map((s) => ({ service: s, industry: i.name }))).filter((s) => s.service.toLowerCase().includes(serviceSearch.toLowerCase())).slice(0, 8)
-    : [];
+  const filteredServices = serviceSearch ? searchServices(serviceSearch, 8).map(s => ({ service: s.label, industry: s.industry })) : [];
 
   const steps = [
     { num: 1, label: t.step1 },
