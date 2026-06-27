@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface Company {
   id: string;
@@ -14,14 +16,283 @@ export interface Company {
   services: string[];
   email: string | null;
   user_email: string | null;
+  line_user_id?: string | null;
+}
+
+export interface AuthUser {
+  id: string;
+  email?: string;
+  created_at: string;
+  user_metadata?: { role?: string; display_name?: string; full_name?: string };
+}
+
+export interface Broadcast {
+  id: string;
+  created_at: string;
+  status: string;
+  category: string;
+  budget_band: string | null;
+  timeline: string | null;
+  buyer_company_name: string | null;
+  match_count: number;
+}
+
+interface Template {
+  id: string;
+  name: string;
+  content: string;
+  updated_at: string | null;
+}
+
+interface PlatformService {
+  id: string;
+  label: string;
+  industry: string;
+  created_at: string;
 }
 
 interface Props {
   companies: Company[];
+  users: AuthUser[];
+  broadcasts: Broadcast[];
   lang: string;
 }
 
-export function AdminClient({ companies: initial, lang }: Props) {
+// ─── Hardcoded SERVICES constant (mirrors company-form.tsx) ───────────────────
+
+const SERVICES: { label: string; industry: string }[] = [
+  { label: 'Accounting', industry: 'Accounting / Finance / Audit' },
+  { label: 'Audit & Assurance', industry: 'Accounting / Finance / Audit' },
+  { label: 'Bookkeeping', industry: 'Accounting / Finance / Audit' },
+  { label: 'Debt Consulting', industry: 'Accounting / Finance / Audit' },
+  { label: 'Financial Planning', industry: 'Accounting / Finance / Audit' },
+  { label: 'Payroll Services', industry: 'Accounting / Finance / Audit' },
+  { label: 'Tax Filing', industry: 'Accounting / Finance / Audit' },
+  { label: 'Tax Planning', industry: 'Accounting / Finance / Audit' },
+  { label: 'Advertising', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'Brand Strategy', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'Content Marketing', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'Copywriting', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'Digital Marketing', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'Influencer Marketing', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'PR / Public Relations', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'SEO / SEM', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'Social Media Marketing', industry: 'Advertising / Marketing / Promotion / PR' },
+  { label: 'Architecture', industry: 'Architecture / Interior Design' },
+  { label: 'Interior Design', industry: 'Architecture / Interior Design' },
+  { label: 'Space Planning', industry: 'Architecture / Interior Design' },
+  { label: 'AI / Machine Learning', industry: 'Computer / IT / Software' },
+  { label: 'Blockchain / Crypto Development', industry: 'Computer / IT / Software' },
+  { label: 'Cloud Computing', industry: 'Computer / IT / Software' },
+  { label: 'Cybersecurity', industry: 'Computer / IT / Software' },
+  { label: 'Data Analytics', industry: 'Computer / IT / Software' },
+  { label: 'Data Recovery', industry: 'Computer / IT / Software' },
+  { label: 'Desktop Application', industry: 'Computer / IT / Software' },
+  { label: 'E-commerce Development', industry: 'Computer / IT / Software' },
+  { label: 'ERP / CRM Systems', industry: 'Computer / IT / Software' },
+  { label: 'Game Development', industry: 'Computer / IT / Software' },
+  { label: 'IoT Solutions', industry: 'Computer / IT / Software' },
+  { label: 'IT Consulting', industry: 'Computer / IT / Software' },
+  { label: 'IT Project Management', industry: 'Computer / IT / Software' },
+  { label: 'IT Support & Helpdesk', industry: 'Computer / IT / Software' },
+  { label: 'Mobile App Development', industry: 'Computer / IT / Software' },
+  { label: 'Network & Infrastructure', industry: 'Computer / IT / Software' },
+  { label: 'QA / Software Testing', industry: 'Computer / IT / Software' },
+  { label: 'RPA / Process Automation', industry: 'Computer / IT / Software' },
+  { label: 'Software Development', industry: 'Computer / IT / Software' },
+  { label: 'Web Development', industry: 'Computer / IT / Software' },
+  { label: 'Website Maintenance', industry: 'Computer / IT / Software' },
+  { label: 'WordPress Development', industry: 'Computer / IT / Software' },
+  { label: 'Business Consulting', industry: 'Consulting / Business Advisory' },
+  { label: 'Management Consulting', industry: 'Consulting / Business Advisory' },
+  { label: 'Market Research', industry: 'Consulting / Business Advisory' },
+  { label: 'Operations Consulting', industry: 'Consulting / Business Advisory' },
+  { label: 'Strategy Consulting', industry: 'Consulting / Business Advisory' },
+  { label: 'Survey & Research', industry: 'Consulting / Business Advisory' },
+  { label: 'Civil Engineering', industry: 'Construction / Engineering' },
+  { label: 'Construction', industry: 'Construction / Engineering' },
+  { label: 'Project Management', industry: 'Construction / Engineering' },
+  { label: 'Renovation', industry: 'Construction / Engineering' },
+  { label: 'Art & Illustration', industry: 'Design / Creative' },
+  { label: 'Branding & Identity', industry: 'Design / Creative' },
+  { label: 'Graphic Design', industry: 'Design / Creative' },
+  { label: 'Motion Graphics', industry: 'Design / Creative' },
+  { label: 'Packaging Design', industry: 'Design / Creative' },
+  { label: 'Presentation Design', industry: 'Design / Creative' },
+  { label: 'UI/UX Design', industry: 'Design / Creative' },
+  { label: 'Coaching', industry: 'Education / Training' },
+  { label: 'Corporate Training', industry: 'Education / Training' },
+  { label: 'E-Learning', industry: 'Education / Training' },
+  { label: 'Language Instruction', industry: 'Education / Training' },
+  { label: 'Private Tutoring', industry: 'Education / Training' },
+  { label: 'Catering', industry: 'Event Management' },
+  { label: 'Conference & MICE', industry: 'Event Management' },
+  { label: 'Corporate Events', industry: 'Event Management' },
+  { label: 'DJ / Entertainment', industry: 'Event Management' },
+  { label: 'Event Emcee / MC', industry: 'Event Management' },
+  { label: 'Event Management', industry: 'Event Management' },
+  { label: 'Exhibition Organizer', industry: 'Event Management' },
+  { label: 'Floral Design', industry: 'Event Management' },
+  { label: 'Stage & Lighting', industry: 'Event Management' },
+  { label: 'Talent Booking', industry: 'Event Management' },
+  { label: 'Venue Sourcing', industry: 'Event Management' },
+  { label: 'Corporate Wellness', industry: 'Healthcare / Medical / Wellness' },
+  { label: 'Healthcare Consulting', industry: 'Healthcare / Medical / Wellness' },
+  { label: 'Occupational Health', industry: 'Healthcare / Medical / Wellness' },
+  { label: 'Event Staffing', industry: 'HR / Recruitment' },
+  { label: 'Executive Search', industry: 'HR / Recruitment' },
+  { label: 'HR Consulting', industry: 'HR / Recruitment' },
+  { label: 'Recruitment', industry: 'HR / Recruitment' },
+  { label: 'Temporary Staffing', industry: 'HR / Recruitment' },
+  { label: 'Business Licensing', industry: 'Legal / Law / Compliance' },
+  { label: 'Company Registration', industry: 'Legal / Law / Compliance' },
+  { label: 'Contract Review', industry: 'Legal / Law / Compliance' },
+  { label: 'FDA / Regulatory Filing', industry: 'Legal / Law / Compliance' },
+  { label: 'Legal Consulting', industry: 'Legal / Law / Compliance' },
+  { label: 'Patent & Trademark', industry: 'Legal / Law / Compliance' },
+  { label: 'Visa & Work Permit', industry: 'Legal / Law / Compliance' },
+  { label: 'Freight & Shipping', industry: 'Logistics / Supply Chain' },
+  { label: 'Logistics', industry: 'Logistics / Supply Chain' },
+  { label: 'Supply Chain Consulting', industry: 'Logistics / Supply Chain' },
+  { label: 'AC Service & Repair', industry: 'Maintenance / Technical Services' },
+  { label: 'Electrical Services', industry: 'Maintenance / Technical Services' },
+  { label: 'Facility Maintenance', industry: 'Maintenance / Technical Services' },
+  { label: 'Pest Control', industry: 'Maintenance / Technical Services' },
+  { label: 'Plumbing Services', industry: 'Maintenance / Technical Services' },
+  { label: 'Repair Services', industry: 'Maintenance / Technical Services' },
+  { label: 'Clothing Manufacturing', industry: 'Manufacturing / OEM' },
+  { label: 'Cosmetics Manufacturing', industry: 'Manufacturing / OEM' },
+  { label: 'Food & Supplement Manufacturing', industry: 'Manufacturing / OEM' },
+  { label: 'OEM / Contract Manufacturing', industry: 'Manufacturing / OEM' },
+  { label: 'Packaging Manufacturing', industry: 'Manufacturing / OEM' },
+  { label: 'Animation', industry: 'Media / Photography / Video' },
+  { label: 'Color Grading', industry: 'Media / Photography / Video' },
+  { label: 'Drone Photography', industry: 'Media / Photography / Video' },
+  { label: 'Live Streaming', industry: 'Media / Photography / Video' },
+  { label: 'Photography', industry: 'Media / Photography / Video' },
+  { label: 'Podcast Production', industry: 'Media / Photography / Video' },
+  { label: 'Product Photography', industry: 'Media / Photography / Video' },
+  { label: 'Subtitling', industry: 'Media / Photography / Video' },
+  { label: 'VFX & CGI', industry: 'Media / Photography / Video' },
+  { label: 'Video Editing', industry: 'Media / Photography / Video' },
+  { label: 'Video Production', industry: 'Media / Photography / Video' },
+  { label: 'Videography', industry: 'Media / Photography / Video' },
+  { label: 'Audio Recording', industry: 'Music / Audio' },
+  { label: 'Jingle Production', industry: 'Music / Audio' },
+  { label: 'Mixing & Mastering', industry: 'Music / Audio' },
+  { label: 'Music Production', industry: 'Music / Audio' },
+  { label: 'Sound Design', industry: 'Music / Audio' },
+  { label: 'Sound Engineering', industry: 'Music / Audio' },
+  { label: 'Voiceover', industry: 'Music / Audio' },
+  { label: 'Brochure & Flyer', industry: 'Print / Production' },
+  { label: 'Printing', industry: 'Print / Production' },
+  { label: 'Signage', industry: 'Print / Production' },
+  { label: 'Property Management', industry: 'Real Estate / Property' },
+  { label: 'Real Estate Consulting', industry: 'Real Estate / Property' },
+  { label: 'Bodyguard', industry: 'Security / Safety' },
+  { label: 'Security Services', industry: 'Security / Safety' },
+  { label: 'Interpretation', industry: 'Translation / Localization' },
+  { label: 'Localization', industry: 'Translation / Localization' },
+  { label: 'Proofreading', industry: 'Translation / Localization' },
+  { label: 'Translation', industry: 'Translation / Localization' },
+  { label: 'Hospitality Consulting', industry: 'Travel / Tourism / Hospitality' },
+  { label: 'Tourism Planning', industry: 'Travel / Tourism / Hospitality' },
+  { label: 'Car Rental', industry: 'Vehicle Rental' },
+  { label: 'Van Rental', industry: 'Vehicle Rental' },
+  { label: 'Vehicle Rental', industry: 'Vehicle Rental' },
+  { label: 'Article Writing', industry: 'Writing / Content' },
+  { label: 'Data Entry', industry: 'Writing / Content' },
+  { label: 'Script Writing', industry: 'Writing / Content' },
+  { label: 'Brand Distribution / Sole Agent', industry: 'Trading / Distribution / Import-Export' },
+  { label: 'Cross-border E-commerce', industry: 'Trading / Distribution / Import-Export' },
+  { label: 'Franchise Distribution', industry: 'Trading / Distribution / Import-Export' },
+  { label: 'Import / Export', industry: 'Trading / Distribution / Import-Export' },
+  { label: 'Product Distribution', industry: 'Trading / Distribution / Import-Export' },
+  { label: 'Wholesale Trading', industry: 'Trading / Distribution / Import-Export' },
+  { label: 'Brand Licensing / IP Licensing', industry: 'Consumer Goods / Brand Management' },
+  { label: 'Consumer Brand Management', industry: 'Consumer Goods / Brand Management' },
+  { label: 'E-commerce Brand Management', industry: 'Consumer Goods / Brand Management' },
+  { label: 'Private Label / House Brand', industry: 'Consumer Goods / Brand Management' },
+  { label: 'Product Portfolio Management', industry: 'Consumer Goods / Brand Management' },
+  { label: 'Retail Channel Management', industry: 'Consumer Goods / Brand Management' },
+];
+
+const ALL_INDUSTRIES = Array.from(new Set(SERVICES.map(s => s.industry))).sort();
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function fmt(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function fmtTime(dateStr: string) {
+  return new Date(dateStr).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+// ─── Shared styles ────────────────────────────────────────────────────────────
+
+const card = {
+  background: 'white',
+  borderRadius: '16px',
+  border: '1px solid rgba(15,111,115,0.10)',
+  overflow: 'hidden' as const,
+};
+
+const thStyle = {
+  textAlign: 'left' as const,
+  padding: '10px 16px',
+  fontSize: '11px',
+  fontWeight: 700,
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.06em',
+  color: '#9AA0AE',
+};
+
+const tdStyle = { padding: '14px 16px' };
+
+const primaryBtn = {
+  padding: '7px 16px',
+  borderRadius: '8px',
+  background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)',
+  color: 'white',
+  fontSize: '12px',
+  fontWeight: 700,
+  border: 'none',
+  cursor: 'pointer' as const,
+  fontFamily: 'inherit',
+};
+
+const dangerBtn = {
+  padding: '5px 12px',
+  borderRadius: '8px',
+  background: '#FFF0F0',
+  color: '#C0392B',
+  fontSize: '11px',
+  fontWeight: 700,
+  border: '1px solid rgba(192,57,43,0.2)',
+  cursor: 'pointer' as const,
+  fontFamily: 'inherit',
+};
+
+// ─── KPI Card ─────────────────────────────────────────────────────────────────
+
+function KpiCard({ label, value, warn }: { label: string; value: number | string; warn?: boolean }) {
+  return (
+    <div style={{
+      background: 'white',
+      borderRadius: '14px',
+      border: `1px solid ${warn ? 'rgba(247,127,0,0.3)' : 'rgba(15,111,115,0.10)'}`,
+      padding: '20px',
+    }}>
+      <div style={{ fontSize: '32px', fontWeight: 700, color: warn ? '#E06B00' : '#171A21' }}>{value}</div>
+      <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '4px' }}>{label}</div>
+    </div>
+  );
+}
+
+// ─── Tab 1: Companies ─────────────────────────────────────────────────────────
+
+function CompaniesTab({ companies: initial }: { companies: Company[] }) {
   const [companies, setCompanies] = useState(initial);
   const [loading, setLoading] = useState<string | null>(null);
 
@@ -35,9 +306,7 @@ export function AdminClient({ companies: initial, lang }: Props) {
         body: JSON.stringify({ companyId, field, value: !current }),
       });
       if (!res.ok) throw new Error('Failed');
-      setCompanies(prev =>
-        prev.map(c => c.id === companyId ? { ...c, [field]: !current } : c)
-      );
+      setCompanies(prev => prev.map(c => c.id === companyId ? { ...c, [field]: !current } : c));
     } catch {
       alert('Action failed. Please try again.');
     } finally {
@@ -49,33 +318,17 @@ export function AdminClient({ companies: initial, lang }: Props) {
   const verified = companies.filter(c => c.verified);
   const premium = companies.filter(c => c.premium);
 
-  const kpis = [
-    { label: 'Total Companies', value: companies.length },
-    { label: 'Verified', value: verified.length },
-    { label: 'Pending Review', value: pending.length, warn: pending.length > 0 },
-    { label: 'Premium', value: premium.length },
-  ];
-
   return (
-    <div className="page-body">
-      <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>Admin Panel</h1>
-        <p style={{ fontSize: '13px', color: '#9AA0AE' }}>Manage company verification and premium status</p>
-      </div>
-
-      {/* KPIs */}
+    <div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '24px' }}>
-        {kpis.map(kpi => (
-          <div key={kpi.label} style={{ background: 'white', borderRadius: '14px', border: `1px solid ${kpi.warn ? 'rgba(247,127,0,0.3)' : 'rgba(15,111,115,0.10)'}`, padding: '20px' }}>
-            <div style={{ fontSize: '32px', fontWeight: 700, color: kpi.warn ? '#E06B00' : '#171A21' }}>{kpi.value}</div>
-            <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '4px' }}>{kpi.label}</div>
-          </div>
-        ))}
+        <KpiCard label="Total Companies" value={companies.length} />
+        <KpiCard label="Verified" value={verified.length} />
+        <KpiCard label="Pending Review" value={pending.length} warn={pending.length > 0} />
+        <KpiCard label="Premium" value={premium.length} />
       </div>
 
-      {/* Pending verification queue */}
       {pending.length > 0 && (
-        <div style={{ background: 'white', borderRadius: '16px', border: '1.5px solid rgba(247,127,0,0.3)', overflow: 'hidden', marginBottom: '20px' }}>
+        <div style={{ ...card, border: '1.5px solid rgba(247,127,0,0.3)', marginBottom: '20px' }}>
           <div style={{ padding: '16px 20px', background: 'linear-gradient(135deg,#FFFBF5,#FFF8EE)', borderBottom: '1px solid rgba(247,127,0,0.15)', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '15px', fontWeight: 700, color: '#171A21' }}>Verification Queue</span>
             <span style={{ background: '#FFF6EC', color: '#E06B00', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px' }}>{pending.length} pending</span>
@@ -84,31 +337,29 @@ export function AdminClient({ companies: initial, lang }: Props) {
             <thead>
               <tr style={{ background: '#F4F5F7' }}>
                 {['Company', 'Email', 'Document', 'Joined', 'Actions'].map(col => (
-                  <th key={col} style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#9AA0AE' }}>{col}</th>
+                  <th key={col} style={thStyle}>{col}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {pending.map((c, i) => (
                 <tr key={c.id} style={{ borderTop: i > 0 ? '1px solid #F4F5F7' : undefined }}>
-                  <td style={{ padding: '14px 16px' }}>
+                  <td style={tdStyle}>
                     <div style={{ fontSize: '14px', fontWeight: 600, color: '#171A21' }}>{c.name}</div>
                     {c.name_th && <div style={{ fontSize: '11px', color: '#9AA0AE' }}>{c.name_th}</div>}
                   </td>
-                  <td style={{ padding: '14px 16px', fontSize: '13px', color: '#444B5A' }}>{c.user_email || '—'}</td>
-                  <td style={{ padding: '14px 16px' }}>
+                  <td style={{ ...tdStyle, fontSize: '13px', color: '#444B5A' }}>{c.user_email || '—'}</td>
+                  <td style={tdStyle}>
                     {c.dbd_certificate_url
-                      ? <a href={c.dbd_certificate_url} target="_blank" rel="noopener" style={{ fontSize: '12px', color: '#0F6F73', fontWeight: 600, textDecoration: 'none' }}>View document →</a>
+                      ? <a href={c.dbd_certificate_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: '#0F6F73', fontWeight: 600, textDecoration: 'none' }}>View document →</a>
                       : <span style={{ fontSize: '12px', color: '#9AA0AE' }}>No document</span>}
                   </td>
-                  <td style={{ padding: '14px 16px', fontSize: '12px', color: '#9AA0AE' }}>
-                    {new Date(c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                  </td>
-                  <td style={{ padding: '14px 16px' }}>
+                  <td style={{ ...tdStyle, fontSize: '12px', color: '#9AA0AE' }}>{fmt(c.created_at)}</td>
+                  <td style={tdStyle}>
                     <button
                       onClick={() => toggle(c.id, 'verified', false)}
                       disabled={loading === `${c.id}-verified`}
-                      style={{ padding: '7px 16px', borderRadius: '8px', background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)', color: 'white', fontSize: '12px', fontWeight: 700, border: 'none', cursor: 'pointer', opacity: loading === `${c.id}-verified` ? 0.6 : 1, fontFamily: 'inherit' }}
+                      style={{ ...primaryBtn, opacity: loading === `${c.id}-verified` ? 0.6 : 1 }}
                     >
                       {loading === `${c.id}-verified` ? '…' : '✓ Verify'}
                     </button>
@@ -120,8 +371,7 @@ export function AdminClient({ companies: initial, lang }: Props) {
         </div>
       )}
 
-      {/* All companies table */}
-      <div style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden' }}>
+      <div style={card}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #F4F5F7' }}>
           <span style={{ fontSize: '15px', fontWeight: 700, color: '#171A21' }}>All Companies</span>
         </div>
@@ -129,7 +379,7 @@ export function AdminClient({ companies: initial, lang }: Props) {
           <thead>
             <tr style={{ background: '#F4F5F7' }}>
               {['Company', 'Email', 'Services', 'Verified', 'Premium', 'Joined'].map(col => (
-                <th key={col} style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#9AA0AE' }}>{col}</th>
+                <th key={col} style={thStyle}>{col}</th>
               ))}
             </tr>
           </thead>
@@ -138,12 +388,12 @@ export function AdminClient({ companies: initial, lang }: Props) {
               <tr><td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: '#9AA0AE', fontSize: '14px' }}>No companies yet</td></tr>
             ) : companies.map((c, i) => (
               <tr key={c.id} style={{ borderTop: i > 0 ? '1px solid #F4F5F7' : undefined }}>
-                <td style={{ padding: '14px 16px' }}>
+                <td style={tdStyle}>
                   <div style={{ fontSize: '14px', fontWeight: 600, color: '#171A21' }}>{c.name}</div>
                   {c.industry && <div style={{ fontSize: '11px', color: '#9AA0AE' }}>{c.industry}</div>}
                 </td>
-                <td style={{ padding: '14px 16px', fontSize: '12px', color: '#6B7385' }}>{c.user_email || '—'}</td>
-                <td style={{ padding: '14px 16px', maxWidth: '200px' }}>
+                <td style={{ ...tdStyle, fontSize: '12px', color: '#6B7385' }}>{c.user_email || '—'}</td>
+                <td style={{ ...tdStyle, maxWidth: '200px' }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                     {(c.services || []).slice(0, 3).map(s => (
                       <span key={s} style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '999px', background: '#F0F9F9', color: '#0F6F73', fontWeight: 500 }}>{s}</span>
@@ -153,7 +403,7 @@ export function AdminClient({ companies: initial, lang }: Props) {
                     )}
                   </div>
                 </td>
-                <td style={{ padding: '14px 16px' }}>
+                <td style={tdStyle}>
                   <button
                     onClick={() => toggle(c.id, 'verified', c.verified)}
                     disabled={loading === `${c.id}-verified`}
@@ -167,7 +417,7 @@ export function AdminClient({ companies: initial, lang }: Props) {
                     {loading === `${c.id}-verified` ? '…' : c.verified ? '✓ Verified' : 'Unverified'}
                   </button>
                 </td>
-                <td style={{ padding: '14px 16px' }}>
+                <td style={tdStyle}>
                   <button
                     onClick={() => toggle(c.id, 'premium', c.premium)}
                     disabled={loading === `${c.id}-premium`}
@@ -181,14 +431,612 @@ export function AdminClient({ companies: initial, lang }: Props) {
                     {loading === `${c.id}-premium` ? '…' : c.premium ? '⭐ Premium' : 'Free'}
                   </button>
                 </td>
-                <td style={{ padding: '14px 16px', fontSize: '12px', color: '#9AA0AE' }}>
-                  {new Date(c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                <td style={{ ...tdStyle, fontSize: '12px', color: '#9AA0AE' }}>{fmt(c.created_at)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ─── Tab 2: Users ─────────────────────────────────────────────────────────────
+
+function UsersTab({ users }: { users: AuthUser[] }) {
+  const roleBadge = (role?: string) => {
+    if (role === 'super_admin') return { bg: '#F0F0FF', color: '#5B4EBB', label: 'Super Admin' };
+    if (role === 'admin') return { bg: '#E8F5E9', color: '#2E7D32', label: 'Admin' };
+    return { bg: '#F4F5F7', color: '#9AA0AE', label: 'User' };
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '24px' }}>
+        <KpiCard label="Total Users" value={users.length} />
+        <KpiCard label="Super Admins" value={users.filter(u => u.user_metadata?.role === 'super_admin').length} />
+        <KpiCard label="Regular Users" value={users.filter(u => !u.user_metadata?.role || u.user_metadata.role === 'user').length} />
+      </div>
+
+      <div style={card}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #F4F5F7' }}>
+          <span style={{ fontSize: '15px', fontWeight: 700, color: '#171A21' }}>All Users</span>
+        </div>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ background: '#F4F5F7' }}>
+              {['Email', 'Display Name', 'Role', 'Joined'].map(col => (
+                <th key={col} style={thStyle}>{col}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {users.length === 0 ? (
+              <tr><td colSpan={4} style={{ padding: '48px', textAlign: 'center', color: '#9AA0AE', fontSize: '14px' }}>No users yet</td></tr>
+            ) : users.map((u, i) => {
+              const badge = roleBadge(u.user_metadata?.role);
+              const displayName = u.user_metadata?.display_name || u.user_metadata?.full_name || '—';
+              return (
+                <tr key={u.id} style={{ borderTop: i > 0 ? '1px solid #F4F5F7' : undefined }}>
+                  <td style={tdStyle}>
+                    <div style={{ fontSize: '13px', color: '#171A21', fontWeight: 500 }}>{u.email || '—'}</div>
+                    <div style={{ fontSize: '10px', color: '#9AA0AE', fontFamily: 'monospace' }}>{u.id.slice(0, 8)}…</div>
+                  </td>
+                  <td style={{ ...tdStyle, fontSize: '13px', color: '#444B5A' }}>{displayName}</td>
+                  <td style={tdStyle}>
+                    <span style={{ background: badge.bg, color: badge.color, fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '6px' }}>{badge.label}</span>
+                  </td>
+                  <td style={{ ...tdStyle, fontSize: '12px', color: '#9AA0AE' }}>{fmt(u.created_at)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ─── Tab 3: Industries & Services ────────────────────────────────────────────
+
+function ServicesTab() {
+  const [services, setServices] = useState<PlatformService[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
+  const [newLabel, setNewLabel] = useState('');
+  const [newIndustry, setNewIndustry] = useState(ALL_INDUSTRIES[0]);
+  const [adding, setAdding] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/services');
+      const json = await res.json();
+      const fetched: PlatformService[] = json.services ?? [];
+
+      if (fetched.length === 0) {
+        // Seed from hardcoded list
+        setSeeding(true);
+        await Promise.all(
+          SERVICES.map(s =>
+            fetch('/api/admin/services', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(s),
+            })
+          )
+        );
+        setSeeding(false);
+        const res2 = await fetch('/api/admin/services');
+        const json2 = await res2.json();
+        setServices(json2.services ?? []);
+      } else {
+        setServices(fetched);
+      }
+    } catch {
+      setError('Failed to load services');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const addService = async () => {
+    if (!newLabel.trim()) return;
+    setAdding(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/services', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ label: newLabel.trim(), industry: newIndustry }),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error || 'Failed');
+      }
+      const json = await res.json();
+      setServices(prev => [...prev, json.service].sort((a, b) => a.industry.localeCompare(b.industry) || a.label.localeCompare(b.label)));
+      setNewLabel('');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to add service');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const deleteService = async (id: string) => {
+    setDeletingId(id);
+    try {
+      const res = await fetch('/api/admin/services', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setServices(prev => prev.filter(s => s.id !== id));
+    } catch {
+      setError('Failed to delete service');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const grouped = services.reduce<Record<string, PlatformService[]>>((acc, s) => {
+    if (!acc[s.industry]) acc[s.industry] = [];
+    acc[s.industry].push(s);
+    return acc;
+  }, {});
+
+  const industryList = Object.keys(grouped).sort();
+
+  return (
+    <div>
+      {/* Add service form */}
+      <div style={{ ...card, marginBottom: '24px', padding: '20px' }}>
+        <div style={{ fontSize: '15px', fontWeight: 700, color: '#171A21', marginBottom: '16px' }}>Add New Service</div>
+        {error && <div style={{ color: '#C0392B', fontSize: '12px', marginBottom: '12px', padding: '8px 12px', background: '#FFF0F0', borderRadius: '8px' }}>{error}</div>}
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: '11px', fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '6px' }}>Service Name</label>
+            <input
+              type="text"
+              value={newLabel}
+              onChange={e => setNewLabel(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addService()}
+              placeholder="e.g. Machine Learning Operations"
+              style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid rgba(15,111,115,0.2)', fontSize: '13px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: '11px', fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '6px' }}>Industry</label>
+            <select
+              value={newIndustry}
+              onChange={e => setNewIndustry(e.target.value)}
+              style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid rgba(15,111,115,0.2)', fontSize: '13px', fontFamily: 'inherit', outline: 'none', background: 'white', boxSizing: 'border-box' }}
+            >
+              {ALL_INDUSTRIES.map(ind => <option key={ind} value={ind}>{ind}</option>)}
+            </select>
+          </div>
+          <button
+            onClick={addService}
+            disabled={adding || !newLabel.trim()}
+            style={{ ...primaryBtn, padding: '9px 20px', opacity: adding || !newLabel.trim() ? 0.6 : 1, whiteSpace: 'nowrap' }}
+          >
+            {adding ? 'Adding…' : '+ Add Service'}
+          </button>
+        </div>
+      </div>
+
+      {/* KPIs */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '24px' }}>
+        <KpiCard label="Total Services" value={services.length} />
+        <KpiCard label="Industries" value={industryList.length} />
+        <KpiCard label="Avg per Industry" value={industryList.length ? Math.round(services.length / industryList.length) : 0} />
+      </div>
+
+      {loading ? (
+        <div style={{ padding: '48px', textAlign: 'center', color: '#9AA0AE' }}>{seeding ? 'Seeding initial services…' : 'Loading…'}</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {industryList.map(industry => (
+            <div key={industry} style={card}>
+              <div style={{ padding: '14px 20px', borderBottom: '1px solid #F4F5F7', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F6F73' }}>{industry}</span>
+                <span style={{ fontSize: '11px', background: '#F0F9F9', color: '#0F6F73', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>{grouped[industry].length} services</span>
+              </div>
+              <div style={{ padding: '14px 20px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {grouped[industry].map(svc => (
+                  <div key={svc.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F4F5F7', borderRadius: '8px', padding: '5px 10px' }}>
+                    <span style={{ fontSize: '12px', color: '#444B5A', fontWeight: 500 }}>{svc.label}</span>
+                    <button
+                      onClick={() => deleteService(svc.id)}
+                      disabled={deletingId === svc.id}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#C0392B', fontSize: '14px', lineHeight: 1, padding: '0 2px', opacity: deletingId === svc.id ? 0.4 : 0.6, fontFamily: 'inherit' }}
+                      title="Remove service"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Tab 4: LINE Templates ────────────────────────────────────────────────────
+
+const TEMPLATE_VARS: Record<string, string[]> = {
+  welcome: [],
+  verified: ['{{company_name}}'],
+  broadcast: ['{{service_category}}', '{{budget}}', '{{timeline}}', '{{buyer_company}}', '{{description}}'],
+};
+
+function TemplatesTab() {
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [saved, setSaved] = useState<string | null>(null);
+  const [contents, setContents] = useState<Record<string, string>>({});
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('/api/admin/templates')
+      .then(r => r.json())
+      .then(json => {
+        setTemplates(json.templates ?? []);
+        const map: Record<string, string> = {};
+        (json.templates ?? []).forEach((t: Template) => { map[t.id] = t.content; });
+        setContents(map);
+      })
+      .catch(() => setError('Failed to load templates'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const save = async (id: string) => {
+    setSaving(id);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/templates', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, content: contents[id] }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setSaved(id);
+      setTimeout(() => setSaved(null), 2000);
+    } catch {
+      setError('Failed to save template');
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  if (loading) return <div style={{ padding: '48px', textAlign: 'center', color: '#9AA0AE' }}>Loading templates…</div>;
+
+  return (
+    <div>
+      {error && <div style={{ color: '#C0392B', fontSize: '12px', marginBottom: '16px', padding: '10px 14px', background: '#FFF0F0', borderRadius: '8px' }}>{error}</div>}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {templates.map(t => {
+          const vars = TEMPLATE_VARS[t.id] ?? [];
+          return (
+            <div key={t.id} style={{ ...card, padding: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
+                <div>
+                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#171A21' }}>{t.name}</div>
+                  <div style={{ fontSize: '11px', color: '#9AA0AE', marginTop: '2px' }}>ID: <code style={{ fontFamily: 'monospace', background: '#F4F5F7', padding: '1px 5px', borderRadius: '4px' }}>{t.id}</code></div>
+                </div>
+                {t.updated_at && (
+                  <div style={{ fontSize: '11px', color: '#9AA0AE' }}>Last saved: {fmtTime(t.updated_at)}</div>
+                )}
+              </div>
+
+              {vars.length > 0 && (
+                <div style={{ marginBottom: '12px', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#9AA0AE', fontWeight: 600 }}>Available variables:</span>
+                  {vars.map(v => (
+                    <code key={v} style={{ fontSize: '10px', background: '#F0F9F9', color: '#0F6F73', padding: '2px 6px', borderRadius: '4px', fontFamily: 'monospace' }}>{v}</code>
+                  ))}
+                </div>
+              )}
+
+              <textarea
+                value={contents[t.id] ?? ''}
+                onChange={e => setContents(prev => ({ ...prev, [t.id]: e.target.value }))}
+                rows={4}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid rgba(15,111,115,0.2)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', outline: 'none', boxSizing: 'border-box', lineHeight: 1.6 }}
+              />
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
+                <button
+                  onClick={() => save(t.id)}
+                  disabled={saving === t.id}
+                  style={{ ...primaryBtn, opacity: saving === t.id ? 0.6 : 1, minWidth: '100px' }}
+                >
+                  {saving === t.id ? 'Saving…' : saved === t.id ? '✓ Saved!' : 'Save Template'}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Tab 5: LINE Config ───────────────────────────────────────────────────────
+
+function LineConfigTab({ companies: initial }: { companies: Company[] }) {
+  const [companies, setCompanies] = useState(initial);
+  const [unlinking, setUnlinking] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const linked = companies.filter(c => c.line_user_id);
+
+  const unlink = async (companyId: string) => {
+    setUnlinking(companyId);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/line/unlink', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companyId }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setCompanies(prev => prev.map(c => c.id === companyId ? { ...c, line_user_id: null } : c));
+    } catch {
+      setError('Failed to unlink. Please try again.');
+    } finally {
+      setUnlinking(null);
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '24px' }}>
+        <KpiCard label="Linked Accounts" value={linked.length} />
+        <KpiCard label="Messages Sent" value="—" />
+        <KpiCard label="Delivery Rate" value="—" />
+      </div>
+
+      <div style={{ padding: '12px 16px', background: '#FFFBF5', border: '1px solid rgba(247,127,0,0.2)', borderRadius: '10px', marginBottom: '20px', fontSize: '12px', color: '#9AA0AE' }}>
+        Messages Sent and Delivery Rate statistics are available in the LINE Official Account Manager dashboard.
+      </div>
+
+      {error && <div style={{ color: '#C0392B', fontSize: '12px', marginBottom: '16px', padding: '10px 14px', background: '#FFF0F0', borderRadius: '8px' }}>{error}</div>}
+
+      <div style={card}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #F4F5F7' }}>
+          <span style={{ fontSize: '15px', fontWeight: 700, color: '#171A21' }}>Linked Companies</span>
+        </div>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ background: '#F4F5F7' }}>
+              {['Company', 'LINE UID', 'Linked Date', 'Actions'].map(col => (
+                <th key={col} style={thStyle}>{col}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {linked.length === 0 ? (
+              <tr><td colSpan={4} style={{ padding: '48px', textAlign: 'center', color: '#9AA0AE', fontSize: '14px' }}>No linked LINE accounts yet</td></tr>
+            ) : linked.map((c, i) => (
+              <tr key={c.id} style={{ borderTop: i > 0 ? '1px solid #F4F5F7' : undefined }}>
+                <td style={tdStyle}>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#171A21' }}>{c.name}</div>
+                  {c.industry && <div style={{ fontSize: '11px', color: '#9AA0AE' }}>{c.industry}</div>}
+                </td>
+                <td style={tdStyle}>
+                  <code style={{ fontSize: '12px', fontFamily: 'monospace', background: '#F4F5F7', padding: '2px 6px', borderRadius: '4px', color: '#444B5A' }}>
+                    {c.line_user_id ? `${c.line_user_id.slice(0, 12)}…` : '—'}
+                  </code>
+                </td>
+                <td style={{ ...tdStyle, fontSize: '12px', color: '#9AA0AE' }}>{fmt(c.created_at)}</td>
+                <td style={tdStyle}>
+                  <button
+                    onClick={() => unlink(c.id)}
+                    disabled={unlinking === c.id}
+                    style={{ ...dangerBtn, opacity: unlinking === c.id ? 0.6 : 1 }}
+                  >
+                    {unlinking === c.id ? '…' : 'Unlink'}
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+// ─── Tab 6: Requests ──────────────────────────────────────────────────────────
+
+function RequestsTab({ broadcasts: initial }: { broadcasts: Broadcast[] }) {
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+
+  const now = new Date();
+  const thisMonth = initial.filter(b => {
+    const d = new Date(b.created_at);
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  });
+
+  const categories = Array.from(new Set(initial.map(b => b.category).filter(Boolean))).sort();
+
+  const filtered = initial.filter(b => {
+    if (statusFilter !== 'all' && b.status !== statusFilter) return false;
+    if (categoryFilter !== 'all' && b.category !== categoryFilter) return false;
+    return true;
+  });
+
+  const statusBadge = (status: string) => {
+    if (status === 'active') return { bg: '#ECFDF5', color: '#059669', label: 'Active' };
+    if (status === 'expired') return { bg: '#F4F5F7', color: '#9AA0AE', label: 'Expired' };
+    return { bg: '#FFF8EE', color: '#E06B00', label: status };
+  };
+
+  const selectStyle = {
+    padding: '8px 12px',
+    borderRadius: '8px',
+    border: '1.5px solid rgba(15,111,115,0.2)',
+    fontSize: '12px',
+    fontFamily: 'inherit',
+    outline: 'none',
+    background: 'white',
+    color: '#444B5A',
+    cursor: 'pointer' as const,
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '24px' }}>
+        <KpiCard label="Total Requests" value={initial.length} />
+        <KpiCard label="This Month" value={thisMonth.length} />
+        <KpiCard label="Active" value={initial.filter(b => b.status === 'active').length} />
+        <KpiCard label="Expired" value={initial.filter(b => b.status === 'expired').length} />
+      </div>
+
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', alignItems: 'center' }}>
+        <label style={{ fontSize: '12px', color: '#9AA0AE', fontWeight: 600 }}>Status:</label>
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={selectStyle}>
+          <option value="all">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="expired">Expired</option>
+        </select>
+        <label style={{ fontSize: '12px', color: '#9AA0AE', fontWeight: 600 }}>Service:</label>
+        <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} style={selectStyle}>
+          <option value="all">All Services</option>
+          {categories.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        {(statusFilter !== 'all' || categoryFilter !== 'all') && (
+          <button onClick={() => { setStatusFilter('all'); setCategoryFilter('all'); }} style={{ ...dangerBtn, fontSize: '11px' }}>Clear filters</button>
+        )}
+      </div>
+
+      <div style={card}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #F4F5F7', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '15px', fontWeight: 700, color: '#171A21' }}>Broadcast Requests</span>
+          <span style={{ fontSize: '12px', color: '#9AA0AE' }}>{filtered.length} of {initial.length} shown</span>
+        </div>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ background: '#F4F5F7' }}>
+              {['ID', 'Buyer', 'Service', 'Budget', 'Timeline', 'Matches', 'Status', 'Date'].map(col => (
+                <th key={col} style={thStyle}>{col}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.length === 0 ? (
+              <tr><td colSpan={8} style={{ padding: '48px', textAlign: 'center', color: '#9AA0AE', fontSize: '14px' }}>No requests found</td></tr>
+            ) : filtered.map((b, i) => {
+              const badge = statusBadge(b.status);
+              return (
+                <tr key={b.id} style={{ borderTop: i > 0 ? '1px solid #F4F5F7' : undefined }}>
+                  <td style={tdStyle}>
+                    <code style={{ fontSize: '11px', fontFamily: 'monospace', color: '#9AA0AE' }}>{b.id.slice(0, 8)}</code>
+                  </td>
+                  <td style={{ ...tdStyle, fontSize: '13px', color: '#171A21', fontWeight: 500 }}>{b.buyer_company_name || '—'}</td>
+                  <td style={tdStyle}>
+                    <span style={{ fontSize: '11px', background: '#F0F9F9', color: '#0F6F73', padding: '2px 7px', borderRadius: '999px', fontWeight: 500 }}>{b.category || '—'}</span>
+                  </td>
+                  <td style={{ ...tdStyle, fontSize: '12px', color: '#444B5A' }}>{b.budget_band || '—'}</td>
+                  <td style={{ ...tdStyle, fontSize: '12px', color: '#444B5A' }}>{b.timeline || '—'}</td>
+                  <td style={{ ...tdStyle, fontSize: '13px', color: '#171A21', fontWeight: 600, textAlign: 'center' as const }}>{b.match_count}</td>
+                  <td style={tdStyle}>
+                    <span style={{ background: badge.bg, color: badge.color, fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '6px' }}>{badge.label}</span>
+                  </td>
+                  <td style={{ ...tdStyle, fontSize: '12px', color: '#9AA0AE', whiteSpace: 'nowrap' }}>{fmt(b.created_at)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ─── Tab 7: Activity Logs ─────────────────────────────────────────────────────
+
+function ActivityLogsTab() {
+  return (
+    <div style={{ ...card, padding: '60px', textAlign: 'center' }}>
+      <div style={{ fontSize: '40px', marginBottom: '16px' }}>📋</div>
+      <div style={{ fontSize: '18px', fontWeight: 700, color: '#171A21', marginBottom: '8px' }}>Activity Logging Coming Soon</div>
+      <div style={{ fontSize: '13px', color: '#9AA0AE', maxWidth: '400px', margin: '0 auto', lineHeight: 1.6 }}>
+        Detailed activity logs for admin actions, user sign-ins, company verifications, and LINE notifications will appear here.
+      </div>
+    </div>
+  );
+}
+
+// ─── Main AdminClient component ───────────────────────────────────────────────
+
+const TABS = [
+  { id: 'companies', label: 'Companies' },
+  { id: 'users', label: 'Users' },
+  { id: 'services', label: 'Industries & Services' },
+  { id: 'templates', label: 'LINE Templates' },
+  { id: 'line', label: 'LINE Config' },
+  { id: 'requests', label: 'Requests' },
+  { id: 'logs', label: 'Activity Logs' },
+];
+
+export function AdminClient({ companies, users, broadcasts, lang: _lang }: Props) {
+  const [activeTab, setActiveTab] = useState('companies');
+
+  return (
+    <div className="page-body">
+      {/* Header */}
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>Super Admin Panel</h1>
+        <p style={{ fontSize: '13px', color: '#9AA0AE' }}>Manage all aspects of the Profindle platform</p>
+      </div>
+
+      {/* Tab bar */}
+      <div style={{ display: 'flex', gap: '0', borderBottom: '2px solid #F4F5F7', marginBottom: '28px', overflowX: 'auto' }}>
+        {TABS.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              padding: '12px 20px',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === tab.id ? '2px solid #0F6F73' : '2px solid transparent',
+              marginBottom: '-2px',
+              fontSize: '13px',
+              fontWeight: activeTab === tab.id ? 700 : 500,
+              color: activeTab === tab.id ? '#0F6F73' : '#9AA0AE',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              whiteSpace: 'nowrap',
+              transition: 'color 0.15s',
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      {activeTab === 'companies' && <CompaniesTab companies={companies} />}
+      {activeTab === 'users' && <UsersTab users={users} />}
+      {activeTab === 'services' && <ServicesTab />}
+      {activeTab === 'templates' && <TemplatesTab />}
+      {activeTab === 'line' && <LineConfigTab companies={companies} />}
+      {activeTab === 'requests' && <RequestsTab broadcasts={broadcasts} />}
+      {activeTab === 'logs' && <ActivityLogsTab />}
     </div>
   );
 }

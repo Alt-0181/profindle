@@ -22,14 +22,13 @@ export default async function AdminPage({ params }: { params: Promise<{ lang: st
 
   const admin = getAdmin();
 
-  // Fetch all companies with their owner's email via auth.users join
+  // Fetch all companies (with line_user_id for LINE Config tab)
   const { data: companies } = await admin
     .from('companies')
-    .select('id, name, name_th, industry, verified, premium, created_at, dbd_certificate_url, services, email, user_id')
+    .select('id, name, name_th, industry, verified, premium, created_at, dbd_certificate_url, services, email, user_id, line_user_id')
     .order('created_at', { ascending: false });
 
-  // Fetch emails for each user_id
-  const userIds = (companies ?? []).map(c => c.user_id).filter(Boolean);
+  // Fetch auth users
   const { data: { users } } = await admin.auth.admin.listUsers({ perPage: 1000 });
   const emailMap = Object.fromEntries((users ?? []).map(u => [u.id, u.email]));
 
@@ -39,5 +38,51 @@ export default async function AdminPage({ params }: { params: Promise<{ lang: st
     user_email: emailMap[c.user_id] ?? null,
   }));
 
-  return <AdminClient companies={enriched} lang={lang} />;
+  // Fetch broadcasts with buyer company name and match count
+  const { data: broadcasts } = await admin
+    .from('broadcasts')
+    .select(`
+      id,
+      created_at,
+      status,
+      category,
+      budget_band,
+      timeline,
+      companies:buyer_company_id ( name ),
+      broadcast_matches ( id )
+    `)
+    .order('created_at', { ascending: false });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const enrichedBroadcasts = (broadcasts ?? []).map((b: any) => ({
+    id: b.id,
+    created_at: b.created_at,
+    status: b.status,
+    category: b.category,
+    budget_band: b.budget_band,
+    timeline: b.timeline,
+    buyer_company_name: (Array.isArray(b.companies) ? b.companies[0]?.name : b.companies?.name) ?? null,
+    match_count: Array.isArray(b.broadcast_matches) ? b.broadcast_matches.length : 0,
+  }));
+
+  // Sanitise auth users for client (only pass needed fields)
+  const clientUsers = (users ?? []).map(u => ({
+    id: u.id,
+    email: u.email,
+    created_at: u.created_at,
+    user_metadata: {
+      role: u.user_metadata?.role,
+      display_name: u.user_metadata?.display_name,
+      full_name: u.user_metadata?.full_name,
+    },
+  }));
+
+  return (
+    <AdminClient
+      companies={enriched}
+      users={clientUsers}
+      broadcasts={enrichedBroadcasts}
+      lang={lang}
+    />
+  );
 }
