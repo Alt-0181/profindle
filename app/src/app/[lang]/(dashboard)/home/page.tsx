@@ -26,13 +26,14 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
 
   const { data: company } = await supabase
     .from('companies')
-    .select('id, dbd_certificate_url, industry, line_user_id, verified')
+    .select('id, dbd_certificate_url, industry, line_user_id, verified, premium')
     .eq('user_id', user?.id ?? '')
     .maybeSingle();
   const hasCompany = !!company;
   const emailVerified = true;
   const lineConnected = !!(company as any)?.line_user_id;
   const companyVerified = !!(company as any)?.verified;
+  const companyPremium = !!(company as any)?.premium;
 
   const { count: portfolioCount } = company
     ? await supabase
@@ -114,50 +115,6 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
     },
   ];
 
-  const quickActions = [
-    {
-      id: 'services',
-      iconBg: 'linear-gradient(135deg,#0F6F73,#1A9DA3)',
-      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>,
-      title: isTh ? 'จัดการบริการ' : 'Manage Services',
-      desc: isTh ? 'ตั้งค่าบริการของคุณเพื่อดึงดูดลูกค้าใหม่' : 'Set up your service offerings and attract new clients.',
-      cta: isTh ? 'ดูภาพรวม →' : 'View overview →',
-      href: `/${lang}/provider-overview`,
-      locked: !hasCompany,
-    },
-    {
-      id: 'find',
-      iconBg: 'linear-gradient(135deg,#F77F00,#E06B00)',
-      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>,
-      title: isTh ? 'ค้นหาผู้ให้บริการ' : 'Find Providers',
-      desc: isTh ? 'ค้นหาหรือกระจายคำขอไปยังผู้ให้บริการที่ตรงกัน' : 'Search or broadcast a request to matching providers.',
-      cta: isTh ? 'ค้นหาเลย →' : 'Search now →',
-      href: `/${lang}/find-providers`,
-      locked: !hasCompany,
-    },
-    {
-      id: 'portfolio',
-      iconBg: 'linear-gradient(135deg,#2BBEC5,#0F6F73)',
-      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" /></svg>,
-      title: isTh ? 'เพิ่มผลงาน' : 'Add Portfolio',
-      desc: isTh ? 'นำเสนอผลงานเพื่อสร้างความเชื่อมั่น' : 'Showcase projects to build trust with potential clients.',
-      cta: isTh ? 'เพิ่มผลงาน →' : 'Add project →',
-      href: `/${lang}/portfolio`,
-      locked: !hasCompany,
-    },
-    {
-      id: 'earlybird',
-      iconBg: 'linear-gradient(135deg,#F77F00,#E06B00)',
-      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>,
-      title: isTh ? 'สิทธิ์ Early Bird' : 'Early Bird Offer',
-      desc: isTh ? `รับฟีเจอร์ Premium ทั้งหมดฟรี — เหลือ ${earlyBirdLeft} จาก ${earlyBirdTotal} สิทธิ์` : `Get all Premium features FREE — ${earlyBirdLeft} of ${earlyBirdTotal} spots left.`,
-      cta: isTh ? 'รับสิทธิ์ →' : 'Claim now →',
-      href: `/${lang}/package`,
-      locked: false,
-      special: true,
-    },
-  ];
-
   return (
     <div className="page-body">
 
@@ -184,7 +141,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
           {[
             { val: '0', label: isTh ? 'การเข้าชม' : 'Profile views' },
             { val: '0', label: isTh ? 'กระจายข่าว' : 'Broadcasts' },
-            { val: isTh ? 'ฟรี' : 'Free', label: isTh ? 'แพ็กเกจปัจจุบัน' : 'Current plan', orange: true },
+            { val: companyPremium ? (isTh ? 'พรีเมียม' : 'Premium') : (isTh ? 'ฟรี' : 'Free'), label: isTh ? 'แพ็กเกจปัจจุบัน' : 'Current plan', orange: true },
           ].map((stat) => (
             <div key={stat.label} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '14px 18px', textAlign: 'center', minWidth: '80px' }}>
               <div style={{ fontSize: '22px', fontWeight: 700, color: stat.orange ? '#F77F00' : 'white', lineHeight: 1 }}>{stat.val}</div>
@@ -219,58 +176,38 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
         {[
           { label: isTh ? 'การเข้าชมโปรไฟล์' : 'Profile Views', value: '—', sub: isTh ? 'ข้อมูลจะแสดงเมื่อมีการเข้าชมครั้งแรก' : 'Data appears after your first profile view' },
           { label: isTh ? 'คำขอกระจายข่าวที่ส่ง' : 'Broadcast Requests Sent', value: '—', sub: isTh ? 'ฟรี 4 ครั้ง/เดือน' : '4 free broadcasts/month' },
-          { label: isTh ? 'ผลงาน' : 'Portfolio Projects', value: '—', sub: isTh ? 'ยังไม่มีผลงาน' : 'No projects added yet' },
-          { label: isTh ? 'สถานะการยืนยัน' : 'Verification Status', value: companyVerified ? '✓' : '—', sub: companyVerified ? (isTh ? 'ยืนยันแล้ว' : 'Verified') : docsUploaded ? (isTh ? '⚠ รอตรวจสอบเอกสาร' : '⚠ Pending admin review') : (isTh ? 'ยังไม่ได้อัปโหลดเอกสาร' : 'No documents uploaded'), warn: !companyVerified },
+          { label: isTh ? 'ผลงาน' : 'Portfolio Projects', value: portfolioCount ?? 0, sub: portfolioCount ? (isTh ? `${portfolioCount} โปรเจคที่แสดง` : `${portfolioCount} project${portfolioCount === 1 ? '' : 's'} listed`) : (isTh ? 'ยังไม่มีผลงาน' : 'No projects added yet') },
         ].map((kpi) => (
           <div key={kpi.label} style={{ background: 'white', borderRadius: '14px', padding: '18px 20px', border: '1px solid rgba(15,111,115,0.10)' }}>
-            <div style={{ fontSize: '26px', fontWeight: 700, letterSpacing: '-0.02em', color: '#C8CDD7' }}>{kpi.value}</div>
+            <div style={{ fontSize: '26px', fontWeight: 700, letterSpacing: '-0.02em', color: '#171A21' }}>{kpi.value}</div>
             <div style={{ fontSize: '12px', color: '#6B7385', fontWeight: 600, marginTop: '4px' }}>{kpi.label}</div>
-            <div style={{ fontSize: '12px', color: kpi.warn ? '#E06B00' : '#9AA0AE', marginTop: '3px' }}>{kpi.sub}</div>
+            <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '3px' }}>{kpi.sub}</div>
           </div>
         ))}
-      </div>
-
-      {/* Row 1: Getting Started (left) | Quick Actions (right) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '20px', alignItems: 'start', marginBottom: '20px' }}>
-        {/* Left: Getting Started accordion */}
-        <GettingStartedAccordion steps={gettingStartedSteps} lang={lang} completedCount={completedSteps} />
-
-        {/* Right: Quick Actions */}
-        <div>
-          <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9AA0AE', marginBottom: '10px' }}>
-            {isTh ? 'การดำเนินการด่วน' : 'Quick Actions'}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            {quickActions.map((qa) => (
-              <Link key={qa.id} href={qa.locked ? `/${lang}/my-company?from=locked` : qa.href} style={{
-                background: qa.special ? 'linear-gradient(135deg,#FFFBF5,#FFF8EE)' : qa.locked ? '#F4F5F7' : 'white',
-                borderRadius: '14px', padding: '20px',
-                border: `1.5px solid ${qa.special ? 'rgba(247,127,0,0.3)' : qa.locked ? '#E4E7ED' : '#E4E7ED'}`,
-                textDecoration: 'none', display: 'flex', flexDirection: 'column', gap: '10px',
-                position: 'relative', overflow: 'hidden', transition: 'all 200ms',
-                opacity: qa.locked ? 0.75 : 1,
-              }}>
-                <div style={{
-                  width: '38px', height: '38px', borderRadius: '10px',
-                  background: qa.locked ? '#D4D8E0' : qa.iconBg,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  filter: qa.locked ? 'grayscale(1)' : 'none',
-                }}>
-                  {qa.icon}
-                </div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: qa.special ? '#E06B00' : qa.locked ? '#9AA0AE' : '#171A21' }}>{qa.title}</div>
-                <div style={{ fontSize: '12px', color: qa.special ? '#F77F00' : '#9AA0AE', lineHeight: 1.5 }}>{qa.desc}</div>
-                <div style={{ fontSize: '12px', color: qa.special ? '#F77F00' : qa.locked ? '#C8CDD7' : '#0F6F73', fontWeight: 600, marginTop: '4px' }}>{qa.cta}</div>
-                {qa.locked && (
-                  <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'white', border: '1px solid #E4E7ED', borderRadius: '999px', padding: '3px 8px', fontSize: '10px', fontWeight: 600, color: '#9AA0AE' }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
-                    {isTh ? 'ล็อก' : 'Locked'}
-                  </div>
-                )}
-              </Link>
-            ))}
+        {/* Verification Status — special badge card */}
+        <div style={{ background: 'white', borderRadius: '14px', padding: '18px 20px', border: `1px solid ${companyVerified ? 'rgba(15,111,115,0.20)' : docsUploaded ? 'rgba(247,127,0,0.25)' : 'rgba(15,111,115,0.10)'}` }}>
+          {companyVerified ? (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)', borderRadius: '10px', padding: '6px 12px', marginBottom: '8px' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: 'white' }}>{isTh ? 'ยืนยันแล้ว' : 'Verified'}</span>
+            </div>
+          ) : docsUploaded ? (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(247,127,0,0.12)', borderRadius: '10px', padding: '6px 12px', marginBottom: '8px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#E06B00' }}>⏳ {isTh ? 'รอตรวจสอบ' : 'Pending'}</span>
+            </div>
+          ) : (
+            <div style={{ fontSize: '26px', fontWeight: 700, color: '#C8CDD7', marginBottom: '8px' }}>—</div>
+          )}
+          <div style={{ fontSize: '12px', color: '#6B7385', fontWeight: 600 }}>{isTh ? 'สถานะการยืนยัน' : 'Verification Status'}</div>
+          <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '3px' }}>
+            {companyVerified ? (isTh ? 'โปรไฟล์ของคุณได้รับการยืนยัน' : 'Your profile is verified') : docsUploaded ? (isTh ? 'แอดมินกำลังตรวจสอบ' : 'Admin reviewing your docs') : (isTh ? 'อัปโหลดเอกสารเพื่อยืนยัน' : 'Upload docs to get verified')}
           </div>
         </div>
+      </div>
+
+      {/* Getting Started — full width */}
+      <div style={{ marginBottom: '20px' }}>
+        <GettingStartedAccordion steps={gettingStartedSteps} lang={lang} completedCount={completedSteps} />
       </div>
 
       {/* Row 2: Recent Activity (left) | Need Help (right) */}
