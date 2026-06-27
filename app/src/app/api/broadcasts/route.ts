@@ -27,12 +27,14 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { category, descriptionEn, descriptionTh, budgetBand, timeline, locationPref } = body;
-  if (!category || !descriptionEn) {
-    return NextResponse.json({ error: 'category and descriptionEn are required' }, { status: 400 });
+  const { category, title, descriptionEn, descriptionTh, budgetBand, timeline, locationPref } = body;
+  if (!category || (!descriptionTh && !descriptionEn)) {
+    return NextResponse.json({ error: 'category and a description are required' }, { status: 400 });
   }
 
   const admin = getAdmin();
+
+  const effectiveDescEn = descriptionEn || descriptionTh || '';
 
   // Insert broadcast
   const { data: broadcast, error: broadcastErr } = await admin
@@ -41,7 +43,7 @@ export async function POST(request: NextRequest) {
       buyer_user_id: user.id,
       buyer_company_id: buyerCompany.id,
       category,
-      description_en: descriptionEn,
+      description_en: effectiveDescEn,
       description_th: descriptionTh ?? null,
       budget_band: budgetBand ?? null,
       timeline: timeline ?? null,
@@ -51,51 +53,54 @@ export async function POST(request: NextRequest) {
     .single();
   if (broadcastErr) return NextResponse.json({ error: broadcastErr.message }, { status: 500 });
 
-  // Only premium providers receive LINE broadcast notifications
-  const { data: providers } = await admin
+  // Find ALL premium providers with matching services
+  const { data: allProviders } = await admin
     .from('companies')
     .select('id, line_user_id')
-    .not('line_user_id', 'is', null)
     .neq('id', buyerCompany.id)
     .eq('premium', true)
     .contains('services', [category])
     .limit(50);
 
-  if (!providers || providers.length === 0) {
-    return NextResponse.json({ broadcastId: broadcast.id, notified: 0 });
+  if (!allProviders || allProviders.length === 0) {
+    return NextResponse.json({ broadcastId: broadcast.id, matched: 0, notified: 0 });
   }
 
-  // Insert match rows
+  // Insert match rows for ALL matched providers
   await admin.from('broadcast_matches').insert(
-    providers.map((p: any) => ({ broadcast_id: broadcast.id, provider_company_id: p.id }))
+    allProviders.map((p: any) => ({ broadcast_id: broadcast.id, provider_company_id: p.id }))
   );
 
-  // Fan-out LINE push
-  const flexMsg = makeBroadcastFlexMessage({
-    id: broadcast.id,
-    category,
-    budgetBand: budgetBand || '—',
-    timeline: timeline || '—',
-    descriptionEn,
-    buyerCompany: buyerCompany.name,
-  });
-
+  // Fan-out LINE push only to providers with LINE connected
+  const lineProviders = allProviders.filter((p: any) => p.line_user_id);
   let notified = 0;
-  await Promise.allSettled(
-    providers.map(async (p: any) => {
-      try {
-        await pushMessage(p.line_user_id, [flexMsg]);
-        await admin
-          .from('broadcast_matches')
-          .update({ notified_at: new Date().toISOString() })
-          .eq('broadcast_id', broadcast.id)
-          .eq('provider_company_id', p.id);
-        notified++;
-      } catch (err) {
-        console.error(`LINE push failed for company ${p.id}:`, err);
-      }
-    })
-  );
 
-  return NextResponse.json({ broadcastId: broadcast.id, notified });
+  if (lineProviders.length > 0) {
+    const flexMsg = makeBroadcastFlexMessage({
+      id: broadcast.id,
+      category,
+      budgetBand: budgetBand || '—',
+      timeline: timeline || '—',
+      descriptionEn: effectiveDescEn,
+      buyerCompany: buyerCompany.name,
+    });
+
+    await Promise.allSettled(
+      lineProviders.map(async (p: any) => {
+        try {
+          await pushMessage(p.line_user_id, [flexMsg]);
+          await admin
+            .from('broadcast_matches')
+            .update({ notified_at: new Date().toISOString() })
+            .eq('broadcast_id', broadcast.id)
+            .eq('provider_company_id', p.id);
+          notified++;
+        } catch (err) {
+          console.error(`LINE push failed for company ${p.id}:`, err);
+        }
+      })
+    );
+  }
+
+  return NextResponse.json({ broadcastId: broadcast.id, matched: allProviders.length, notified });
 }

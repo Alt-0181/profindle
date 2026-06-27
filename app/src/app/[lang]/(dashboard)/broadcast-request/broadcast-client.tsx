@@ -46,6 +46,7 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [matched, setMatched] = useState<number | null>(null);
   const [notified, setNotified] = useState<number | null>(null);
   const [serviceSearch, setServiceSearch] = useState('');
 
@@ -62,7 +63,8 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           category: form.service,
-          descriptionEn: form.descEn,
+          title: form.title || null,
+          descriptionEn: form.descEn || null,
           descriptionTh: form.descTh || null,
           budgetBand: budgetLabel,
           timeline: timelineLabel,
@@ -71,7 +73,8 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Submission failed');
-      setNotified(data.notified);
+      setMatched(data.matched ?? data.notified ?? 0);
+      setNotified(data.notified ?? 0);
       setSubmitted(true);
     } catch (err: any) {
       setSubmitError(err.message);
@@ -116,8 +119,13 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
           <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#171A21', marginBottom: '8px' }}>{t.successTitle}</h2>
           <p style={{ fontSize: '14px', color: '#6B7385', marginBottom: '24px' }}>{t.successSub}</p>
           <div style={{ background: '#F0F9F9', borderRadius: '14px', padding: '20px', marginBottom: '28px' }}>
-            <div style={{ fontSize: '36px', fontWeight: 700, color: '#0F6F73', marginBottom: '4px' }}>{notified ?? 0}</div>
-            <div style={{ fontSize: '14px', color: '#6B7385' }}>{t.matchCount.replace('{count}', String(notified ?? 0))}</div>
+            <div style={{ fontSize: '36px', fontWeight: 700, color: '#0F6F73', marginBottom: '4px' }}>{matched ?? 0}</div>
+            <div style={{ fontSize: '14px', color: '#6B7385' }}>{t.matchCount.replace('{count}', String(matched ?? 0))}</div>
+            {notified != null && notified > 0 && (
+              <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '6px' }}>
+                {notified} notified via LINE
+              </div>
+            )}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left', marginBottom: '28px' }}>
             {[t.nextStep1, t.nextStep2, t.nextStep3].map((s, i) => (
@@ -129,7 +137,7 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
               </div>
             ))}
           </div>
-          <button onClick={() => { setSubmitted(false); setStep(1); setNotified(null); setSubmitError(''); setForm({ service: '', serviceIndustry: '', descEn: '', descTh: '', title: '', budget: '', timeline: '', location: 'anywhere' }); }} style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={() => { setSubmitted(false); setStep(1); setMatched(null); setNotified(null); setSubmitError(''); setForm({ service: '', serviceIndustry: '', descEn: '', descTh: '', title: '', budget: '', timeline: '', location: 'anywhere' }); }} style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
             {t.newBroadcast}
           </button>
         </div>
@@ -255,33 +263,33 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
           <p style={{ fontSize: '13px', color: '#9AA0AE', marginBottom: '20px' }}>{t.step2Sub}</p>
 
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>
-              {t.descEn}
-              <span style={{ fontSize: '11.5px', color: form.descEn.length > 280 ? '#F77F00' : '#9AA0AE', fontWeight: 400 }}>{form.descEn.length} / 300</span>
+            <label style={{ fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px', display: 'block' }}>
+              {t.titleOptional}
             </label>
-            <textarea value={form.descEn} onChange={(e) => set('descEn', e.target.value.slice(0, 300))} rows={4} placeholder={t.descPh} style={{ width: '100%', fontSize: '14px', padding: '10px 14px', border: '1.5px solid #E4E7ED', borderRadius: '12px', background: 'white', outline: 'none', color: '#171A21', fontFamily: 'inherit', resize: 'vertical', minHeight: '100px' }} />
+            <input type="text" value={form.title} onChange={(e) => set('title', e.target.value)} placeholder={t.titlePh} style={{ width: '100%', fontSize: '14px', padding: '10px 14px', border: '1.5px solid #E4E7ED', borderRadius: '12px', background: 'white', outline: 'none', color: '#171A21', fontFamily: 'inherit' }} />
           </div>
 
           <div style={{ marginBottom: '16px' }}>
             <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>
               {t.descTh}
-              <span style={{ fontSize: '11.5px', color: '#9AA0AE', fontWeight: 400 }}>{form.descTh.length} / 300</span>
+              <span style={{ fontSize: '11.5px', color: form.descTh.length > 280 ? '#F77F00' : '#9AA0AE', fontWeight: 400 }}>{form.descTh.length} / 300</span>
             </label>
             <textarea value={form.descTh} onChange={(e) => set('descTh', e.target.value.slice(0, 300))} rows={4} placeholder={t.descPh} style={{ width: '100%', fontSize: '14px', padding: '10px 14px', border: '1.5px solid #E4E7ED', borderRadius: '12px', background: 'white', outline: 'none', color: '#171A21', fontFamily: 'inherit', resize: 'vertical', minHeight: '100px' }} />
           </div>
 
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px', display: 'block' }}>
-              {t.titleOptional} <span style={{ fontSize: '11px', color: '#9AA0AE', fontWeight: 400 }}>({dict.common.optional})</span>
+            <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>
+              {t.descEn} <span style={{ fontSize: '11px', color: '#9AA0AE', fontWeight: 400 }}>({dict.common.optional})</span>
+              <span style={{ fontSize: '11.5px', color: form.descEn.length > 280 ? '#F77F00' : '#9AA0AE', fontWeight: 400 }}>{form.descEn.length} / 300</span>
             </label>
-            <input type="text" value={form.title} onChange={(e) => set('title', e.target.value)} placeholder={t.titlePh} style={{ width: '100%', fontSize: '14px', padding: '10px 14px', border: '1.5px solid #E4E7ED', borderRadius: '12px', background: 'white', outline: 'none', color: '#171A21', fontFamily: 'inherit' }} />
+            <textarea value={form.descEn} onChange={(e) => set('descEn', e.target.value.slice(0, 300))} rows={3} placeholder={t.descPh} style={{ width: '100%', fontSize: '14px', padding: '10px 14px', border: '1.5px solid #E4E7ED', borderRadius: '12px', background: 'white', outline: 'none', color: '#171A21', fontFamily: 'inherit', resize: 'vertical', minHeight: '80px' }} />
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <button onClick={() => setStep(1)} style={{ padding: '10px 20px', background: 'transparent', border: '1.5px solid #E4E7ED', color: '#444B5A', fontWeight: 600, fontSize: '14px', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
               ← {dict.common.back}
             </button>
-            <button onClick={() => form.descEn && setStep(3)} disabled={!form.descEn} style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: form.descEn ? 'pointer' : 'not-allowed', opacity: form.descEn ? 1 : 0.5, fontFamily: 'inherit' }}>
+            <button onClick={() => form.descTh && setStep(3)} disabled={!form.descTh} style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: form.descTh ? 'pointer' : 'not-allowed', opacity: form.descTh ? 1 : 0.5, fontFamily: 'inherit' }}>
               {dict.common.next} →
             </button>
           </div>
