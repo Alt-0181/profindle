@@ -185,13 +185,6 @@ const SERVICES: { label: string; industry: string }[] = [
   { label: 'Sound Engineering', industry: 'Music / Audio' },
   { label: 'Voiceover', industry: 'Music / Audio' },
 
-  // Photography / Videography
-  { label: 'Drone Photography', industry: 'Photography / Videography' },
-  { label: 'Live Streaming', industry: 'Photography / Videography' },
-  { label: 'Photography', industry: 'Photography / Videography' },
-  { label: 'Product Photography', industry: 'Photography / Videography' },
-  { label: 'Videography', industry: 'Photography / Videography' },
-
   // === PRINT & PRODUCTION ===
   { label: 'Brochure & Flyer', industry: 'Print / Production' },
   { label: 'Printing', industry: 'Print / Production' },
@@ -224,6 +217,22 @@ const SERVICES: { label: string; industry: string }[] = [
   { label: 'Article Writing', industry: 'Writing / Content' },
   { label: 'Data Entry', industry: 'Writing / Content' },
   { label: 'Script Writing', industry: 'Writing / Content' },
+
+  // === TRADING / DISTRIBUTION / IMPORT-EXPORT ===
+  { label: 'Brand Distribution / Sole Agent', industry: 'Trading / Distribution / Import-Export' },
+  { label: 'Cross-border E-commerce', industry: 'Trading / Distribution / Import-Export' },
+  { label: 'Franchise Distribution', industry: 'Trading / Distribution / Import-Export' },
+  { label: 'Import / Export', industry: 'Trading / Distribution / Import-Export' },
+  { label: 'Product Distribution', industry: 'Trading / Distribution / Import-Export' },
+  { label: 'Wholesale Trading', industry: 'Trading / Distribution / Import-Export' },
+
+  // === CONSUMER GOODS / BRAND MANAGEMENT ===
+  { label: 'Brand Licensing / IP Licensing', industry: 'Consumer Goods / Brand Management' },
+  { label: 'Consumer Brand Management', industry: 'Consumer Goods / Brand Management' },
+  { label: 'E-commerce Brand Management', industry: 'Consumer Goods / Brand Management' },
+  { label: 'Private Label / House Brand', industry: 'Consumer Goods / Brand Management' },
+  { label: 'Product Portfolio Management', industry: 'Consumer Goods / Brand Management' },
+  { label: 'Retail Channel Management', industry: 'Consumer Goods / Brand Management' },
 ];
 
 function deriveIndustries(selected: string[]): string[] {
