@@ -41,6 +41,7 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
     title: '',
     budget: '',
     timeline: '',
+    timelineDate: '',
     location: 'anywhere',
   });
   const [submitted, setSubmitted] = useState(false);
@@ -57,7 +58,9 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
     setSubmitError('');
     try {
       const budgetLabel = BUDGETS.find((b) => b.id === form.budget)?.label ?? form.budget;
-      const timelineLabel = TIMELINES.find((t) => t.id === form.timeline)?.label ?? form.timeline;
+      const timelineLabel = form.timeline === 'specific_date'
+        ? (form.timelineDate ? new Date(form.timelineDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '')
+        : (TIMELINES.find((t) => t.id === form.timeline)?.label ?? form.timeline);
       const res = await fetch('/api/broadcasts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -137,7 +140,7 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
               </div>
             ))}
           </div>
-          <button onClick={() => { setSubmitted(false); setStep(1); setMatched(null); setNotified(null); setSubmitError(''); setForm({ service: '', serviceIndustry: '', descEn: '', descTh: '', title: '', budget: '', timeline: '', location: 'anywhere' }); }} style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={() => { setSubmitted(false); setStep(1); setMatched(null); setNotified(null); setSubmitError(''); setForm({ service: '', serviceIndustry: '', descEn: '', descTh: '', title: '', budget: '', timeline: '', timelineDate: '', location: 'anywhere' }); }} style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
             {t.newBroadcast}
           </button>
         </div>
@@ -313,20 +316,38 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
 
           <div style={{ marginBottom: '24px' }}>
             <div style={{ fontSize: '14px', fontWeight: 600, color: '#171A21', marginBottom: '10px' }}>{t.timeline}</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: form.timeline === 'specific_date' ? '12px' : '0' }}>
               {TIMELINES.map((tl) => (
                 <button key={tl.id} onClick={() => set('timeline', tl.id)} style={chipStyle(form.timeline === tl.id)}>{tl.label}</button>
               ))}
+              <button onClick={() => set('timeline', 'specific_date')} style={chipStyle(form.timeline === 'specific_date')}>
+                {lang === 'th' ? '📅 เลือกวันที่' : '📅 Pick a date'}
+              </button>
             </div>
+            {form.timeline === 'specific_date' && (
+              <input
+                type="date"
+                value={form.timelineDate}
+                min={new Date().toISOString().split('T')[0]}
+                onChange={(e) => set('timelineDate', e.target.value)}
+                style={{ padding: '10px 14px', border: '1.5px solid #0F6F73', borderRadius: '12px', fontSize: '14px', fontFamily: 'inherit', outline: 'none', color: '#171A21', background: 'white', cursor: 'pointer' }}
+              />
+            )}
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <button onClick={() => setStep(2)} style={{ padding: '10px 20px', background: 'transparent', border: '1.5px solid #E4E7ED', color: '#444B5A', fontWeight: 600, fontSize: '14px', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
               ← {dict.common.back}
             </button>
-            <button onClick={() => form.budget && form.timeline && setStep(4)} disabled={!form.budget || !form.timeline} style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: (form.budget && form.timeline) ? 'pointer' : 'not-allowed', opacity: (form.budget && form.timeline) ? 1 : 0.5, fontFamily: 'inherit' }}>
-              {dict.common.next} →
-            </button>
+            {(() => {
+              const timelineReady = form.timeline && (form.timeline !== 'specific_date' || form.timelineDate);
+              const canNext = !!(form.budget && timelineReady);
+              return (
+                <button onClick={() => canNext && setStep(4)} disabled={!canNext} style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: canNext ? 'pointer' : 'not-allowed', opacity: canNext ? 1 : 0.5, fontFamily: 'inherit' }}>
+                  {dict.common.next} →
+                </button>
+              );
+            })()}
           </div>
         </div>
       )}
@@ -337,19 +358,29 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
           <h2 style={{ fontSize: '17px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{t.step4Title}</h2>
           <p style={{ fontSize: '13px', color: '#9AA0AE', marginBottom: '20px' }}>{t.step4Sub}</p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-            {[
+          {(() => {
+            const timelineDisplay = form.timeline === 'specific_date'
+              ? (form.timelineDate ? new Date(form.timelineDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—')
+              : (TIMELINES.find((tl) => tl.id === form.timeline)?.label || '—');
+            const rows = [
               { label: lang === 'th' ? 'บริการ' : 'Service', value: form.service },
-              { label: lang === 'th' ? 'คำอธิบาย' : 'Description', value: form.descEn },
+              ...(form.title ? [{ label: lang === 'th' ? 'ชื่อโปรเจกต์' : 'Project Title', value: form.title }] : []),
+              { label: lang === 'th' ? 'คำอธิบาย (ไทย)' : 'Description (TH)', value: form.descTh || '—' },
+              ...(form.descEn ? [{ label: lang === 'th' ? 'คำอธิบาย (อังกฤษ)' : 'Description (EN)', value: form.descEn }] : []),
               { label: lang === 'th' ? 'งบประมาณ' : 'Budget', value: BUDGETS.find((b) => b.id === form.budget)?.label || '—' },
-              { label: lang === 'th' ? 'ระยะเวลา' : 'Timeline', value: TIMELINES.find((tl) => tl.id === form.timeline)?.label || '—' },
-            ].map((row) => (
-              <div key={row.label} style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '12px', padding: '14px 0', borderBottom: '1px solid #F4F5F7' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#9AA0AE' }}>{row.label}</span>
-                <span style={{ fontSize: '14px', color: '#171A21' }}>{row.value}</span>
+              { label: lang === 'th' ? 'ระยะเวลา' : 'Timeline', value: timelineDisplay },
+            ];
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+                {rows.map((row) => (
+                  <div key={row.label} style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: '12px', padding: '14px 0', borderBottom: '1px solid #F4F5F7' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#9AA0AE' }}>{row.label}</span>
+                    <span style={{ fontSize: '14px', color: '#171A21', whiteSpace: 'pre-wrap' }}>{row.value}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
 
           {submitError && (
             <div style={{ background: '#FFF5F5', border: '1px solid #FCA5A5', borderRadius: '10px', padding: '12px 16px', margin: '16px 0', fontSize: '13px', color: '#DC2626' }}>
