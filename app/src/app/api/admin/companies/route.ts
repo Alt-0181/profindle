@@ -24,7 +24,7 @@ export async function PATCH(request: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { companyId, field, value } = await request.json();
-  if (!companyId || !['verified', 'premium'].includes(field)) {
+  if (!companyId || !['verified', 'premium', 'line_user_id'].includes(field)) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
 

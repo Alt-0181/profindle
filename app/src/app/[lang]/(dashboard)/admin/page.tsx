@@ -22,20 +22,22 @@ export default async function AdminPage({ params }: { params: Promise<{ lang: st
 
   const admin = getAdmin();
 
-  // Fetch all companies (with line_user_id for LINE Config tab)
+  // Fetch all companies with full details
   const { data: companies } = await admin
     .from('companies')
-    .select('id, name, name_th, industry, verified, premium, created_at, dbd_certificate_url, services, email, user_id, line_user_id')
+    .select('id, name, name_th, industry, verified, premium, created_at, dbd_certificate_url, services, email, user_id, line_user_id, phone, website, address, province, team_size, founded_year, description')
     .order('created_at', { ascending: false });
 
   // Fetch auth users
   const { data: { users } } = await admin.auth.admin.listUsers({ perPage: 1000 });
   const emailMap = Object.fromEntries((users ?? []).map(u => [u.id, u.email]));
+  const userMetaMap = Object.fromEntries((users ?? []).map(u => [u.id, { role: u.user_metadata?.role, display_name: u.user_metadata?.display_name, full_name: u.user_metadata?.full_name, created_at: u.created_at }]));
 
   const enriched = (companies ?? []).map(c => ({
     ...c,
     services: c.services ?? [],
     user_email: emailMap[c.user_id] ?? null,
+    user_meta: userMetaMap[c.user_id] ?? null,
   }));
 
   // Fetch broadcasts with buyer company name and match count

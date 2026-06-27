@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -15,8 +15,17 @@ export interface Company {
   dbd_certificate_url: string | null;
   services: string[];
   email: string | null;
+  user_id: string | null;
   user_email: string | null;
+  user_meta?: { role?: string; display_name?: string; full_name?: string; created_at?: string } | null;
   line_user_id?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  address?: string | null;
+  province?: string | null;
+  team_size?: string | null;
+  founded_year?: number | null;
+  description?: string | null;
 }
 
 export interface AuthUser {
@@ -290,11 +299,232 @@ function KpiCard({ label, value, warn }: { label: string; value: number | string
   );
 }
 
+// ─── Company Detail Panel ─────────────────────────────────────────────────────
+
+function CompanyDetailPanel({ company, onClose, onUpdate }: {
+  company: Company;
+  onClose: () => void;
+  onUpdate: (updated: Partial<Company>) => void;
+}) {
+  const [loading, setLoading] = useState<string | null>(null);
+  const [lineUidInput, setLineUidInput] = useState(company.line_user_id ?? '');
+  const [editingLine, setEditingLine] = useState(false);
+  const [lineError, setLineError] = useState('');
+
+  const toggle = async (field: 'verified' | 'premium', current: boolean) => {
+    setLoading(field);
+    try {
+      const res = await fetch('/api/admin/companies', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companyId: company.id, field, value: !current }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      onUpdate({ [field]: !current });
+    } catch {
+      alert('Failed. Please try again.');
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const saveLineUid = async () => {
+    setLoading('line');
+    setLineError('');
+    try {
+      const val = lineUidInput.trim() || null;
+      const res = await fetch('/api/admin/companies', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companyId: company.id, field: 'line_user_id', value: val }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      onUpdate({ line_user_id: val });
+      setEditingLine(false);
+    } catch {
+      setLineError('Failed to save. Try again.');
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const roleBadge = (role?: string) => {
+    if (role === 'super_admin') return { bg: '#F0F0FF', color: '#5B4EBB', label: 'Super Admin' };
+    if (role === 'admin') return { bg: '#E8F5E9', color: '#2E7D32', label: 'Admin' };
+    return { bg: '#F4F5F7', color: '#9AA0AE', label: 'User' };
+  };
+
+  const role = company.user_meta?.role;
+  const badge = roleBadge(role);
+  const displayName = company.user_meta?.display_name || company.user_meta?.full_name || '—';
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 100, backdropFilter: 'blur(2px)' }} />
+
+      {/* Panel */}
+      <div style={{
+        position: 'fixed', top: 0, right: 0, bottom: 0, width: '480px', maxWidth: '100vw',
+        background: 'white', zIndex: 101, overflowY: 'auto',
+        boxShadow: '-8px 0 40px rgba(0,0,0,0.15)',
+        display: 'flex', flexDirection: 'column',
+      }}>
+        {/* Header */}
+        <div style={{ padding: '24px 24px 20px', borderBottom: '1px solid #F4F5F7', position: 'sticky', top: 0, background: 'white', zIndex: 1 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ fontSize: '18px', fontWeight: 700, color: '#171A21' }}>{company.name}</div>
+              {company.name_th && <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '2px' }}>{company.name_th}</div>}
+              <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+                {company.verified && <span style={{ fontSize: '11px', background: '#ECFDF5', color: '#059669', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>✓ Verified</span>}
+                {company.premium && <span style={{ fontSize: '11px', background: '#FFF8EE', color: '#E06B00', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>⭐ Premium</span>}
+                {company.industry && <span style={{ fontSize: '11px', background: '#F0F9F9', color: '#0F6F73', padding: '2px 8px', borderRadius: '999px', fontWeight: 500 }}>{company.industry}</span>}
+              </div>
+            </div>
+            <button onClick={onClose} style={{ background: '#F4F5F7', border: 'none', borderRadius: '8px', width: '32px', height: '32px', cursor: 'pointer', fontSize: '16px', color: '#6B7385', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit', flexShrink: 0 }}>×</button>
+          </div>
+        </div>
+
+        <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+          {/* Account */}
+          <section>
+            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9AA0AE', marginBottom: '10px' }}>Account</div>
+            <div style={{ background: '#F4F5F7', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <Row label="Email" value={company.user_email || '—'} mono />
+              <Row label="Display Name" value={displayName} />
+              <Row label="Role" value={<span style={{ background: badge.bg, color: badge.color, fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '6px' }}>{badge.label}</span>} />
+              <Row label="Joined" value={company.user_meta?.created_at ? fmt(company.user_meta.created_at) : fmt(company.created_at)} />
+              {company.user_id && <Row label="User ID" value={company.user_id.slice(0, 16) + '…'} mono />}
+            </div>
+          </section>
+
+          {/* Company */}
+          <section>
+            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9AA0AE', marginBottom: '10px' }}>Company</div>
+            <div style={{ background: '#F4F5F7', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {company.description && <Row label="About" value={company.description} />}
+              {company.founded_year && <Row label="Founded" value={String(company.founded_year)} />}
+              {company.team_size && <Row label="Team Size" value={company.team_size} />}
+              {company.province && <Row label="Province" value={company.province} />}
+              <Row label="Company Added" value={fmt(company.created_at)} />
+              {company.dbd_certificate_url
+                ? <Row label="DBD Document" value={<a href={company.dbd_certificate_url} target="_blank" rel="noopener noreferrer" style={{ color: '#0F6F73', fontWeight: 600, textDecoration: 'none', fontSize: '12px' }}>View →</a>} />
+                : <Row label="DBD Document" value="Not uploaded" />}
+            </div>
+          </section>
+
+          {/* Contact */}
+          <section>
+            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9AA0AE', marginBottom: '10px' }}>Contact</div>
+            <div style={{ background: '#F4F5F7', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <Row label="Email" value={company.email || '—'} />
+              <Row label="Phone" value={company.phone || '—'} />
+              <Row label="Website" value={company.website ? <a href={company.website} target="_blank" rel="noopener noreferrer" style={{ color: '#0F6F73', textDecoration: 'none', fontSize: '12px' }}>{company.website}</a> : '—'} />
+              <Row label="Address" value={company.address || '—'} />
+            </div>
+          </section>
+
+          {/* LINE */}
+          <section>
+            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9AA0AE', marginBottom: '10px' }}>LINE</div>
+            <div style={{ background: '#F4F5F7', borderRadius: '12px', padding: '16px' }}>
+              {editingLine ? (
+                <div>
+                  <div style={{ fontSize: '12px', color: '#444B5A', marginBottom: '8px' }}>Enter LINE User ID (starts with U…)</div>
+                  <input
+                    value={lineUidInput}
+                    onChange={e => setLineUidInput(e.target.value)}
+                    placeholder="Uc669f3dea99d8bde…"
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1.5px solid rgba(15,111,115,0.3)', fontSize: '12px', fontFamily: 'monospace', outline: 'none', boxSizing: 'border-box' as const, marginBottom: '8px' }}
+                  />
+                  {lineError && <div style={{ fontSize: '11px', color: '#C0392B', marginBottom: '8px' }}>{lineError}</div>}
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={saveLineUid} disabled={loading === 'line'} style={{ ...primaryBtn, flex: 1, opacity: loading === 'line' ? 0.6 : 1 }}>
+                      {loading === 'line' ? 'Saving…' : 'Save UID'}
+                    </button>
+                    <button onClick={() => { setEditingLine(false); setLineUidInput(company.line_user_id ?? ''); setLineError(''); }} style={{ ...dangerBtn, flex: 0 }}>Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    {company.line_user_id
+                      ? <><div style={{ fontSize: '12px', fontWeight: 600, color: '#059669', marginBottom: '2px' }}>✓ Connected</div><code style={{ fontSize: '11px', color: '#6B7385', fontFamily: 'monospace' }}>{company.line_user_id.slice(0, 20)}…</code></>
+                      : <div style={{ fontSize: '12px', color: '#9AA0AE' }}>Not connected</div>}
+                  </div>
+                  <button onClick={() => setEditingLine(true)} style={{ ...primaryBtn, fontSize: '11px', padding: '5px 12px' }}>
+                    {company.line_user_id ? 'Change UID' : 'Set UID'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Services */}
+          {company.services?.length > 0 && (
+            <section>
+              <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9AA0AE', marginBottom: '10px' }}>Services ({company.services.length})</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {company.services.map(s => (
+                  <span key={s} style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '999px', background: '#F0F9F9', color: '#0F6F73', fontWeight: 500 }}>{s}</span>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Actions */}
+          <section>
+            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9AA0AE', marginBottom: '10px' }}>Actions</div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => toggle('verified', company.verified)}
+                disabled={loading === 'verified'}
+                style={{
+                  flex: 1, padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                  background: company.verified ? '#ECFDF5' : 'linear-gradient(135deg,#0F6F73,#1A9DA3)',
+                  color: company.verified ? '#059669' : 'white',
+                  opacity: loading === 'verified' ? 0.6 : 1,
+                }}
+              >
+                {loading === 'verified' ? '…' : company.verified ? '✓ Verified' : 'Mark Verified'}
+              </button>
+              <button
+                onClick={() => toggle('premium', company.premium)}
+                disabled={loading === 'premium'}
+                style={{
+                  flex: 1, padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                  background: company.premium ? '#FFF8EE' : '#F4F5F7',
+                  color: company.premium ? '#E06B00' : '#6B7385',
+                  opacity: loading === 'premium' ? 0.6 : 1,
+                }}
+              >
+                {loading === 'premium' ? '…' : company.premium ? '⭐ Premium' : 'Set Premium'}
+              </button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function Row({ label, value, mono }: { label: string; value: React.ReactNode; mono?: boolean }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: '8px', alignItems: 'flex-start' }}>
+      <span style={{ fontSize: '11px', fontWeight: 600, color: '#9AA0AE', paddingTop: '1px' }}>{label}</span>
+      <span style={{ fontSize: '13px', color: '#171A21', fontFamily: mono ? 'monospace' : 'inherit', wordBreak: 'break-all' }}>{value}</span>
+    </div>
+  );
+}
+
 // ─── Tab 1: Companies ─────────────────────────────────────────────────────────
 
 function CompaniesTab({ companies: initial }: { companies: Company[] }) {
   const [companies, setCompanies] = useState(initial);
   const [loading, setLoading] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Company | null>(null);
 
   const toggle = async (companyId: string, field: 'verified' | 'premium', current: boolean) => {
     const key = `${companyId}-${field}`;
@@ -314,12 +544,25 @@ function CompaniesTab({ companies: initial }: { companies: Company[] }) {
     }
   };
 
+  const handleUpdate = (companyId: string, updates: Partial<Company>) => {
+    setCompanies(prev => prev.map(c => c.id === companyId ? { ...c, ...updates } : c));
+    setSelected(prev => prev?.id === companyId ? { ...prev, ...updates } : prev);
+  };
+
   const pending = companies.filter(c => !c.verified && c.dbd_certificate_url);
   const verified = companies.filter(c => c.verified);
   const premium = companies.filter(c => c.premium);
 
   return (
     <div>
+      {selected && (
+        <CompanyDetailPanel
+          company={selected}
+          onClose={() => setSelected(null)}
+          onUpdate={(updates) => handleUpdate(selected.id, updates)}
+        />
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '24px' }}>
         <KpiCard label="Total Companies" value={companies.length} />
         <KpiCard label="Verified" value={verified.length} />
@@ -378,7 +621,7 @@ function CompaniesTab({ companies: initial }: { companies: Company[] }) {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: '#F4F5F7' }}>
-              {['Company', 'Email', 'Services', 'Verified', 'Premium', 'Joined'].map(col => (
+              {['Company', 'Services', 'Verified', 'Premium', 'LINE', 'Joined'].map(col => (
                 <th key={col} style={thStyle}>{col}</th>
               ))}
             </tr>
@@ -387,12 +630,17 @@ function CompaniesTab({ companies: initial }: { companies: Company[] }) {
             {companies.length === 0 ? (
               <tr><td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: '#9AA0AE', fontSize: '14px' }}>No companies yet</td></tr>
             ) : companies.map((c, i) => (
-              <tr key={c.id} style={{ borderTop: i > 0 ? '1px solid #F4F5F7' : undefined }}>
+              <tr
+                key={c.id}
+                onClick={() => setSelected(c)}
+                style={{ borderTop: i > 0 ? '1px solid #F4F5F7' : undefined, cursor: 'pointer', transition: 'background 0.1s' }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#F8FFFE')}
+                onMouseLeave={e => (e.currentTarget.style.background = '')}
+              >
                 <td style={tdStyle}>
                   <div style={{ fontSize: '14px', fontWeight: 600, color: '#171A21' }}>{c.name}</div>
-                  {c.industry && <div style={{ fontSize: '11px', color: '#9AA0AE' }}>{c.industry}</div>}
+                  {c.user_email && <div style={{ fontSize: '11px', color: '#9AA0AE' }}>{c.user_email}</div>}
                 </td>
-                <td style={{ ...tdStyle, fontSize: '12px', color: '#6B7385' }}>{c.user_email || '—'}</td>
                 <td style={{ ...tdStyle, maxWidth: '200px' }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                     {(c.services || []).slice(0, 3).map(s => (
@@ -405,7 +653,7 @@ function CompaniesTab({ companies: initial }: { companies: Company[] }) {
                 </td>
                 <td style={tdStyle}>
                   <button
-                    onClick={() => toggle(c.id, 'verified', c.verified)}
+                    onClick={e => { e.stopPropagation(); toggle(c.id, 'verified', c.verified); }}
                     disabled={loading === `${c.id}-verified`}
                     style={{
                       padding: '5px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
@@ -419,7 +667,7 @@ function CompaniesTab({ companies: initial }: { companies: Company[] }) {
                 </td>
                 <td style={tdStyle}>
                   <button
-                    onClick={() => toggle(c.id, 'premium', c.premium)}
+                    onClick={e => { e.stopPropagation(); toggle(c.id, 'premium', c.premium); }}
                     disabled={loading === `${c.id}-premium`}
                     style={{
                       padding: '5px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
@@ -430,6 +678,11 @@ function CompaniesTab({ companies: initial }: { companies: Company[] }) {
                   >
                     {loading === `${c.id}-premium` ? '…' : c.premium ? '⭐ Premium' : 'Free'}
                   </button>
+                </td>
+                <td style={tdStyle}>
+                  {c.line_user_id
+                    ? <span style={{ fontSize: '11px', color: '#059669', fontWeight: 600 }}>✓ LINE</span>
+                    : <span style={{ fontSize: '11px', color: '#9AA0AE' }}>—</span>}
                 </td>
                 <td style={{ ...tdStyle, fontSize: '12px', color: '#9AA0AE' }}>{fmt(c.created_at)}</td>
               </tr>
