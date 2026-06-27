@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
       buyer_user_id: user.id,
       buyer_company_id: buyerCompany.id,
       category,
+      title: title ?? null,
       description_en: effectiveDescEn,
       description_th: descriptionTh ?? null,
       budget_band: budgetBand ?? null,
@@ -74,6 +75,7 @@ export async function POST(request: NextRequest) {
   // Fan-out LINE push only to providers with LINE connected
   const lineProviders = allProviders.filter((p: any) => p.line_user_id);
   let notified = 0;
+  const pushErrors: string[] = [];
 
   if (lineProviders.length > 0) {
     const flexMsg = makeBroadcastFlexMessage({
@@ -95,12 +97,14 @@ export async function POST(request: NextRequest) {
             .eq('broadcast_id', broadcast.id)
             .eq('provider_company_id', p.id);
           notified++;
-        } catch (err) {
-          console.error(`LINE push failed for company ${p.id}:`, err);
+        } catch (err: any) {
+          const msg = err?.message ?? String(err);
+          console.error(`LINE push failed for company ${p.id}:`, msg);
+          pushErrors.push(`${p.id}: ${msg}`);
         }
       })
     );
   }
 
-  return NextResponse.json({ broadcastId: broadcast.id, matched: allProviders.length, notified });
+  return NextResponse.json({ broadcastId: broadcast.id, matched: allProviders.length, notified, pushErrors });
 }
