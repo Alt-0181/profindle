@@ -9,13 +9,14 @@ interface SettingsClientProps {
   lang: string;
   dict: Dictionary;
   initialLineUserId: string | null;
+  initialLineDisplayName?: string | null;
   userEmail: string;
   userName: string;
   lineOAuthResult: string | null;
   initialSection: string | null;
 }
 
-export function SettingsClient({ lang, dict, initialLineUserId, userEmail, userName, lineOAuthResult, initialSection }: SettingsClientProps) {
+export function SettingsClient({ lang, dict, initialLineUserId, initialLineDisplayName, userEmail, userName, lineOAuthResult, initialSection }: SettingsClientProps) {
   const t = dict.settings;
   const router = useRouter();
   const [activeSection, setActiveSection] = useState(initialSection ?? 'account');
@@ -347,7 +348,9 @@ export function SettingsClient({ lang, dict, initialLineUserId, userEmail, userN
                       <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21' }}>
                         {lang === 'th' ? 'เชื่อมต่อ LINE แล้ว' : 'LINE connected'}
                       </div>
-                      <div style={{ fontSize: '13px', color: '#06C755', marginTop: '2px', fontWeight: 600 }}>@profindle</div>
+                      {initialLineDisplayName && (
+                        <div style={{ fontSize: '13px', color: '#06C755', marginTop: '2px', fontWeight: 600 }}>{initialLineDisplayName}</div>
+                      )}
                       <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '2px' }}>
                         {lang === 'th' ? 'คุณจะได้รับการแจ้งเตือน Broadcast ผ่าน LINE' : 'You\'ll receive broadcast notifications on LINE'}
                       </div>

@@ -52,7 +52,9 @@ export async function GET(request: NextRequest) {
     return res;
   }
 
-  const { sub: lineUserId } = await verifyRes.json();
+  const verifyData = await verifyRes.json();
+  const lineUserId: string = verifyData.sub;
+  const lineDisplayName: string | null = verifyData.name ?? null;
 
   // Save to the authenticated user's company
   const supabase = await createClient();
@@ -64,7 +66,7 @@ export async function GET(request: NextRequest) {
     return res;
   }
 
-  await supabase.from('companies').update({ line_user_id: lineUserId }).eq('user_id', user.id);
+  await supabase.from('companies').update({ line_user_id: lineUserId, line_display_name: lineDisplayName }).eq('user_id', user.id);
 
   // Send welcome push (best-effort)
   try {

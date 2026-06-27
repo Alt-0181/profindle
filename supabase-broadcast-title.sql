@@ -3,3 +3,6 @@ ALTER TABLE broadcasts ALTER COLUMN description_en DROP NOT NULL;
 
 -- Optional: add a title column for project name
 ALTER TABLE broadcasts ADD COLUMN IF NOT EXISTS title text;
+
+-- Store LINE display name captured during OAuth
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS line_display_name text;

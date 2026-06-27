@@ -20,11 +20,12 @@ export default async function SettingsPage({
 
   const { data: company } = await supabase
     .from('companies')
-    .select('line_user_id')
+    .select('line_user_id, line_display_name')
     .eq('user_id', user?.id ?? '')
     .maybeSingle();
 
   const lineUserId = (company as any)?.line_user_id ?? null;
+  const lineDisplayName = (company as any)?.line_display_name ?? null;
   const userName: string = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
 
   return (
@@ -33,6 +34,7 @@ export default async function SettingsPage({
         lang={lang}
         dict={dict}
         initialLineUserId={lineUserId}
+        initialLineDisplayName={lineDisplayName}
         userEmail={user?.email ?? ''}
         userName={userName}
         lineOAuthResult={line ?? null}
