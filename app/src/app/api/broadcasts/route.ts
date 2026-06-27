@@ -18,10 +18,13 @@ export async function POST(request: NextRequest) {
 
   const { data: buyerCompany } = await supabase
     .from('companies')
-    .select('id, name')
+    .select('id, name, verified')
     .eq('user_id', user.id)
     .maybeSingle();
   if (!buyerCompany) return NextResponse.json({ error: 'No company profile' }, { status: 400 });
+  if (!(buyerCompany as any).verified) {
+    return NextResponse.json({ error: 'Your company is pending verification. An admin will review your documents shortly.' }, { status: 403 });
+  }
 
   const body = await request.json();
   const { category, descriptionEn, descriptionTh, budgetBand, timeline, locationPref } = body;

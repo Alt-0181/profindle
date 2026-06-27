@@ -26,12 +26,13 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
 
   const { data: company } = await supabase
     .from('companies')
-    .select('id, dbd_certificate_url, industry, line_user_id')
+    .select('id, dbd_certificate_url, industry, line_user_id, verified')
     .eq('user_id', user?.id ?? '')
     .maybeSingle();
   const hasCompany = !!company;
   const emailVerified = true;
   const lineConnected = !!(company as any)?.line_user_id;
+  const companyVerified = !!(company as any)?.verified;
 
   const { count: portfolioCount } = company
     ? await supabase
@@ -55,6 +56,11 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
       desc: isTh ? 'เพิ่มบริการ คำอธิบาย และโลโก้ เพื่อปรากฏในการค้นหา' : 'Add services, description, and logo to appear in search.',
       done: hasCompany && emailVerified,
       status: `${[emailVerified, hasCompany, hasIndustry, docsUploaded].filter(Boolean).length} / 4`,
+      buyerShortcut: hasCompany ? {
+        text: isTh ? 'มองหาผู้ให้บริการ? เริ่มค้นหาได้เลย — ขั้นตอน 2-4 สำหรับผู้ให้บริการ' : 'Hiring only? You can start finding providers now — steps 2–4 are for service providers.',
+        label: isTh ? 'ค้นหาผู้ให้บริการ →' : 'Find Providers →',
+        href: `/${lang}/find-providers`,
+      } : undefined,
       subTasks: [
         { title: isTh ? 'ยืนยันอีเมล' : 'Verify your email', sub: isTh ? `ยืนยันแล้วผ่าน ${userEmail}` : `Confirmed via ${userEmail}`, done: emailVerified, href: `/${lang}/settings` },
         { title: isTh ? 'เพิ่มข้อมูลบริษัทพื้นฐาน' : 'Add company basic info', sub: isTh ? 'ชื่อบริษัท อุตสาหกรรม และข้อมูลติดต่อ' : 'Company name, industry, and contact info', done: hasCompany, href: `/${lang}/my-company` },
@@ -85,10 +91,11 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
     {
       num: 3,
       title: isTh ? 'เชื่อม LINE เพื่อรับการแจ้งเตือน' : 'Connect LINE for alerts',
-      desc: isTh ? 'รับการแจ้งเตือนทันทีเมื่อลูกค้าโพสต์คำขอ' : 'Get instant broadcast alerts the moment a client posts a request.',
+      desc: isTh ? 'สำหรับผู้ให้บริการ — รับแจ้งเตือนทันทีเมื่อมีคำขอที่ตรงกับบริการของคุณ' : 'For service providers — get notified when buyers post requests matching your services.',
       done: lineConnected,
+      providerOnly: true,
       status: lineConnected ? (isTh ? 'เชื่อมแล้ว' : 'Connected') : (isTh ? 'ยังไม่ได้เชื่อม' : 'Not connected'),
-      bodyText: isTh ? 'ไม่พลาดทุกคำขอจากลูกค้า เชื่อมบัญชี LINE ครั้งเดียว เราจะแจ้งเตือนทุกคำขอที่ตรงกับคุณ' : 'Never miss a client broadcast. Connect your LINE account once and we\'ll notify you on every matching request.',
+      bodyText: isTh ? 'ไม่พลาดทุกคำขอจากลูกค้า เชื่อมบัญชี LINE ครั้งเดียว เราจะแจ้งเตือนทุกคำขอที่ตรงกับบริการของคุณ หมายเหตุ: แนะนำให้ใช้บัญชี LINE ของบริษัท ไม่ใช่บัญชีส่วนตัว' : 'Never miss a client broadcast. Connect LINE once and we\'ll notify you on every matching request. Note: use a company LINE account, not a personal one — staff changes break personal connections.',
       ctaLabel: isTh ? 'เชื่อม LINE' : 'Connect LINE',
       ctaHref: `/${lang}/settings`,
       ctaStyle: 'line' as const,
@@ -212,7 +219,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
           { label: isTh ? 'การเข้าชมโปรไฟล์' : 'Profile Views', value: '—', sub: isTh ? 'ข้อมูลจะแสดงเมื่อมีการเข้าชมครั้งแรก' : 'Data appears after your first profile view' },
           { label: isTh ? 'คำขอกระจายข่าวที่ส่ง' : 'Broadcast Requests Sent', value: '—', sub: isTh ? 'ฟรี 4 ครั้ง/เดือน' : '4 free broadcasts/month' },
           { label: isTh ? 'ผลงาน' : 'Portfolio Projects', value: '—', sub: isTh ? 'ยังไม่มีผลงาน' : 'No projects added yet' },
-          { label: isTh ? 'สถานะการยืนยัน' : 'Verification Status', value: '—', sub: isTh ? '⚠ รอตรวจสอบเอกสาร' : '⚠ Documents pending', warn: true },
+          { label: isTh ? 'สถานะการยืนยัน' : 'Verification Status', value: companyVerified ? '✓' : '—', sub: companyVerified ? (isTh ? 'ยืนยันแล้ว' : 'Verified') : docsUploaded ? (isTh ? '⚠ รอตรวจสอบเอกสาร' : '⚠ Pending admin review') : (isTh ? 'ยังไม่ได้อัปโหลดเอกสาร' : 'No documents uploaded'), warn: !companyVerified },
         ].map((kpi) => (
           <div key={kpi.label} style={{ background: 'white', borderRadius: '14px', padding: '18px 20px', border: '1px solid rgba(15,111,115,0.10)' }}>
             <div style={{ fontSize: '26px', fontWeight: 700, letterSpacing: '-0.02em', color: '#C8CDD7' }}>{kpi.value}</div>

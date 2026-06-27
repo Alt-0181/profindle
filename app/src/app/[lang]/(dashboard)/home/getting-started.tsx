@@ -16,7 +16,9 @@ interface Step {
   desc: string;
   done: boolean;
   status: string;
+  providerOnly?: boolean;
   subTasks?: SubTask[];
+  buyerShortcut?: { text: string; label: string; href: string };
   bodyText?: string;
   ctaLabel?: string;
   ctaHref?: string;
@@ -102,7 +104,14 @@ export function GettingStartedAccordion({ steps, lang, completedCount }: Props) 
 
               {/* Title + desc */}
               <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                <div style={{ fontSize: '14px', fontWeight: 600, color: isDone ? '#0F6F73' : '#171A21' }}>{step.title}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: isDone ? '#0F6F73' : '#171A21' }}>{step.title}</span>
+                  {step.providerOnly && (
+                    <span style={{ fontSize: '10px', fontWeight: 700, padding: '1px 7px', borderRadius: '999px', background: '#F0F9F9', color: '#0F6F73', border: '1px solid rgba(15,111,115,0.2)', whiteSpace: 'nowrap' }}>
+                      Providers
+                    </span>
+                  )}
+                </div>
                 <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '2px' }}>{step.desc}</div>
               </div>
 
@@ -152,6 +161,16 @@ export function GettingStartedAccordion({ steps, lang, completedCount }: Props) 
                         )}
                       </Link>
                     ))}
+                  </div>
+                )}
+
+                {/* Buyer shortcut (step 1 only) */}
+                {step.buyerShortcut && (
+                  <div style={{ marginTop: '12px', padding: '12px 14px', background: '#F0F9F9', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                    <span style={{ fontSize: '12.5px', color: '#444B5A' }}>{step.buyerShortcut.text}</span>
+                    <a href={step.buyerShortcut.href} style={{ fontSize: '12.5px', fontWeight: 700, color: '#0F6F73', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                      {step.buyerShortcut.label}
+                    </a>
                   </div>
                 )}
 
