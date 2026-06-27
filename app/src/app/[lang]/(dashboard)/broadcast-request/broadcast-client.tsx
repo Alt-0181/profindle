@@ -297,7 +297,7 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
         </div>
       )}
 
-      {/* Step 3: Budget & Timeline */}
+      {/* Step 3: Budget & Service Delivered Date */}
       {step === 3 && (
         <div style={cardStyle}>
           <h2 style={{ fontSize: '17px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{t.step3Title}</h2>
@@ -366,7 +366,7 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
               { label: lang === 'th' ? 'คำอธิบาย (ไทย)' : 'Description (TH)', value: form.descTh || '—' },
               ...(form.descEn ? [{ label: lang === 'th' ? 'คำอธิบาย (อังกฤษ)' : 'Description (EN)', value: form.descEn }] : []),
               { label: lang === 'th' ? 'งบประมาณ' : 'Budget', value: BUDGETS.find((b) => b.id === form.budget)?.label || '—' },
-              { label: lang === 'th' ? 'ระยะเวลา' : 'Timeline', value: timelineDisplay },
+              { label: lang === 'th' ? 'วันที่ส่งงาน' : 'Service Delivered Date', value: timelineDisplay },
             ];
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
