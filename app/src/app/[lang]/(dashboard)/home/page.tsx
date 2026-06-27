@@ -78,8 +78,9 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
     {
       num: 2,
       title: isTh ? 'เพิ่มผลงาน' : 'Add portfolio',
-      desc: isTh ? 'นำเสนอผลงานจริงเพื่อสร้างความเชื่อมั่นกับลูกค้า' : 'Showcase real work to build trust with potential clients.',
+      desc: isTh ? 'สำหรับผู้ให้บริการ — นำเสนอผลงานจริงเพื่อสร้างความเชื่อมั่นกับลูกค้า' : 'For service providers — showcase real work to build trust with potential clients.',
       done: hasPortfolio,
+      providerOnly: true,
       status: hasPortfolio
         ? (isTh ? `${portfolioCount} ผลงาน` : `${portfolioCount} project${portfolioCount === 1 ? '' : 's'}`)
         : (isTh ? 'ยังไม่ได้เริ่ม' : 'Not started'),
