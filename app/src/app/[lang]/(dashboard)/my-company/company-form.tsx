@@ -500,9 +500,6 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         <div style={{ marginBottom: '20px' }}>
           <label style={labelStyle}>
             {lang === 'th' ? 'บริการของคุณ' : 'Services'}
-            <span style={{ fontSize: '11px', color: '#9AA0AE', fontWeight: 400, marginLeft: '6px' }}>
-              {lang === 'th' ? '— อุตสาหกรรมจะถูกเติมอัตโนมัติ' : '— industry will be auto-detected'}
-            </span>
           </label>
 
           {/* Selected service tags */}
@@ -553,25 +550,6 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
             )}
           </div>
 
-          {/* Auto-derived industries */}
-          {selectedServices.length > 0 && (
-            <div style={{ marginTop: '8px', display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '12px', color: '#6B7385', flexWrap: 'wrap' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1A9DA3" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                {lang === 'th' ? 'อุตสาหกรรม:' : 'Industries:'}
-              </span>
-              {deriveIndustries(selectedServices).map(ind => (
-                <span key={ind} style={{ background: '#F0F9F9', color: '#0F6F73', fontWeight: 600, padding: '2px 8px', borderRadius: '999px', border: '1px solid rgba(15,111,115,0.2)', fontSize: '11px' }}>{ind}</span>
-              ))}
-            </div>
-          )}
-          {selectedServices.length === 0 && (
-            <div style={{ marginTop: '8px', fontSize: '12px', color: '#9AA0AE' }}>
-              {lang === 'th'
-                ? 'เพิ่มบริการที่นี่ หรือสร้างโปรเจกต์พอร์ตโฟลิโอเพื่อให้ระบบตรวจจับอุตสาหกรรมโดยอัตโนมัติ'
-                : 'Add services here, or create portfolio projects — your industry will be set automatically.'}
-            </div>
-          )}
         </div>
 
         {/* Province */}
