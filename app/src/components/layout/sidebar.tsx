@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import type { Dictionary } from '@/dictionaries';
+import { createClient } from '@/lib/supabase/client';
 
 interface NavItem {
   type: 'item';
@@ -104,6 +105,13 @@ interface SidebarProps {
 
 export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, user }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push(`/${locale}/login`);
+  };
 
   const navEntries: NavEntry[] = [
     { type: 'item', id: 'home', labelKey: 'home', icon: <HomeIcon />, href: `/${locale}/home` },
@@ -200,6 +208,7 @@ export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, use
           </div>
           <button
             title={dict.nav.logout}
+            onClick={handleLogout}
             className="w-7 h-7 flex items-center justify-center rounded text-white/30 hover:text-white/70 transition-colors"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
