@@ -54,10 +54,10 @@ async function handleEvent(event: any) {
     if (/^(status|สถานะ)$/i.test(text)) {
       const { data: company } = await adminClient()
         .from('companies')
-        .select('plan, plan_expires_at')
+        .select('premium, plan_expires_at')
         .eq('line_user_id', userId)
         .maybeSingle();
-      const plan = (company as any)?.plan ?? 'free';
+      const plan = (company as any)?.premium ? 'premium' : 'free';
       const planExpiresAt = (company as any)?.plan_expires_at ?? null;
       await replyMessage(event.replyToken, [makeVipStatusMessage(plan, planExpiresAt)]);
       return;
