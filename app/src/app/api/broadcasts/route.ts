@@ -51,14 +51,14 @@ export async function POST(request: NextRequest) {
     .single();
   if (broadcastErr) return NextResponse.json({ error: broadcastErr.message }, { status: 500 });
 
-  // Find providers whose services[] includes the broadcast category
+  // Only premium providers receive LINE broadcast notifications
   const { data: providers } = await admin
     .from('companies')
     .select('id, line_user_id')
     .not('line_user_id', 'is', null)
     .neq('id', buyerCompany.id)
+    .eq('premium', true)
     .contains('services', [category])
-    .order('premium', { ascending: false })
     .limit(50);
 
   if (!providers || providers.length === 0) {
