@@ -54,7 +54,7 @@ interface MyCompanyFormProps {
     nameEn: string; nameTh: string; descEn: string; descTh: string;
     province: string; address: string;
     teamSize: string; foundedYear: string; website: string;
-    phone: string; emailPublic: string;
+    phone: string; emailPublic: string; lineId: string;
     dbdCertPath: string | null; dbdCertName: string | null;
     services: string[];
   };
@@ -64,7 +64,7 @@ const EMPTY = {
   nameEn: '', nameTh: '', descEn: '', descTh: '',
   province: '', address: '',
   teamSize: '', foundedYear: '', website: '',
-  phone: '', emailPublic: '',
+  phone: '', emailPublic: '', lineId: '',
 };
 
 export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
@@ -189,6 +189,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         website: website || null,
         phone: form.phone || null,
         email: form.emailPublic || null,
+        line_id: form.lineId || null,
         ...(dbdPath ? { dbd_certificate_url: dbdPath, dbd_certificate_name: uploadFile?.name ?? initialData?.dbdCertName ?? null } : {}),
         updated_at: new Date().toISOString(),
       };
@@ -385,7 +386,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
       {/* Contact Information */}
       <div style={sectionStyle}>
         <div style={{ fontSize: '16px', fontWeight: 700, color: '#171A21', marginBottom: '20px' }}>{t.contactInfo}</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
           <div>
             <label style={labelStyle}>{t.phone}</label>
             <input type="tel" value={form.phone} onChange={(e) => set('phone', e.target.value)} style={inputStyle} placeholder={t.phonePh} />
@@ -393,6 +394,26 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
           <div>
             <label style={labelStyle}>{t.emailPublic}</label>
             <input type="email" value={form.emailPublic} onChange={(e) => set('emailPublic', e.target.value)} style={inputStyle} placeholder={t.emailPublicPh} />
+          </div>
+        </div>
+        <div>
+          <label style={labelStyle}>
+            LINE ID <span style={{ fontWeight: 400, color: '#9AA0AE', fontSize: '12px' }}>({lang === 'th' ? 'ไม่บังคับ' : 'optional'})</span>
+          </label>
+          <div style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', pointerEvents: 'none' }}>
+              <svg viewBox="0 0 24 24" fill="#06C755" width="20" height="20"><path d="M19.365 9.89c.50 0 .866.37.866.87s-.368.87-.866.87H17.61v1.05h1.754c.498 0 .866.37.866.87s-.368.87-.866.87H16.74a.87.87 0 0 1-.866-.87V8.14c0-.498.368-.868.866-.868h2.624c.498 0 .866.37.866.87s-.368.87-.866.87H17.61v.878h1.754zm-6.735 3.65a.868.868 0 0 1-.607-.247l-2.627-2.78v2.16a.866.866 0 1 1-1.732 0V8.14a.866.866 0 0 1 1.474-.618l2.627 2.78V8.14a.866.866 0 1 1 1.732 0v5.4a.868.868 0 0 1-.866.868v.002zm-5.74 0a.866.866 0 0 1-.866-.868V8.14a.866.866 0 1 1 1.732 0v5.4a.866.866 0 0 1-.866.868v-.002zM24 10.314C24 4.943 18.617.572 12 .572S0 4.943 0 10.314c0 4.814 4.27 8.842 10.035 9.608.392.084.923.258 1.058.592.12.302.079.776.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.966C23.176 14.143 24 12.33 24 10.314z"/></svg>
+            </div>
+            <input
+              type="text"
+              value={form.lineId}
+              onChange={(e) => set('lineId', e.target.value)}
+              style={{ ...inputStyle, paddingLeft: '40px' }}
+              placeholder={lang === 'th' ? 'เช่น @yourcompany หรือ yourlineid' : 'e.g. @yourcompany or yourlineid'}
+            />
+          </div>
+          <div style={{ fontSize: '11.5px', color: '#9AA0AE', marginTop: '5px' }}>
+            {lang === 'th' ? 'ผู้ให้บริการที่สนใจจะเห็นปุ่ม LINE บนหน้าคำขอของคุณ' : 'Providers interested in your broadcast will see a LINE button to contact you'}
           </div>
         </div>
       </div>
