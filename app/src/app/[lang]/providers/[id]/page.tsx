@@ -1,23 +1,44 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
-import { createClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { PublicNav } from '@/components/layout/public-nav';
 import { PortfolioGrid } from './portfolio-grid';
+
+function getAdmin() {
+  return createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false } }
+  );
+}
+
+async function signPortfolioImages(admin: ReturnType<typeof getAdmin>, projects: any[]): Promise<any[]> {
+  return Promise.all(projects.map(async (p) => {
+    if (!p.images?.length) return p;
+    const signed = await Promise.all(p.images.map(async (url: string) => {
+      const match = url.match(/\/portfolio-images\/(.+?)(\?|$)/);
+      if (!match) return url;
+      const { data } = await admin.storage.from('portfolio-images').createSignedUrl(match[1], 3600);
+      return data?.signedUrl ?? url;
+    }));
+    return { ...p, images: signed };
+  }));
+}
 
 export default async function ProviderProfilePage({ params }: { params: Promise<{ lang: string; id: string }> }) {
   const { lang, id } = await params;
   if (!hasLocale(lang)) notFound();
 
-  const [dict, supabase] = await Promise.all([
-    getDictionary(lang as Locale),
-    createClient(),
+  const admin = getAdmin();
+  const dict = await getDictionary(lang as Locale);
+
+  const [{ data: company }, { data: rawPortfolio }] = await Promise.all([
+    admin.from('companies').select('*').eq('id', id).single(),
+    admin.from('portfolio_projects').select('*').eq('company_id', id).order('sort_order'),
   ]);
 
-  const [{ data: company }, { data: portfolio }] = await Promise.all([
-    supabase.from('companies').select('*').eq('id', id).single(),
-    supabase.from('portfolio_projects').select('*').eq('company_id', id).order('sort_order'),
-  ]);
+  const portfolio = await signPortfolioImages(admin, rawPortfolio ?? []);
 
   if (!company) notFound();
 
@@ -25,7 +46,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
   const displayName = isTh && company.name_th ? company.name_th : company.name;
   const displayDesc = isTh && company.description_th ? company.description_th : company.description;
   const initial = company.logo_initial ?? company.name.slice(0, 2).toUpperCase();
-  const projects = portfolio ?? [];
+  const projects = portfolio;
 
   return (
     <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif", minHeight: '100vh', background: '#F4F5F7' }}>
