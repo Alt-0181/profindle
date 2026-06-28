@@ -38,8 +38,8 @@ async function handleEvent(event: any) {
     return;
   }
 
-  if (event.type === 'unfollow' && userId) {
-    await adminClient().from('companies').update({ line_user_id: null }).eq('line_user_id', userId);
+  if (event.type === 'unfollow') {
+    // Do not clear line_user_id — provider may re-follow later and should stay connected.
     return;
   }
 
