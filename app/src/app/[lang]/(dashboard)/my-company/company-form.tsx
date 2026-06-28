@@ -54,7 +54,8 @@ interface MyCompanyFormProps {
     nameEn: string; nameTh: string; descEn: string; descTh: string;
     province: string; address: string;
     teamSize: string; foundedYear: string; website: string;
-    phone: string; emailPublic: string; lineId: string;
+    phone: string; emailPublic: string;
+    lineIdType: 'oa' | 'id' | 'phone'; lineIdValue: string;
     dbdCertPath: string | null; dbdCertName: string | null;
     services: string[];
   };
@@ -64,7 +65,7 @@ const EMPTY = {
   nameEn: '', nameTh: '', descEn: '', descTh: '',
   province: '', address: '',
   teamSize: '', foundedYear: '', website: '',
-  phone: '', emailPublic: '', lineId: '',
+  phone: '', emailPublic: '', lineIdType: 'id' as 'oa' | 'id' | 'phone', lineIdValue: '',
 };
 
 export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
@@ -189,7 +190,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         website: website || null,
         phone: form.phone || null,
         email: form.emailPublic || null,
-        line_id: form.lineId || null,
+        line_id: form.lineIdValue ? `${form.lineIdType}:${form.lineIdValue.trim()}` : null,
         ...(dbdPath ? { dbd_certificate_url: dbdPath, dbd_certificate_name: uploadFile?.name ?? initialData?.dbdCertName ?? null } : {}),
         updated_at: new Date().toISOString(),
       };
@@ -398,22 +399,39 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         </div>
         <div>
           <label style={labelStyle}>
-            LINE ID <span style={{ fontWeight: 400, color: '#9AA0AE', fontSize: '12px' }}>({lang === 'th' ? 'ไม่บังคับ' : 'optional'})</span>
+            LINE <span style={{ fontWeight: 400, color: '#9AA0AE', fontSize: '12px' }}>({lang === 'th' ? 'ไม่บังคับ' : 'optional'})</span>
           </label>
-          <div style={{ position: 'relative' }}>
-            <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', pointerEvents: 'none' }}>
-              <svg viewBox="0 0 24 24" fill="#06C755" width="20" height="20"><path d="M19.365 9.89c.50 0 .866.37.866.87s-.368.87-.866.87H17.61v1.05h1.754c.498 0 .866.37.866.87s-.368.87-.866.87H16.74a.87.87 0 0 1-.866-.87V8.14c0-.498.368-.868.866-.868h2.624c.498 0 .866.37.866.87s-.368.87-.866.87H17.61v.878h1.754zm-6.735 3.65a.868.868 0 0 1-.607-.247l-2.627-2.78v2.16a.866.866 0 1 1-1.732 0V8.14a.866.866 0 0 1 1.474-.618l2.627 2.78V8.14a.866.866 0 1 1 1.732 0v5.4a.868.868 0 0 1-.866.868v.002zm-5.74 0a.866.866 0 0 1-.866-.868V8.14a.866.866 0 1 1 1.732 0v5.4a.866.866 0 0 1-.866.868v-.002zM24 10.314C24 4.943 18.617.572 12 .572S0 4.943 0 10.314c0 4.814 4.27 8.842 10.035 9.608.392.084.923.258 1.058.592.12.302.079.776.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.966C23.176 14.143 24 12.33 24 10.314z"/></svg>
+          <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: '8px' }}>
+            <select
+              value={form.lineIdType}
+              onChange={(e) => setForm(f => ({ ...f, lineIdType: e.target.value as 'oa' | 'id' | 'phone' }))}
+              style={inputStyle}
+            >
+              <option value="oa">{lang === 'th' ? 'Official Account' : 'Official Account'}</option>
+              <option value="id">{lang === 'th' ? 'LINE ID' : 'LINE ID'}</option>
+              <option value="phone">{lang === 'th' ? 'เบอร์โทรศัพท์' : 'Phone Number'}</option>
+            </select>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              {form.lineIdType === 'oa' && (
+                <span style={{ position: 'absolute', left: '14px', fontSize: '14px', fontWeight: 700, color: '#06C755', pointerEvents: 'none', userSelect: 'none' }}>@</span>
+              )}
+              <input
+                type={form.lineIdType === 'phone' ? 'tel' : 'text'}
+                value={form.lineIdValue}
+                onChange={(e) => setForm(f => ({ ...f, lineIdValue: e.target.value }))}
+                style={{ ...inputStyle, paddingLeft: form.lineIdType === 'oa' ? '28px' : '14px' }}
+                placeholder={
+                  form.lineIdType === 'oa' ? (lang === 'th' ? 'profindle' : 'profindle') :
+                  form.lineIdType === 'phone' ? (lang === 'th' ? '0812345678' : '0812345678') :
+                  (lang === 'th' ? 'yourlineid' : 'yourlineid')
+                }
+              />
             </div>
-            <input
-              type="text"
-              value={form.lineId}
-              onChange={(e) => set('lineId', e.target.value)}
-              style={{ ...inputStyle, paddingLeft: '40px' }}
-              placeholder={lang === 'th' ? 'เช่น @yourcompany หรือ yourlineid' : 'e.g. @yourcompany or yourlineid'}
-            />
           </div>
           <div style={{ fontSize: '11.5px', color: '#9AA0AE', marginTop: '5px' }}>
-            {lang === 'th' ? 'ผู้ให้บริการที่สนใจจะเห็นปุ่ม LINE บนหน้าคำขอของคุณ' : 'Providers interested in your broadcast will see a LINE button to contact you'}
+            {lang === 'th'
+              ? 'ผู้ให้บริการจะเห็น LINE ของคุณบนหน้าคำขอ'
+              : 'Providers will see your LINE contact on the broadcast detail page'}
           </div>
         </div>
       </div>

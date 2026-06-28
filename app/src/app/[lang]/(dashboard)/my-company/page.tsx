@@ -17,6 +17,16 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
     .eq('user_id', user?.id ?? '')
     .maybeSingle();
 
+  function parseLineId(raw: string | null): { lineIdType: 'oa' | 'id' | 'phone'; lineIdValue: string } {
+    if (!raw) return { lineIdType: 'id', lineIdValue: '' };
+    if (raw.startsWith('oa:')) return { lineIdType: 'oa', lineIdValue: raw.slice(3) };
+    if (raw.startsWith('id:')) return { lineIdType: 'id', lineIdValue: raw.slice(3) };
+    if (raw.startsWith('phone:')) return { lineIdType: 'phone', lineIdValue: raw.slice(6) };
+    return { lineIdType: 'id', lineIdValue: raw };
+  }
+
+  const lineIdParsed = parseLineId((company as any)?.line_id ?? null);
+
   const initialData = company ? {
     nameEn: company.name ?? '',
     nameTh: company.name_th ?? '',
@@ -30,7 +40,8 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
     website: company.website ?? '',
     phone: company.phone ?? '',
     emailPublic: company.email ?? '',
-    lineId: (company as any).line_id ?? '',
+    lineIdType: lineIdParsed.lineIdType,
+    lineIdValue: lineIdParsed.lineIdValue,
     dbdCertPath: company.dbd_certificate_url ?? null,
     dbdCertName: (company as any).dbd_certificate_name ?? null,
   } : undefined;
