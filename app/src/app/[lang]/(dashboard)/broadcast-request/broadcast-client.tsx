@@ -54,7 +54,7 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
   const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => {
-    if (step === 4 && form.service) {
+    if (step === 3 && form.service) {
       setPreviewLoading(true);
       fetch(`/api/broadcasts/preview?category=${encodeURIComponent(form.service)}`)
         .then((r) => r.json())
@@ -105,8 +105,7 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
   const steps = [
     { num: 1, label: t.step1 },
     { num: 2, label: t.step2 },
-    { num: 3, label: t.step3 },
-    { num: 4, label: t.step4 },
+    { num: 3, label: t.step4 },
   ];
 
   const chipStyle = (active: boolean): React.CSSProperties => ({
@@ -186,7 +185,7 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
       </div>
 
       {/* Stepper */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '24px' }}>
         {steps.map((s) => (
           <div key={s.num} onClick={() => s.num < step && setStep(s.num)} style={{
             padding: '12px 14px', borderRadius: '12px', cursor: s.num < step ? 'pointer' : 'default',
@@ -276,7 +275,7 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
         </div>
       )}
 
-      {/* Step 2: Description */}
+      {/* Step 2: Details + Budget & Delivery */}
       {step === 2 && (
         <div style={cardStyle}>
           <h2 style={{ fontSize: '17px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{t.step2Title}</h2>
@@ -297,7 +296,7 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
             <textarea value={form.descTh} onChange={(e) => set('descTh', e.target.value.slice(0, 300))} rows={4} placeholder={t.descPh} style={{ width: '100%', fontSize: '14px', padding: '10px 14px', border: '1.5px solid #E4E7ED', borderRadius: '12px', background: 'white', outline: 'none', color: '#171A21', fontFamily: 'inherit', resize: 'vertical', minHeight: '100px' }} />
           </div>
 
-          <div style={{ marginBottom: '20px' }}>
+          <div style={{ marginBottom: '24px' }}>
             <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>
               {t.descEn} <span style={{ fontSize: '11px', color: '#9AA0AE', fontWeight: 400 }}>({dict.common.optional})</span>
               <span style={{ fontSize: '11.5px', color: form.descEn.length > 280 ? '#F77F00' : '#9AA0AE', fontWeight: 400 }}>{form.descEn.length} / 300</span>
@@ -305,24 +304,7 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
             <textarea value={form.descEn} onChange={(e) => set('descEn', e.target.value.slice(0, 300))} rows={3} placeholder={t.descPh} style={{ width: '100%', fontSize: '14px', padding: '10px 14px', border: '1.5px solid #E4E7ED', borderRadius: '12px', background: 'white', outline: 'none', color: '#171A21', fontFamily: 'inherit', resize: 'vertical', minHeight: '80px' }} />
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <button onClick={() => setStep(1)} style={{ padding: '10px 20px', background: 'transparent', border: '1.5px solid #E4E7ED', color: '#444B5A', fontWeight: 600, fontSize: '14px', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
-              ← {dict.common.back}
-            </button>
-            <button onClick={() => form.descTh && setStep(3)} disabled={!form.descTh} style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: form.descTh ? 'pointer' : 'not-allowed', opacity: form.descTh ? 1 : 0.5, fontFamily: 'inherit' }}>
-              {dict.common.next} →
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 3: Budget & Service Delivered Date */}
-      {step === 3 && (
-        <div style={cardStyle}>
-          <h2 style={{ fontSize: '17px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{t.step3Title}</h2>
-          <p style={{ fontSize: '13px', color: '#9AA0AE', marginBottom: '20px' }}>{t.step3Sub}</p>
-
-          <div style={{ marginBottom: '24px' }}>
+          <div style={{ borderTop: '1px solid #F4F5F7', paddingTop: '24px', marginBottom: '24px' }}>
             <div style={{ fontSize: '14px', fontWeight: 600, color: '#171A21', marginBottom: '10px' }}>{t.budget}</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {BUDGETS.map((b) => (
@@ -353,14 +335,14 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <button onClick={() => setStep(2)} style={{ padding: '10px 20px', background: 'transparent', border: '1.5px solid #E4E7ED', color: '#444B5A', fontWeight: 600, fontSize: '14px', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={() => setStep(1)} style={{ padding: '10px 20px', background: 'transparent', border: '1.5px solid #E4E7ED', color: '#444B5A', fontWeight: 600, fontSize: '14px', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
               ← {dict.common.back}
             </button>
             {(() => {
               const timelineReady = form.timeline && (form.timeline !== 'specific_date' || form.timelineDate);
-              const canNext = !!(form.budget && timelineReady);
+              const canNext = !!(form.descTh && form.budget && timelineReady);
               return (
-                <button onClick={() => canNext && setStep(4)} disabled={!canNext} style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: canNext ? 'pointer' : 'not-allowed', opacity: canNext ? 1 : 0.5, fontFamily: 'inherit' }}>
+                <button onClick={() => canNext && setStep(3)} disabled={!canNext} style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: canNext ? 'pointer' : 'not-allowed', opacity: canNext ? 1 : 0.5, fontFamily: 'inherit' }}>
                   {dict.common.next} →
                 </button>
               );
@@ -369,8 +351,8 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
         </div>
       )}
 
-      {/* Step 4: Review */}
-      {step === 4 && (
+      {/* Step 3: Review */}
+      {step === 3 && (
         <div style={cardStyle}>
           <h2 style={{ fontSize: '17px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{t.step4Title}</h2>
           <p style={{ fontSize: '13px', color: '#9AA0AE', marginBottom: '20px' }}>{t.step4Sub}</p>
@@ -420,7 +402,7 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
           )}
 
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <button onClick={() => setStep(3)} style={{ padding: '10px 20px', background: 'transparent', border: '1.5px solid #E4E7ED', color: '#444B5A', fontWeight: 600, fontSize: '14px', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={() => setStep(2)} style={{ padding: '10px 20px', background: 'transparent', border: '1.5px solid #E4E7ED', color: '#444B5A', fontWeight: 600, fontSize: '14px', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
               ← {dict.common.back}
             </button>
             <button onClick={handleSubmit} disabled={submitting} style={{ padding: '10px 28px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit', opacity: submitting ? 0.7 : 1 }}>
