@@ -1,8 +1,16 @@
 import { notFound } from 'next/navigation';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
-import { createClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { BroadcastCta } from './broadcast-cta';
+
+function getAdmin() {
+  return createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false } }
+  );
+}
 
 export default async function BroadcastDetailPage({
   params,
@@ -12,12 +20,9 @@ export default async function BroadcastDetailPage({
   const { lang, id } = await params;
   if (!hasLocale(lang)) notFound();
 
-  const [dict, supabase] = await Promise.all([
-    getDictionary(lang as Locale),
-    createClient(),
-  ]);
+  const dict = await getDictionary(lang as Locale);
 
-  const { data: broadcast } = await supabase
+  const { data: broadcast } = await getAdmin()
     .from('broadcasts')
     .select('*, companies:buyer_company_id(name, name_th, phone, email, website, line_id)')
     .eq('id', id)
