@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import type { Dictionary } from '@/dictionaries';
 import { SERVICES, searchServices } from '@/lib/services';
@@ -14,10 +14,10 @@ const BUDGETS = [
   { id: 'discuss', label: 'To be discussed' },
   { id: 'under50k', label: 'Under ฿50,000' },
   { id: '50k-100k', label: '฿50,000 – 100,000' },
-  { id: '100k-300k', label: '฿100,000 – 300,000' },
-  { id: '300k-500k', label: '฿300,000 – 500,000' },
+  { id: '100k-500k', label: '฿100,000 – 500,000' },
   { id: '500k-1m', label: '฿500,000 – 1,000,000' },
-  { id: 'over1m', label: 'Over ฿1,000,000' },
+  { id: '1m-5m', label: '฿1,000,000 – 5,000,000' },
+  { id: 'above5m', label: 'Above ฿5,000,000' },
 ];
 
 const TIMELINES = [
@@ -25,7 +25,6 @@ const TIMELINES = [
   { id: '1month', label: 'Within 1 month' },
   { id: '3months', label: '1–3 months' },
   { id: '6months', label: '3–6 months' },
-  { id: 'flexible', label: 'Flexible' },
 ];
 
 const POPULAR_SERVICES = ['Digital Marketing', 'Web Development', 'SEO / SEM', 'Accounting', 'Legal Consulting', 'Recruitment', 'Branding & Identity', 'Mobile App Development'];
@@ -50,6 +49,19 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
   const [matched, setMatched] = useState<number | null>(null);
   const [notified, setNotified] = useState<number | null>(null);
   const [serviceSearch, setServiceSearch] = useState('');
+  const [previewCount, setPreviewCount] = useState<number | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  useEffect(() => {
+    if (step === 4 && form.service) {
+      setPreviewLoading(true);
+      fetch(`/api/broadcasts/preview?category=${encodeURIComponent(form.service)}`)
+        .then((r) => r.json())
+        .then((d) => setPreviewCount(d.count ?? 0))
+        .catch(() => setPreviewCount(null))
+        .finally(() => setPreviewLoading(false));
+    }
+  }, [step, form.service]);
 
   const set = (key: string, val: string) => setForm((f) => ({ ...f, [key]: val }));
 
@@ -380,8 +392,22 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
             );
           })()}
 
+          <div style={{ background: 'linear-gradient(135deg, #F0F9F9, #E6F5F5)', border: '1.5px solid #2BBEC5', borderRadius: '14px', padding: '16px 20px', margin: '20px 0', display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: '#0F6F73', minWidth: '40px', textAlign: 'center' }}>
+              {previewLoading ? '…' : (previewCount ?? '?')}
+            </div>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21' }}>
+                {lang === 'th' ? 'ผู้ให้บริการที่ตรงกัน' : 'Matching providers will be notified'}
+              </div>
+              <div style={{ fontSize: '12px', color: '#444B5A', marginTop: '2px' }}>
+                {lang === 'th' ? 'ผู้ให้บริการ Premium ที่มีบริการตรงกันจะได้รับการแจ้งเตือนทาง LINE' : 'Premium providers with matching services get a LINE notification'}
+              </div>
+            </div>
+          </div>
+
           {submitError && (
-            <div style={{ background: '#FFF5F5', border: '1px solid #FCA5A5', borderRadius: '10px', padding: '12px 16px', margin: '16px 0', fontSize: '13px', color: '#DC2626' }}>
+            <div style={{ background: '#FFF5F5', border: '1px solid #FCA5A5', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', fontSize: '13px', color: '#DC2626' }}>
               {submitError}
             </div>
           )}

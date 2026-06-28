@@ -128,7 +128,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
   };
 
   const handleEdit = async () => {
-    if (!form.title || saving || !editingId) return;
+    if (!form.title || !form.budget || saving || !editingId) return;
     setSaving(true);
     setSaveError('');
 
@@ -195,7 +195,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
   };
 
   const handleAdd = async () => {
-    if (!form.title || saving) return;
+    if (!form.title || !form.budget || saving) return;
     setSaving(true);
     setSaveError('');
 
@@ -419,14 +419,20 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                   <input type="number" value={form.year} onChange={(e) => set('year', e.target.value)} min={2000} max={2030} style={inputStyle} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>{t.budget}</label>
-                  <select value={form.budget} onChange={(e) => set('budget', e.target.value)} style={inputStyle}>
-                    <option value="">—</option>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '4px' }}>
+                    {t.budget} <span style={{ color: '#DC2626' }}>*</span>
+                  </label>
+                  <div style={{ fontSize: '11px', color: '#9AA0AE', marginBottom: '6px' }}>
+                    {lang === 'th' ? 'ไม่แสดงสาธารณะ — ช่วยให้ลูกค้ากรองตามงบโปรเจกต์' : 'Not shown publicly — helps buyers filter by project value'}
+                  </div>
+                  <select value={form.budget} onChange={(e) => set('budget', e.target.value)} style={{ ...inputStyle, borderColor: !form.budget ? '#FCA5A5' : undefined }}>
+                    <option value="">— Select —</option>
                     <option>Under ฿50,000</option>
                     <option>฿50,000 – 100,000</option>
-                    <option>฿100,000 – 300,000</option>
-                    <option>฿300,000 – 500,000</option>
-                    <option>Over ฿500,000</option>
+                    <option>฿100,000 – 500,000</option>
+                    <option>฿500,000 – 1,000,000</option>
+                    <option>฿1,000,000 – 5,000,000</option>
+                    <option>Above ฿5,000,000</option>
                   </select>
                 </div>
               </div>
