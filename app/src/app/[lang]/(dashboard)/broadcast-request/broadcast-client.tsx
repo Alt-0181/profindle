@@ -48,6 +48,7 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
   const [submitError, setSubmitError] = useState('');
   const [matched, setMatched] = useState<number | null>(null);
   const [notified, setNotified] = useState<number | null>(null);
+  const [pushErrors, setPushErrors] = useState<string[]>([]);
   const [serviceSearch, setServiceSearch] = useState('');
   const [previewCount, setPreviewCount] = useState<number | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -90,6 +91,7 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
       if (!res.ok) throw new Error(data.error ?? 'Submission failed');
       setMatched(data.matched ?? data.notified ?? 0);
       setNotified(data.notified ?? 0);
+      setPushErrors(data.pushErrors ?? []);
       setSubmitted(true);
     } catch (err: any) {
       setSubmitError(err.message);
@@ -134,9 +136,14 @@ export function BroadcastRequestClient({ lang, dict }: BroadcastClientProps) {
           <div style={{ background: '#F0F9F9', borderRadius: '14px', padding: '20px', marginBottom: '28px' }}>
             <div style={{ fontSize: '36px', fontWeight: 700, color: '#0F6F73', marginBottom: '4px' }}>{matched ?? 0}</div>
             <div style={{ fontSize: '14px', color: '#6B7385' }}>{t.matchCount.replace('{count}', String(matched ?? 0))}</div>
-            {notified != null && notified > 0 && (
-              <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '6px' }}>
-                {notified} notified via LINE
+            {notified != null && (
+              <div style={{ fontSize: '12px', color: notified > 0 ? '#9AA0AE' : '#DC2626', marginTop: '6px' }}>
+                {notified > 0 ? `${notified} notified via LINE` : 'LINE notification failed'}
+              </div>
+            )}
+            {pushErrors.length > 0 && (
+              <div style={{ marginTop: '10px', padding: '10px 12px', background: '#FFF5F5', border: '1px solid #FCA5A5', borderRadius: '8px', fontSize: '11px', color: '#DC2626', textAlign: 'left', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                {pushErrors.map((e, i) => <div key={i}>{e}</div>)}
               </div>
             )}
           </div>
