@@ -67,7 +67,7 @@ export function makeBroadcastFlexMessage(broadcast: {
                 margin: 'sm',
                 contents: [
                   { type: 'text', text: 'New Broadcast Request', color: '#FFFFFF', weight: 'bold', size: 'md' },
-                  { type: 'text', text: 'via Profindle', color: 'rgba(255,255,255,0.65)', size: 'xs' },
+                  { type: 'text', text: 'via Profindle', color: '#FFFFFFA6', size: 'xs' },
                 ],
               },
             ],
