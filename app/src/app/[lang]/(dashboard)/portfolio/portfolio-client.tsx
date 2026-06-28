@@ -128,7 +128,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
   };
 
   const handleEdit = async () => {
-    if (!form.title || !form.budget || saving || !editingId) return;
+    if (!form.title || saving || !editingId) return;
     setSaving(true);
     setSaveError('');
 
@@ -195,7 +195,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
   };
 
   const handleAdd = async () => {
-    if (!form.title || !form.budget || saving) return;
+    if (!form.title || saving) return;
     setSaving(true);
     setSaveError('');
 
@@ -420,12 +420,12 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '4px' }}>
-                    {t.budget} <span style={{ color: '#DC2626' }}>*</span>
+                    {t.budget}
                   </label>
                   <div style={{ fontSize: '11px', color: '#9AA0AE', marginBottom: '6px' }}>
-                    {lang === 'th' ? 'ไม่แสดงสาธารณะ — ช่วยให้ลูกค้ากรองตามงบโปรเจกต์' : 'Not shown publicly — helps buyers filter by project value'}
+                    {lang === 'th' ? 'ไม่แสดงสาธารณะ — ช่วยให้ลูกค้ากรองตามมูลค่าโปรเจกต์' : 'Not shown publicly — helps buyers filter by project value'}
                   </div>
-                  <select value={form.budget} onChange={(e) => set('budget', e.target.value)} style={{ ...inputStyle, borderColor: !form.budget ? '#FCA5A5' : undefined }}>
+                  <select value={form.budget} onChange={(e) => set('budget', e.target.value)} style={inputStyle}>
                     <option value="">— Select —</option>
                     <option>Under ฿50,000</option>
                     <option>฿50,000 – 100,000</option>

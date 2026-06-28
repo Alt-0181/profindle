@@ -502,9 +502,21 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [selectedProvince, setSelectedProvince] = useState('');
   const [provinceOpen, setProvinceOpen] = useState(false);
+  const [selectedBudget, setSelectedBudget] = useState('');
+  const [budgetOpen, setBudgetOpen] = useState(false);
   const [sort, setSort] = useState<SortKey>('relevance');
   const [drawerProvider, setDrawerProvider] = useState<Company | null>(null);
   const provinceRef = useRef<HTMLDivElement>(null);
+  const budgetRef = useRef<HTMLDivElement>(null);
+
+  const BUDGET_RANGES = [
+    'Under ฿50,000',
+    '฿50,000 – 100,000',
+    '฿100,000 – 500,000',
+    '฿500,000 – 1,000,000',
+    '฿1,000,000 – 5,000,000',
+    'Above ฿5,000,000',
+  ];
 
   useEffect(() => {
     if (!provinceOpen) return;
@@ -515,10 +527,20 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
     return () => document.removeEventListener('mousedown', handler);
   }, [provinceOpen]);
 
+  useEffect(() => {
+    if (!budgetOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (!budgetRef.current?.contains(e.target as Node)) setBudgetOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [budgetOpen]);
+
   const filtered = companies
     .filter(p => {
       if (verifiedOnly && !p.verified) return false;
       if (selectedProvince && p.province !== selectedProvince) return false;
+      if (selectedBudget && !p.portfolioBudgets.includes(selectedBudget)) return false;
       if (initialQuery) {
         const q = initialQuery.toLowerCase();
         const matchesService = p.services?.some(s => s.toLowerCase().includes(q));
@@ -606,6 +628,40 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
                 )}
               </div>
             )}
+
+            {/* Budget filter */}
+            <div ref={budgetRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setBudgetOpen(o => !o)}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', border: `1.5px solid ${selectedBudget ? '#0F6F73' : '#E4E7ED'}`, background: selectedBudget ? '#F0F9F9' : 'white', color: selectedBudget ? '#0F6F73' : '#6B7385', transition: 'all 150ms' }}
+              >
+                {selectedBudget ? selectedBudget : (isTh ? 'งบโปรเจกต์' : 'Project Budget')}
+                {selectedBudget && (
+                  <span onClick={e => { e.stopPropagation(); setSelectedBudget(''); setBudgetOpen(false); }} style={{ marginLeft: '2px', opacity: 0.6, fontWeight: 700, fontSize: '13px', lineHeight: 1 }}>×</span>
+                )}
+                {!selectedBudget && (
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ transform: budgetOpen ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }}><polyline points="6 9 12 15 18 9"/></svg>
+                )}
+              </button>
+              {budgetOpen && (
+                <div style={{ position: 'absolute', top: 'calc(100% + 6px)', right: 0, background: 'white', border: '1px solid #E4E7ED', borderRadius: '12px', boxShadow: '0 8px 24px rgba(14,16,23,0.12)', zIndex: 200, minWidth: '220px', padding: '6px' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '6px 12px 4px' }}>
+                    {isTh ? 'มูลค่าโปรเจกต์ที่เคยทำ' : 'Past project value'}
+                  </div>
+                  {BUDGET_RANGES.map(b => (
+                    <button
+                      key={b}
+                      onClick={() => { setSelectedBudget(b === selectedBudget ? '' : b); setBudgetOpen(false); }}
+                      style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', borderRadius: '8px', border: 'none', background: b === selectedBudget ? '#F0F9F9' : 'transparent', color: b === selectedBudget ? '#0F6F73' : '#444B5A', fontSize: '13px', fontWeight: b === selectedBudget ? 600 : 400, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 120ms' }}
+                      onMouseEnter={e => { if (b !== selectedBudget) (e.currentTarget as HTMLButtonElement).style.background = '#F4F5F7'; }}
+                      onMouseLeave={e => { if (b !== selectedBudget) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                    >
+                      {b}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <select value={sort} onChange={e => setSort(e.target.value as SortKey)} style={{ fontSize: '13px', color: '#444B5A', border: '1px solid #E4E7ED', borderRadius: '8px', padding: '7px 12px', background: 'white', fontFamily: 'inherit', cursor: 'pointer', outline: 'none' }}>
               <option value="relevance">{isTh ? 'เรียง: ความเกี่ยวข้อง' : 'Sort: Relevance'}</option>

@@ -25,6 +25,7 @@ export type Company = {
   line_id: string | null;
   social_facebook: string | null;
   social_instagram: string | null;
+  portfolioBudgets: string[];
 };
 
 export default async function SearchProvidersPage({
@@ -42,13 +43,31 @@ export default async function SearchProvidersPage({
     createClient(),
   ]);
 
-  const { data: companies } = await supabase
-    .from('companies')
-    .select('id, name, name_th, description, description_th, province, services, industry, verified, premium, views, logo_initial, email, phone, website, founded_year, team_size, address, line_id, social_facebook, social_instagram')
-    .order('premium', { ascending: false })
-    .order('views', { ascending: false });
+  const [{ data: companies }, { data: portfolioBudgetRows }] = await Promise.all([
+    supabase
+      .from('companies')
+      .select('id, name, name_th, description, description_th, province, services, industry, verified, premium, views, logo_initial, email, phone, website, founded_year, team_size, address, line_id, social_facebook, social_instagram')
+      .order('premium', { ascending: false })
+      .order('views', { ascending: false }),
+    supabase
+      .from('portfolio_projects')
+      .select('company_id, budget')
+      .not('budget', 'is', null),
+  ]);
 
-  const provinces = [...new Set((companies ?? []).map((c) => c.province).filter(Boolean))] as string[];
+  const budgetMap: Record<string, string[]> = {};
+  for (const row of portfolioBudgetRows ?? []) {
+    if (!row.budget) continue;
+    if (!budgetMap[row.company_id]) budgetMap[row.company_id] = [];
+    if (!budgetMap[row.company_id].includes(row.budget)) budgetMap[row.company_id].push(row.budget);
+  }
 
-  return <SearchProvidersClient lang={lang} dict={dict} companies={companies ?? []} provinces={provinces} initialQuery={q ?? ''} />;
+  const companiesWithBudgets = (companies ?? []).map((c) => ({
+    ...c,
+    portfolioBudgets: budgetMap[c.id] ?? [],
+  }));
+
+  const provinces = [...new Set(companiesWithBudgets.map((c) => c.province).filter(Boolean))] as string[];
+
+  return <SearchProvidersClient lang={lang} dict={dict} companies={companiesWithBudgets} provinces={provinces} initialQuery={q ?? ''} />;
 }
