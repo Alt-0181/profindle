@@ -233,6 +233,61 @@ textarea {
   background: var(--color-charcoal-300);
 }
 
+/* ─── Mobile / Responsive ──────────────────────────────── */
+.mobile-menu-btn {
+  display: none;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 99;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: none;
+    background: #F0F2F5;
+    cursor: pointer;
+    color: #444B5A;
+    flex-shrink: 0;
+  }
+
+  .sidebar {
+    transform: translateX(-240px);
+    transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar-open .sidebar {
+    transform: translateX(0);
+  }
+
+  .sidebar-open .sidebar-overlay {
+    display: block;
+  }
+
+  .main-with-sidebar {
+    margin-left: 0;
+  }
+
+  .page-header {
+    padding: 12px 16px;
+  }
+
+  .page-body {
+    padding: 16px;
+  }
+}
+
 /* Tailwind overrides for Profindle design system */
 @layer utilities {
   .text-brand { color: var(--fg-brand); }

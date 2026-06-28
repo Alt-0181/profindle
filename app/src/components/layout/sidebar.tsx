@@ -130,7 +130,11 @@ export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, use
 
   const currentUser = user || { initial: 'U', fullName: 'User', plan: 'free' };
 
+  const closeMobileMenu = () => document.body.classList.remove('sidebar-open');
+
   return (
+    <>
+    <div className="sidebar-overlay" onClick={closeMobileMenu} />
     <aside className="sidebar">
       {/* Header / Logo */}
       <div className="sidebar-header">
@@ -168,6 +172,7 @@ export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, use
             <Link
               key={entry.id}
               href={href}
+              onClick={closeMobileMenu}
               title={entry.locked ? 'Add your company info to unlock' : undefined}
               style={{
                 display: 'flex', alignItems: 'center', gap: '10px',
@@ -220,5 +225,6 @@ export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, use
         </div>
       </div>
     </aside>
+    </>
   );
 }
