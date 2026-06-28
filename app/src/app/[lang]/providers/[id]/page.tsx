@@ -4,6 +4,7 @@ import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { PublicNav } from '@/components/layout/public-nav';
 import { PortfolioGrid } from './portfolio-grid';
+import { LineContactRow } from './line-contact-row';
 
 function getAdmin() {
   return createAdminClient(
@@ -13,17 +14,17 @@ function getAdmin() {
   );
 }
 
-async function signPortfolioImages(admin: ReturnType<typeof getAdmin>, projects: any[]): Promise<any[]> {
-  return Promise.all(projects.map(async (p) => {
+function proxyPortfolioImages(projects: any[]): any[] {
+  return projects.map((p) => {
     if (!p.images?.length) return p;
-    const signed = await Promise.all(p.images.map(async (url: string) => {
-      const match = url.match(/\/portfolio-images\/(.+?)(\?|$)/);
+    const proxied = p.images.map((url: string) => {
+      if (!url) return url;
+      const match = url.match(/\/portfolio-images\/(.+?)(?:\?|$)/);
       if (!match) return url;
-      const { data } = await admin.storage.from('portfolio-images').createSignedUrl(match[1], 3600);
-      return data?.signedUrl ?? url;
-    }));
-    return { ...p, images: signed };
-  }));
+      return `/api/portfolio-image?path=${encodeURIComponent(match[1])}`;
+    });
+    return { ...p, images: proxied };
+  });
 }
 
 export default async function ProviderProfilePage({ params }: { params: Promise<{ lang: string; id: string }> }) {
@@ -38,7 +39,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
     admin.from('portfolio_projects').select('*').eq('company_id', id).order('sort_order'),
   ]);
 
-  const portfolio = await signPortfolioImages(admin, rawPortfolio ?? []);
+  const portfolio = proxyPortfolioImages(rawPortfolio ?? []);
 
   if (!company) notFound();
 
@@ -159,7 +160,10 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
                     {company.website.replace(/^https?:\/\//, '')}
                   </a>
                 )}
-                {!company.email && !company.phone && !company.website && (
+                {company.line_id && (
+                  <LineContactRow raw={company.line_id} isTh={isTh} />
+                )}
+                {!company.email && !company.phone && !company.website && !company.line_id && (
                   <p style={{ fontSize: '13px', color: '#9AA0AE', textAlign: 'center', padding: '8px 0', margin: 0 }}>{isTh ? 'ยังไม่มีข้อมูลติดต่อ' : 'No contact info yet'}</p>
                 )}
               </div>
