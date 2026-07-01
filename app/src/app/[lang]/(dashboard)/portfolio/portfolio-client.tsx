@@ -300,7 +300,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
         {projects.map((proj) => (
           <div key={proj.id} onClick={() => openEdit(proj)} style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden', cursor: 'pointer', transition: 'all 200ms' }}>
-            <div style={{ aspectRatio: '4/3', background: 'linear-gradient(135deg, #F0F9F9, #D4EEEF)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
+            <div style={{ aspectRatio: '4/3', background: 'linear-gradient(135deg, #F0F9F9, #D4EEEF)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
               {(proj.coverImage || proj.images[0]) ? (
                 <img src={toProxyUrl(proj.coverImage || proj.images[0]) ?? ''} alt={proj.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
@@ -308,11 +308,18 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                   <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
                 </svg>
               )}
-              {proj.images.length > 1 && (
-                <div style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '3px 8px', borderRadius: '999px' }}>
-                  1/{proj.images.length}
+            </div>
+            {/* Thumbnail strip for slots 1-4 */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2px', background: '#E4E7ED' }}>
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} style={{ aspectRatio: '1', background: '#F0F9F9', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {proj.images[i] ? (
+                    <img src={toProxyUrl(proj.images[i]) ?? ''} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C8CDD7" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  )}
                 </div>
-              )}
+              ))}
             </div>
             <div style={{ padding: '16px' }}>
               <div style={{ fontSize: '15px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{proj.title}</div>
