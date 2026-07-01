@@ -300,13 +300,19 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
         {projects.map((proj) => (
           <div key={proj.id} onClick={() => openEdit(proj)} style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden', cursor: 'pointer', transition: 'all 200ms' }}>
-            <div style={{ aspectRatio: '4/3', background: 'linear-gradient(135deg, #F0F9F9, #D4EEEF)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <div style={{ aspectRatio: '4/3', background: 'linear-gradient(135deg, #F0F9F9, #D4EEEF)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
               {(proj.coverImage || proj.images[0]) ? (
                 <img src={toProxyUrl(proj.coverImage || proj.images[0]) ?? ''} alt={proj.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#A8DCDF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
                 </svg>
+              )}
+              {proj.images.length > 1 && (
+                <div style={{ position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.55)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  {proj.images.length}
+                </div>
               )}
             </div>
             <div style={{ padding: '16px' }}>
