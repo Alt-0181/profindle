@@ -309,9 +309,15 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                 </svg>
               )}
               {proj.images.length > 1 && (
-                <div style={{ position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.55)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                  {proj.images.length}
+                <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', display: 'flex', gap: '2px', padding: '4px', background: 'linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 100%)' }}>
+                  {proj.images.slice(1, 5).map((img, idx) => (
+                    <div key={idx} style={{ flex: 1, aspectRatio: '1', borderRadius: '4px', overflow: 'hidden', background: '#222' }}>
+                      <img src={toProxyUrl(img) ?? ''} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }} />
+                    </div>
+                  ))}
+                  {proj.images.length < 5 && Array.from({ length: 4 - (proj.images.length - 1) }).map((_, idx) => (
+                    <div key={`empty-${idx}`} style={{ flex: 1, aspectRatio: '1', borderRadius: '4px', background: 'rgba(255,255,255,0.15)', border: '1px dashed rgba(255,255,255,0.3)' }} />
+                  ))}
                 </div>
               )}
             </div>
