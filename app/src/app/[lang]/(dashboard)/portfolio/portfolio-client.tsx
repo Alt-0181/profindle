@@ -47,7 +47,6 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
-  const [saveLog, setSaveLog] = useState<string[]>([]);
   const [debugMode, setDebugMode] = useState(false);
   const [form, setForm] = useState({
     title: '', client: '',
@@ -108,7 +107,6 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
     setImageFiles(Array(5).fill(null));
     setImagePreviews(Array(5).fill(null));
     setSaveError('');
-    setSaveLog([]);
   };
 
   const openEdit = (projId: string) => {
@@ -152,16 +150,10 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
 
       const existing = projects.find(p => p.id === editingId);
       const imageUrls: string[] = existing?.images ? [...existing.images] : [];
-      const log: string[] = [`Project ${editingId.slice(-8)}`];
 
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
-        if (!file) {
-          log.push(`Slot ${i}: unchanged (${imageUrls[i] ? imageUrls[i].slice(-35) : 'empty'})`);
-          continue;
-        }
-        log.push(`Slot ${i}: uploading ${file.name} (${Math.round(file.size / 1024)}KB)…`);
-        setSaveLog([...log]);
+        if (!file) continue;
         const fd = new FormData();
         fd.append('file', file);
         fd.append('projectId', editingId);
@@ -173,12 +165,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         }
         const { url } = await res.json();
         imageUrls[i] = url;
-        log.push(`Slot ${i}: ✓ saved`);
-        setSaveLog([...log]);
       }
-
-      log.push('Writing to DB…');
-      setSaveLog([...log]);
 
       const { error } = await supabase.from('portfolio_projects').update({
         title: form.title,
@@ -213,9 +200,6 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         images: imageUrls,
       } : p));
 
-      log.push('Done ✓');
-      setSaveLog([...log]);
-
       setShowModal(false);
       setEditingId(null);
       resetModal();
@@ -237,7 +221,6 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       if (!user || !companyId) throw new Error('No company profile yet');
 
       const projectId = crypto.randomUUID();
-      const log: string[] = [`New project ${projectId.slice(-8)}`];
 
       // Insert row first so upload route can verify ownership
       const { error: insertErr } = await supabase.from('portfolio_projects').insert({
@@ -263,8 +246,6 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
         if (!file) continue;
-        log.push(`Slot ${i}: uploading ${file.name} (${Math.round(file.size / 1024)}KB)…`);
-        setSaveLog([...log]);
         const fd = new FormData();
         fd.append('file', file);
         fd.append('projectId', projectId);
@@ -276,16 +257,11 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         }
         const { url } = await res.json();
         imageUrls[i] = url;
-        log.push(`Slot ${i}: ✓ saved`);
-        setSaveLog([...log]);
       }
 
       if (imageUrls.some(Boolean)) {
         await supabase.from('portfolio_projects').update({ images: imageUrls }).eq('id', projectId);
       }
-
-      log.push('Done ✓');
-      setSaveLog([...log]);
 
       setProjects(prev => [...prev, {
         id: projectId,
@@ -535,16 +511,6 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                   <textarea value={form.challengeTh} onChange={e => set('challengeTh', e.target.value)} rows={3} placeholder="เช่น ต้องจัดงานให้เสร็จใน 3 วัน พร้อมประสานงานกับศิลปินต่างชาติ" style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }} />
                 </div>
               </div>
-
-              {saveLog.length > 0 && (
-                <div style={{ background: '#0E1017', borderRadius: '8px', padding: '10px 12px', fontFamily: 'monospace', fontSize: '11px', lineHeight: '1.7', maxHeight: '160px', overflowY: 'auto' }}>
-                  {saveLog.map((line, i) => (
-                    <div key={i} style={{ color: line.includes('✓') ? '#6BF' : line.toLowerCase().includes('fail') ? '#F66' : '#9AA0AE' }}>
-                      {line}
-                    </div>
-                  ))}
-                </div>
-              )}
 
               {saveError && (
                 <p style={{ fontSize: '13px', color: '#D32F2F', background: '#FFF5F5', border: '1px solid #FFCDD2', borderRadius: '8px', padding: '10px 14px' }}>
