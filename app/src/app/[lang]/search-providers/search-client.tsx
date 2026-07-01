@@ -382,11 +382,6 @@ function ProfileDrawer({ provider, lang, isTh, dict, onClose }: {
             backgroundPosition: 'center',
             position: 'relative',
           }}>
-            {/* Dark-to-gradient overlay when banner is shown */}
-            {provider.banner_url && (
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(14,16,23,0.88) 55%, rgba(15,111,115,0.92) 100%)' }} />
-            )}
-
             {/* Close button */}
             <button onClick={onClose} style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10, width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.12)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -396,7 +391,7 @@ function ProfileDrawer({ provider, lang, isTh, dict, onClose }: {
             {provider.banner_url && <div style={{ height: '130px' }} />}
 
             {/* Content */}
-            <div style={{ position: 'relative', zIndex: 1, paddingTop: provider.banner_url ? '0' : '28px', paddingBottom: '24px', paddingLeft: heroPad, paddingRight: heroPad }}>
+            <div style={{ position: 'relative', zIndex: 1, paddingTop: provider.banner_url ? '0' : '28px', paddingBottom: '24px', paddingLeft: heroPad, paddingRight: heroPad, background: provider.banner_url ? 'linear-gradient(135deg, #0E1017, #0F6F73)' : undefined }}>
               <div style={{
                 width: '86px', height: '86px', borderRadius: '20px',
                 marginTop: '0',
