@@ -181,7 +181,10 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       }).eq('id', editingId);
       if (error) throw error;
 
-      const blobPreviews = imagePreviews.map(url => (url?.startsWith('blob:') ? url : null));
+      // For each slot: use new blob if just uploaded, else carry forward old blob from previous save
+      const blobPreviews = imagePreviews.map((url, i) =>
+        url?.startsWith('blob:') ? url : (existing?.previewUrls?.[i] ?? null)
+      );
 
       setProjects(projects.map(p => p.id === editingId ? {
         ...p,
@@ -223,24 +226,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       if (!user || !companyId) throw new Error('No company profile yet');
 
       const projectId = crypto.randomUUID();
-      const imageUrls: string[] = [];
 
-      for (let i = 0; i < imageFiles.length; i++) {
-        const file = imageFiles[i];
-        if (!file) continue;
-        const fd = new FormData();
-        fd.append('file', file);
-        fd.append('projectId', projectId);
-        fd.append('slotIndex', String(i));
-        const res = await fetch('/api/portfolio-upload', { method: 'POST', body: fd });
-        if (!res.ok) {
-          const { error } = await res.json();
-          throw new Error(`Image ${i + 1} failed: ${error}`);
-        }
-        const { url } = await res.json();
-        imageUrls.push(url);
-      }
-
+      // Insert project first so the upload route can verify ownership
       const { error: insertErr } = await supabase.from('portfolio_projects').insert({
         id: projectId,
         company_id: companyId,
@@ -255,9 +242,32 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         results_th: form.resultsTh || null,
         challenge: form.challengeEn || null,
         challenge_th: form.challengeTh || null,
-        images: imageUrls,
+        images: [],
       });
       if (insertErr) throw insertErr;
+
+      // Upload images now that the project row exists
+      const imageUrls: (string | null)[] = Array(5).fill(null);
+      for (let i = 0; i < imageFiles.length; i++) {
+        const file = imageFiles[i];
+        if (!file) continue;
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('projectId', projectId);
+        fd.append('slotIndex', String(i));
+        const res = await fetch('/api/portfolio-upload', { method: 'POST', body: fd });
+        if (!res.ok) {
+          const { error } = await res.json();
+          throw new Error(`Image ${i + 1} failed: ${error}`);
+        }
+        const { url } = await res.json();
+        imageUrls[i] = url;
+      }
+
+      const nonNullUrls = imageUrls.filter(Boolean) as string[];
+      if (nonNullUrls.length > 0) {
+        await supabase.from('portfolio_projects').update({ images: imageUrls }).eq('id', projectId);
+      }
 
       const blobPreviews = imagePreviews.map(url => (url?.startsWith('blob:') ? url : null));
 
@@ -275,7 +285,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         resultsTh: form.resultsTh,
         challengeEn: form.challengeEn,
         challengeTh: form.challengeTh,
-        images: imageUrls,
+        images: imageUrls.map(u => u ?? ''),
         coverImage: imageUrls[0] ?? null,
         previewUrls: blobPreviews,
       }]);
