@@ -32,7 +32,14 @@ type PortfolioProject = {
   results_th: string | null;
   cover_color: string | null;
   sort_order: number;
+  images: string[] | null;
 };
+
+function toProxyUrl(url: string): string {
+  const match = url.match(/\/portfolio-images\/(.+?)(?:\?|$)/);
+  if (!match) return url;
+  return `/api/portfolio-image?path=${encodeURIComponent(match[1])}`;
+}
 
 function coverGradient(color: string | null): string {
   const map: Record<string, string> = {
@@ -61,7 +68,8 @@ function ProjectDetail({ project, isTh, onBack, phone, email, providerName }: {
   const results = project.results
     ? parseResults(isTh && project.results_th ? project.results_th : project.results)
     : [];
-  const slides = [project.cover_color, '#F77F00', '#171A21']; // 3 demo slides until real images stored
+  const hasImages = project.images && project.images.length > 0;
+  const slides = hasImages ? project.images!.map(toProxyUrl) : [project.cover_color];
 
   return (
     <div>
@@ -81,8 +89,12 @@ function ProjectDetail({ project, isTh, onBack, phone, email, providerName }: {
 
         {/* Track */}
         <div style={{ position: 'absolute', inset: 0, display: 'flex', transition: 'transform 280ms cubic-bezier(0.4,0,0.2,1)', transform: `translateX(-${slideIdx * 100}%)` }}>
-          {slides.map((c, i) => (
-            <div key={i} style={{ flex: '0 0 100%', height: '100%', background: coverGradient(c) }} />
+          {slides.map((src, i) => (
+            hasImages ? (
+              <img key={i} src={src ?? ''} alt={project.title} style={{ flex: '0 0 100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <div key={i} style={{ flex: '0 0 100%', height: '100%', background: coverGradient(src) }} />
+            )
           ))}
         </div>
 
@@ -257,6 +269,9 @@ function PortfolioSection({ projects, isTh, onSelectProject }: {
             >
               {/* 4:3 thumbnail */}
               <div style={{ width: '100%', aspectRatio: '4/3', background: coverGradient(p.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end' }}>
+                {p.images && p.images.length > 0 && (
+                  <img src={toProxyUrl(p.images[0])} alt={p.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                )}
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.6) 100%)' }} />
                 <div style={{ position: 'relative', padding: '10px 12px', color: 'white' }}>
                   <div style={{ fontSize: '12px', fontWeight: 700, lineHeight: 1.3 }}>{p.title}</div>
