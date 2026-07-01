@@ -38,6 +38,23 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
   const [notifs, setNotifs] = useState({ broadcast: true, views: true, system: true });
   const [deleteEmail, setDeleteEmail] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  async function handleDeleteAccount() {
+    setDeleteLoading(true);
+    setDeleteError('');
+    const res = await fetch('/api/delete-account', { method: 'DELETE' });
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      setDeleteError(json.error ?? (lang === 'th' ? 'เกิดข้อผิดพลาด' : 'Something went wrong'));
+      setDeleteLoading(false);
+      return;
+    }
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push(`/${lang}/login`);
+  }
 
   const navItems = [
     { id: 'account', label: t.account },
@@ -381,13 +398,14 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <label style={{ fontSize: '13px', fontWeight: 600, color: '#171A21' }}>{t.confirmDelete}</label>
-                <input type="email" value={deleteEmail} onChange={(e) => setDeleteEmail(e.target.value)} placeholder="somchai@jaidee.co.th" style={{ ...inputStyle, borderColor: '#FFD6D7' }} />
+                <input type="email" value={deleteEmail} onChange={(e) => setDeleteEmail(e.target.value)} placeholder={userEmail} style={{ ...inputStyle, borderColor: '#FFD6D7' }} />
+                {deleteError && <p style={{ fontSize: '12px', color: '#E04347', margin: 0 }}>{deleteError}</p>}
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button onClick={() => setShowDeleteConfirm(false)} style={{ padding: '10px 20px', background: 'transparent', border: '1.5px solid #E4E7ED', color: '#444B5A', borderRadius: '12px', fontWeight: 600, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>
                     {dict.common.cancel}
                   </button>
-                  <button disabled={deleteEmail !== 'somchai@jaidee.co.th'} style={{ padding: '10px 20px', background: '#E04347', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 600, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit', opacity: deleteEmail === 'somchai@jaidee.co.th' ? 1 : 0.5 }}>
-                    {lang === 'th' ? 'ยืนยันการลบ' : 'Confirm Delete'}
+                  <button onClick={handleDeleteAccount} disabled={deleteEmail !== userEmail || deleteLoading} style={{ padding: '10px 20px', background: '#E04347', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 600, fontSize: '13px', cursor: deleteEmail === userEmail && !deleteLoading ? 'pointer' : 'not-allowed', fontFamily: 'inherit', opacity: deleteEmail === userEmail && !deleteLoading ? 1 : 0.5 }}>
+                    {deleteLoading ? (lang === 'th' ? 'กำลังลบ...' : 'Deleting...') : (lang === 'th' ? 'ยืนยันการลบ' : 'Confirm Delete')}
                   </button>
                 </div>
               </div>

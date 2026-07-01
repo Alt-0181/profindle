@@ -1,7 +1,25 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/server';
 import { SearchProvidersClient } from './search-client';
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://profindle.com';
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const isTh = lang === 'th';
+  return {
+    title: isTh ? 'ค้นหาผู้ให้บริการ' : 'Find Service Providers',
+    description: isTh
+      ? 'ค้นหาผู้ให้บริการ B2B ในไทยจากกว่า 400 บริการ ตัวกรองตามจังหวัด อุตสาหกรรม และงบประมาณ'
+      : 'Search verified B2B service providers in Thailand across 400+ service categories. Filter by province, industry, and budget.',
+    alternates: {
+      canonical: `${siteUrl}/${lang}/search-providers`,
+      languages: { en: `${siteUrl}/en/search-providers`, th: `${siteUrl}/th/search-providers`, 'x-default': `${siteUrl}/en/search-providers` },
+    },
+  };
+}
 
 export type Company = {
   id: string;

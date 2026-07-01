@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
@@ -6,12 +7,45 @@ import { PublicNav } from '@/components/layout/public-nav';
 import { PortfolioGrid } from './portfolio-grid';
 import { LineContactRow } from './line-contact-row';
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://profindle.com';
+
 function getAdmin() {
   return createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { persistSession: false } }
   );
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string; id: string }> }): Promise<Metadata> {
+  const { lang, id } = await params;
+  const admin = getAdmin();
+  const { data: company } = await admin
+    .from('companies')
+    .select('name, name_th, description, description_th')
+    .eq('id', id)
+    .single();
+  if (!company) return {};
+  const isTh = lang === 'th';
+  const displayName = isTh && company.name_th ? company.name_th : company.name;
+  const displayDesc = isTh && company.description_th ? company.description_th : company.description;
+  return {
+    title: displayName,
+    description: displayDesc ?? `${displayName} — B2B service provider in Thailand on Profindle`,
+    alternates: {
+      canonical: `${siteUrl}/${lang}/providers/${id}`,
+      languages: {
+        en: `${siteUrl}/en/providers/${id}`,
+        th: `${siteUrl}/th/providers/${id}`,
+        'x-default': `${siteUrl}/en/providers/${id}`,
+      },
+    },
+    openGraph: {
+      title: displayName,
+      description: displayDesc ?? `${displayName} on Profindle`,
+      type: 'profile',
+    },
+  };
 }
 
 function proxyPortfolioImages(projects: any[]): any[] {

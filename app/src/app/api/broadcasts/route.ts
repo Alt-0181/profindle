@@ -34,6 +34,18 @@ export async function POST(request: NextRequest) {
 
   const admin = getAdmin();
 
+  // Monthly rate limit: 4 broadcasts per user per calendar month
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const { count: monthCount } = await admin
+    .from('broadcasts')
+    .select('id', { count: 'exact', head: true })
+    .eq('buyer_user_id', user.id)
+    .gte('created_at', startOfMonth);
+  if ((monthCount ?? 0) >= 4) {
+    return NextResponse.json({ error: 'Monthly broadcast limit reached (4 per month). Try again next month.' }, { status: 429 });
+  }
+
   const effectiveDescEn = descriptionEn || descriptionTh || '';
 
   // Insert broadcast

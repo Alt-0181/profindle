@@ -2,10 +2,28 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { hasLocale } from '@/dictionaries';
 
-export const metadata: Metadata = {
-  title: 'Profindle — Find Verified B2B Service Providers in Thailand',
-  description: 'Connect with verified Thai service providers. Post a broadcast request, get matched instantly via LINE.',
-};
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://profindle.com';
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const isTh = lang === 'th';
+  return {
+    title: isTh
+      ? { template: '%s | Profindle', default: 'Profindle — ตลาด B2B ของไทย' }
+      : { template: '%s | Profindle', default: 'Profindle — Thailand B2B Service Marketplace' },
+    description: isTh
+      ? 'ค้นหาผู้ให้บริการ B2B ในไทยที่ผ่านการยืนยัน — ดิจิทัลมาร์เก็ตติ้ง, IT, กฎหมาย, อีเว้นท์ และอื่นๆ ฟรี ไม่ต้องใช้บัตรเครดิต'
+      : 'Find verified B2B service providers across Thailand — Digital Marketing, IT, Legal, Events and more. Free, no credit card required.',
+    alternates: {
+      canonical: `${siteUrl}/${lang}`,
+      languages: {
+        en: `${siteUrl}/en`,
+        th: `${siteUrl}/th`,
+        'x-default': `${siteUrl}/en`,
+      },
+    },
+  };
+}
 
 export async function generateStaticParams() {
   return [{ lang: 'en' }, { lang: 'th' }];
@@ -20,23 +38,5 @@ export default async function LangLayout({
 }) {
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
-
-  return (
-    <html lang={lang}>
-      <head>
-        <link rel="icon" type="image/svg+xml" href="/assets/logo-mark.svg" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/assets/logo-mark.png" />
-        <link rel="apple-touch-icon" href="/assets/logo-square.png" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body style={{ margin: 0, fontFamily: "'Inter', 'Noto Sans Thai', sans-serif" }}>
-        {children}
-      </body>
-    </html>
-  );
+  return <>{children}</>;
 }

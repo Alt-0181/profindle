@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
 
 export default function ForgotPasswordPage() {
   const params = useParams();
@@ -10,6 +11,8 @@ export default function ForgotPasswordPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const t = {
     forgotTitle: lang === 'th' ? 'รีเซ็ตรหัสผ่าน' : 'Reset your password',
@@ -23,6 +26,20 @@ export default function ForgotPasswordPage() {
     leftQuote: lang === 'th' ? 'วิธีที่ฉลาดที่สุดในการหาพันธมิตรทางธุรกิจในไทย' : "Thailand's smartest way to find business partners",
     leftTagline: lang === 'th' ? 'ไม่มีรหัสผ่าน เราส่งรหัสแบบครั้งเดียวทางอีเมล' : 'No passwords. We send a one-time code to your email.',
   };
+
+  async function handleSendReset() {
+    if (!email) return;
+    setLoading(true);
+    setError('');
+    const supabase = createClient();
+    const origin = window.location.origin;
+    const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${origin}/${lang}/reset-password`,
+    });
+    setLoading(false);
+    if (err) { setError(err.message); return; }
+    setSent(true);
+  }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', fontFamily: 'Inter, "Noto Sans Thai", sans-serif' }}>
@@ -68,17 +85,21 @@ export default function ForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t.emailPh}
-                  onKeyDown={(e) => e.key === 'Enter' && email && setSent(true)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSendReset()}
                   style={{ width: '100%', fontSize: '15px', padding: '12px 16px', border: '1.5px solid #E4E7ED', borderRadius: '12px', outline: 'none', color: '#171A21', fontFamily: 'inherit', boxSizing: 'border-box' }}
                 />
               </div>
 
+              {error && (
+                <p style={{ fontSize: '13px', color: '#E04347', marginBottom: '12px' }}>{error}</p>
+              )}
+
               <button
-                onClick={() => email && setSent(true)}
-                disabled={!email}
-                style={{ width: '100%', padding: '14px', background: email ? 'linear-gradient(135deg, #0F6F73, #1A9DA3)' : '#E4E7ED', color: email ? 'white' : '#9AA0AE', fontWeight: 700, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: email ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'all 150ms' }}
+                onClick={handleSendReset}
+                disabled={!email || loading}
+                style={{ width: '100%', padding: '14px', background: email && !loading ? 'linear-gradient(135deg, #0F6F73, #1A9DA3)' : '#E4E7ED', color: email && !loading ? 'white' : '#9AA0AE', fontWeight: 700, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: email && !loading ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'all 150ms' }}
               >
-                {t.sendResetBtn}
+                {loading ? (lang === 'th' ? 'กำลังส่ง...' : 'Sending...') : t.sendResetBtn}
               </button>
 
               <div style={{ marginTop: '24px', textAlign: 'center' }}>
