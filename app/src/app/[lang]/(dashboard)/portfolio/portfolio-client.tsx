@@ -111,7 +111,10 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
     setSaveLog([]);
   };
 
-  const openEdit = (proj: Project) => {
+  const openEdit = (projId: string) => {
+    // Look up fresh from state — never use a closure-captured proj which may be stale
+    const proj = projects.find(p => p.id === projId);
+    if (!proj) return;
     setEditingId(proj.id);
     setForm({
       title: proj.title,
@@ -216,7 +219,6 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       setShowModal(false);
       setEditingId(null);
       resetModal();
-      router.refresh();
     } catch (err: any) {
       setSaveError(err.message ?? 'Save failed — please try again');
     } finally {
@@ -346,7 +348,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       {/* Portfolio grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
         {projects.map((proj) => (
-          <div key={proj.id} onClick={() => openEdit(proj)} style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden', cursor: 'pointer', transition: 'all 200ms' }}>
+          <div key={proj.id} onClick={() => openEdit(proj.id)} style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden', cursor: 'pointer', transition: 'all 200ms' }}>
 
             {/* Cover — slot 0, always from DB URL */}
             <div style={{ aspectRatio: '4/3', background: 'linear-gradient(135deg, #F0F9F9, #D4EEEF)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
