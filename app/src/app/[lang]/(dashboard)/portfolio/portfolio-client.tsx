@@ -5,6 +5,15 @@ import { useRouter } from 'next/navigation';
 import type { Dictionary } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/client';
 
+function toProxyUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const match = url.match(/\/portfolio-images\/(.+?)(?:\?|$)/);
+  if (!match) return url;
+  const vMatch = url.match(/[?&]v=(\d+)/);
+  const vParam = vMatch ? `&v=${vMatch[1]}` : '';
+  return `/api/portfolio-image?path=${encodeURIComponent(match[1])}${vParam}`;
+}
+
 interface Project {
   id: string;
   title: string;
@@ -118,11 +127,11 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
     });
     setClientSearch(proj.confidential ? '' : proj.client);
     setImagePreviews([
-      proj.images[0] ?? null,
-      proj.images[1] ?? null,
-      proj.images[2] ?? null,
-      proj.images[3] ?? null,
-      proj.images[4] ?? null,
+      toProxyUrl(proj.images[0]) ?? null,
+      toProxyUrl(proj.images[1]) ?? null,
+      toProxyUrl(proj.images[2]) ?? null,
+      toProxyUrl(proj.images[3]) ?? null,
+      toProxyUrl(proj.images[4]) ?? null,
     ]);
     setShowModal(true);
   };
@@ -292,8 +301,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         {projects.map((proj) => (
           <div key={proj.id} onClick={() => openEdit(proj)} style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden', cursor: 'pointer', transition: 'all 200ms' }}>
             <div style={{ aspectRatio: '4/3', background: 'linear-gradient(135deg, #F0F9F9, #D4EEEF)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-              {proj.coverImage ? (
-                <img src={proj.coverImage} alt={proj.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              {(proj.coverImage || proj.images[0]) ? (
+                <img src={toProxyUrl(proj.coverImage || proj.images[0]) ?? ''} alt={proj.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#A8DCDF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
