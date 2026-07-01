@@ -58,7 +58,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
   const [clientSearch, setClientSearch] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeSlot, setActiveSlot] = useState<number | null>(null);
+  const activeSlotRef = useRef<number | null>(null);
   const [imageFiles, setImageFiles] = useState<(File | null)[]>(Array(5).fill(null));
   const [imagePreviews, setImagePreviews] = useState<(string | null)[]>(Array(5).fill(null));
 
@@ -76,7 +76,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
   const set = (k: string, v: string | boolean) => setForm((f) => ({ ...f, [k]: v }));
 
   const handleSlotClick = (i: number) => {
-    setActiveSlot(i);
+    activeSlotRef.current = i;
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
       fileInputRef.current.click();
@@ -85,13 +85,14 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || activeSlot === null) return;
+    const slot = activeSlotRef.current;
+    if (!file || slot === null) return;
     const newFiles = [...imageFiles];
-    newFiles[activeSlot] = file;
+    newFiles[slot] = file;
     setImageFiles(newFiles);
     const newPreviews = [...imagePreviews];
-    if (newPreviews[activeSlot]) URL.revokeObjectURL(newPreviews[activeSlot]!);
-    newPreviews[activeSlot] = URL.createObjectURL(file);
+    if (newPreviews[slot]?.startsWith('blob:')) URL.revokeObjectURL(newPreviews[slot]!);
+    newPreviews[slot] = URL.createObjectURL(file);
     setImagePreviews(newPreviews);
   };
 
