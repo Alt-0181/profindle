@@ -309,15 +309,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                 </svg>
               )}
               {proj.images.length > 1 && (
-                <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', display: 'flex', gap: '2px', padding: '4px', background: 'linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 100%)' }}>
-                  {proj.images.slice(1, 5).map((img, idx) => (
-                    <div key={idx} style={{ flex: 1, aspectRatio: '1', borderRadius: '4px', overflow: 'hidden', background: '#222' }}>
-                      <img src={toProxyUrl(img) ?? ''} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }} />
-                    </div>
-                  ))}
-                  {proj.images.length < 5 && Array.from({ length: 4 - (proj.images.length - 1) }).map((_, idx) => (
-                    <div key={`empty-${idx}`} style={{ flex: 1, aspectRatio: '1', borderRadius: '4px', background: 'rgba(255,255,255,0.15)', border: '1px dashed rgba(255,255,255,0.3)' }} />
-                  ))}
+                <div style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '3px 8px', borderRadius: '999px' }}>
+                  1/{proj.images.length}
                 </div>
               )}
             </div>
