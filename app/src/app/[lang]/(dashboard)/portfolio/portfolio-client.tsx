@@ -152,12 +152,17 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
         if (!file) continue;
-        const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-        const path = `${user.id}/${editingId}/${i}.${ext}`;
-        const { error: uploadErr } = await supabase.storage.from('portfolio-images').upload(path, file, { upsert: true });
-        if (uploadErr) throw new Error(`Image ${i + 1} upload failed: ${uploadErr.message}`);
-        const { data: urlData } = supabase.storage.from('portfolio-images').getPublicUrl(path);
-        imageUrls[i] = urlData.publicUrl + '?v=' + Date.now();
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('projectId', editingId);
+        fd.append('slotIndex', String(i));
+        const res = await fetch('/api/portfolio-upload', { method: 'POST', body: fd });
+        if (!res.ok) {
+          const { error } = await res.json();
+          throw new Error(`Image ${i + 1} failed: ${error}`);
+        }
+        const { url } = await res.json();
+        imageUrls[i] = url;
       }
 
       const { error } = await supabase.from('portfolio_projects').update({
@@ -220,12 +225,17 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
         if (!file) continue;
-        const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-        const path = `${user.id}/${projectId}/${i}.${ext}`;
-        const { error: uploadErr } = await supabase.storage.from('portfolio-images').upload(path, file);
-        if (uploadErr) throw uploadErr;
-        const { data: urlData } = supabase.storage.from('portfolio-images').getPublicUrl(path);
-        imageUrls.push(urlData.publicUrl + '?v=' + Date.now());
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('projectId', projectId);
+        fd.append('slotIndex', String(i));
+        const res = await fetch('/api/portfolio-upload', { method: 'POST', body: fd });
+        if (!res.ok) {
+          const { error } = await res.json();
+          throw new Error(`Image ${i + 1} failed: ${error}`);
+        }
+        const { url } = await res.json();
+        imageUrls.push(url);
       }
 
       const { error: insertErr } = await supabase.from('portfolio_projects').insert({
