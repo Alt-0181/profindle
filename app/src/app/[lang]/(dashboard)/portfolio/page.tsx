@@ -42,7 +42,6 @@ export default async function PortfolioPage({ params }: { params: Promise<{ lang
     challengeEn: p.challenge ?? '',
     challengeTh: p.challenge_th ?? '',
     images: p.images ?? [],
-    coverImage: (p.images && p.images.length > 0) ? p.images[0] : null,
   }));
 
   return (

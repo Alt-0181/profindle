@@ -29,8 +29,6 @@ interface Project {
   challengeEn: string;
   challengeTh: string;
   images: string[];
-  coverImage?: string | null;
-  previewUrls?: (string | null)[];
 }
 
 interface PortfolioClientProps {
@@ -151,19 +149,19 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
 
       const existing = projects.find(p => p.id === editingId);
       const imageUrls: string[] = existing?.images ? [...existing.images] : [];
-      const log: string[] = [`Editing project ${editingId?.slice(-8)}`];
+      const log: string[] = [`Project ${editingId.slice(-8)}`];
 
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
         if (!file) {
-          log.push(`Slot ${i}: no new file → keeping "${imageUrls[i] ? imageUrls[i].slice(-40) : 'empty'}"`);
+          log.push(`Slot ${i}: unchanged (${imageUrls[i] ? imageUrls[i].slice(-35) : 'empty'})`);
           continue;
         }
-        log.push(`Slot ${i}: uploading ${file.name} (${Math.round(file.size/1024)}KB)…`);
+        log.push(`Slot ${i}: uploading ${file.name} (${Math.round(file.size / 1024)}KB)…`);
         setSaveLog([...log]);
         const fd = new FormData();
         fd.append('file', file);
-        fd.append('projectId', editingId!);
+        fd.append('projectId', editingId);
         fd.append('slotIndex', String(i));
         const res = await fetch('/api/portfolio-upload', { method: 'POST', body: fd });
         if (!res.ok) {
@@ -172,11 +170,11 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         }
         const { url } = await res.json();
         imageUrls[i] = url;
-        log.push(`Slot ${i}: ✓ → "${url.slice(-40)}"`);
+        log.push(`Slot ${i}: ✓ saved`);
         setSaveLog([...log]);
       }
 
-      log.push(`Saving to DB… images[0]="${imageUrls[0]?.slice(-40) ?? 'empty'}"`);
+      log.push('Writing to DB…');
       setSaveLog([...log]);
 
       const { error } = await supabase.from('portfolio_projects').update({
@@ -195,10 +193,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       }).eq('id', editingId);
       if (error) throw error;
 
-      // Only use blob URLs that were freshly uploaded this session; never carry forward stale blobs
-      const blobPreviews = imagePreviews.map(url => (url?.startsWith('blob:') ? url : null));
-
-      setProjects(projects.map(p => p.id === editingId ? {
+      // Update card state using only DB URLs — no blobs, no previewUrls, no coverImage
+      setProjects(prev => prev.map(p => p.id === editingId ? {
         ...p,
         title: form.title,
         client: form.confidential ? (lang === 'th' ? 'ไม่เปิดเผย' : 'Confidential') : form.client,
@@ -212,11 +208,9 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         challengeEn: form.challengeEn,
         challengeTh: form.challengeTh,
         images: imageUrls,
-        coverImage: imageUrls[0] ?? p.coverImage ?? null,
-        previewUrls: blobPreviews,
       } : p));
 
-      log.push('Saved ✓');
+      log.push('Done ✓');
       setSaveLog([...log]);
 
       setShowModal(false);
@@ -241,8 +235,9 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       if (!user || !companyId) throw new Error('No company profile yet');
 
       const projectId = crypto.randomUUID();
+      const log: string[] = [`New project ${projectId.slice(-8)}`];
 
-      // Insert project first so the upload route can verify ownership
+      // Insert row first so upload route can verify ownership
       const { error: insertErr } = await supabase.from('portfolio_projects').insert({
         id: projectId,
         company_id: companyId,
@@ -261,11 +256,13 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       });
       if (insertErr) throw insertErr;
 
-      // Upload images now that the project row exists
-      const imageUrls: (string | null)[] = Array(5).fill(null);
+      // Upload images by index so slot positions are preserved
+      const imageUrls: string[] = Array(5).fill('');
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
         if (!file) continue;
+        log.push(`Slot ${i}: uploading ${file.name} (${Math.round(file.size / 1024)}KB)…`);
+        setSaveLog([...log]);
         const fd = new FormData();
         fd.append('file', file);
         fd.append('projectId', projectId);
@@ -273,20 +270,22 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         const res = await fetch('/api/portfolio-upload', { method: 'POST', body: fd });
         if (!res.ok) {
           const { error } = await res.json();
-          throw new Error(`Image ${i + 1} failed: ${error}`);
+          throw new Error(`Slot ${i} upload failed: ${error}`);
         }
         const { url } = await res.json();
         imageUrls[i] = url;
+        log.push(`Slot ${i}: ✓ saved`);
+        setSaveLog([...log]);
       }
 
-      const nonNullUrls = imageUrls.filter(Boolean) as string[];
-      if (nonNullUrls.length > 0) {
+      if (imageUrls.some(Boolean)) {
         await supabase.from('portfolio_projects').update({ images: imageUrls }).eq('id', projectId);
       }
 
-      const blobPreviews = imagePreviews.map(url => (url?.startsWith('blob:') ? url : null));
+      log.push('Done ✓');
+      setSaveLog([...log]);
 
-      setProjects([...projects, {
+      setProjects(prev => [...prev, {
         id: projectId,
         title: form.title,
         client: form.confidential ? (lang === 'th' ? 'ไม่เปิดเผย' : 'Confidential') : form.client,
@@ -300,16 +299,14 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         resultsTh: form.resultsTh,
         challengeEn: form.challengeEn,
         challengeTh: form.challengeTh,
-        images: imageUrls.map(u => u ?? ''),
-        coverImage: imageUrls[0] ?? null,
-        previewUrls: blobPreviews,
+        images: imageUrls,
       }]);
 
       setShowModal(false);
       resetModal();
       router.refresh();
     } catch (err: any) {
-      setSaveError(lang === 'th' ? 'บันทึกไม่สำเร็จ — กรุณาลองใหม่' : err.message ?? 'Save failed — please try again');
+      setSaveError(err.message ?? 'Save failed — please try again');
     } finally {
       setSaving(false);
     }
@@ -331,7 +328,10 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
           <p style={{ fontSize: '14px', color: '#6B7385' }}>{t.subtitle}</p>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button onClick={() => setDebugMode(d => !d)} style={{ padding: '8px 12px', background: debugMode ? '#FFF3CD' : '#F4F5F7', border: `1px solid ${debugMode ? '#F77F00' : '#E4E7ED'}`, color: debugMode ? '#E06B00' : '#9AA0AE', fontSize: '12px', fontWeight: 600, borderRadius: '8px', cursor: 'pointer', fontFamily: 'monospace' }}>
+          <button
+            onClick={() => setDebugMode(d => !d)}
+            style={{ padding: '8px 12px', background: debugMode ? '#FFF3CD' : '#F4F5F7', border: `1px solid ${debugMode ? '#F77F00' : '#E4E7ED'}`, color: debugMode ? '#E06B00' : '#9AA0AE', fontSize: '12px', fontWeight: 600, borderRadius: '8px', cursor: 'pointer', fontFamily: 'monospace' }}
+          >
             {debugMode ? '🔍 Debug ON' : '🔍 Debug'}
           </button>
           <button onClick={() => setShowModal(true)} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -347,39 +347,42 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
         {projects.map((proj) => (
           <div key={proj.id} onClick={() => openEdit(proj)} style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden', cursor: 'pointer', transition: 'all 200ms' }}>
+
+            {/* Cover — slot 0, always from DB URL */}
             <div style={{ aspectRatio: '4/3', background: 'linear-gradient(135deg, #F0F9F9, #D4EEEF)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-              {(proj.previewUrls?.[0] || proj.coverImage || proj.images[0]) ? (
-                <img src={proj.previewUrls?.[0] || toProxyUrl(proj.coverImage || proj.images[0]) || ''} alt={proj.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              {proj.images[0] ? (
+                <img key={proj.images[0]} src={toProxyUrl(proj.images[0]) ?? ''} alt={proj.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#A8DCDF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
                 </svg>
               )}
             </div>
-            {/* Thumbnail strip for slots 1-4 */}
+
+            {/* Thumbnails — slots 1-4, always from DB URLs */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2px', background: '#E4E7ED' }}>
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} style={{ aspectRatio: '1', background: '#F0F9F9', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {(proj.previewUrls?.[i] || proj.images[i]) ? (
-                    <img src={proj.previewUrls?.[i] || toProxyUrl(proj.images[i]) || ''} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  {proj.images[i] ? (
+                    <img key={proj.images[i]} src={toProxyUrl(proj.images[i]) ?? ''} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C8CDD7" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C8CDD7" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
                   )}
                 </div>
               ))}
             </div>
+
+            {/* Debug overlay */}
             {debugMode && (
               <div style={{ background: '#0E1017', padding: '8px', fontFamily: 'monospace', fontSize: '10px', lineHeight: '1.6' }} onClick={e => e.stopPropagation()}>
-                {[0,1,2,3,4].map(i => {
-                  const blob = proj.previewUrls?.[i];
-                  const dbUrl = proj.images?.[i];
-                  const src = blob ? 'BLOB' : dbUrl ? 'PROXY' : 'EMPTY';
-                  const color = blob ? '#6BF' : dbUrl ? '#6F6' : '#F66';
-                  const tail = (blob || dbUrl || '').slice(-45);
-                  return <div key={i} style={{ color }}>[{i}] {src} …{tail}</div>;
+                {[0, 1, 2, 3, 4].map(i => {
+                  const url = proj.images[i];
+                  const color = url ? '#6F6' : '#F66';
+                  return <div key={i} style={{ color }}>[{i}] {url ? `…${url.slice(-40)}` : 'EMPTY'}</div>;
                 })}
               </div>
             )}
+
             <div style={{ padding: '16px' }}>
               <div style={{ fontSize: '15px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{proj.title}</div>
               <div style={{ fontSize: '12px', color: '#9AA0AE' }}>{proj.client} · {proj.year}</div>
@@ -388,11 +391,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         ))}
 
         {/* Add card */}
-        <div onClick={() => setShowModal(true)} style={{
-          aspectRatio: '4/3', border: '2px dashed #C8CDD7', borderRadius: '16px',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px',
-          cursor: 'pointer', transition: 'all 150ms', background: 'transparent',
-        }}>
+        <div onClick={() => setShowModal(true)} style={{ aspectRatio: '4/3', border: '2px dashed #C8CDD7', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', transition: 'all 150ms', background: 'transparent' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#F0F9F9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -405,10 +404,10 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         </div>
       </div>
 
-      {/* Add project modal */}
+      {/* Modal */}
       {showModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(14,16,23,0.55)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div style={{ background: 'white', borderRadius: '20px', maxWidth: '580px', width: '100%', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 24px 64px rgba(14,16,23,0.3)' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ background: 'white', borderRadius: '20px', maxWidth: '580px', width: '100%', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 24px 64px rgba(14,16,23,0.3)' }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '24px 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#171A21' }}>{editingId ? (lang === 'th' ? 'แก้ไขโปรเจกต์' : 'Edit Project') : t.addProject}</h3>
               <button onClick={() => { setShowModal(false); setEditingId(null); resetModal(); }} style={{ width: '32px', height: '32px', border: 'none', background: '#F4F5F7', borderRadius: '8px', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
@@ -424,19 +423,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                     <div
                       key={i}
                       onClick={() => handleSlotClick(i)}
-                      style={{
-                        aspectRatio: '4/3',
-                        border: imagePreviews[i] ? '2px solid #0F6F73' : '2px dashed #C8CDD7',
-                        borderRadius: '10px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        background: 'white',
-                        transition: 'border-color 150ms',
-                      }}
+                      style={{ aspectRatio: '4/3', border: imagePreviews[i] ? '2px solid #0F6F73' : '2px dashed #C8CDD7', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative', overflow: 'hidden', background: 'white', transition: 'border-color 150ms' }}
                     >
                       {imagePreviews[i] ? (
                         <img src={imagePreviews[i]!} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -457,7 +444,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
 
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>{t.projectTitle}</label>
-                <input type="text" value={form.title} onChange={(e) => set('title', e.target.value)} placeholder={t.titlePh} style={inputStyle} />
+                <input type="text" value={form.title} onChange={e => set('title', e.target.value)} placeholder={t.titlePh} style={inputStyle} />
               </div>
 
               {/* Client autocomplete */}
@@ -466,19 +453,17 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                 <input
                   type="text"
                   value={form.confidential ? (lang === 'th' ? 'ไม่เปิดเผย' : 'Confidential') : clientSearch}
-                  onChange={(e) => { setClientSearch(e.target.value); set('client', e.target.value); }}
+                  onChange={e => { setClientSearch(e.target.value); set('client', e.target.value); }}
                   disabled={form.confidential}
                   placeholder={t.clientPh}
                   style={{ ...inputStyle, opacity: form.confidential ? 0.5 : 1 }}
                 />
                 {clientSuggestions.length > 0 && (
                   <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: '1px solid #E4E7ED', borderRadius: '12px', boxShadow: '0 8px 24px rgba(23,26,33,0.12)', zIndex: 50, maxHeight: '260px', overflowY: 'auto' }}>
-                    {clientSuggestions.map((c) => (
-                      <div key={c} onClick={() => { set('client', c); setClientSearch(c); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#171A21', borderBottom: '1px solid #F4F5F7' }}>
-                        {c}
-                      </div>
+                    {clientSuggestions.map(c => (
+                      <div key={c} onClick={() => { set('client', c); setClientSearch(c); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#171A21', borderBottom: '1px solid #F4F5F7' }}>{c}</div>
                     ))}
-                    {clientSearch && !KNOWN_CLIENTS.find((c) => c.toLowerCase() === clientSearch.toLowerCase()) && (
+                    {clientSearch && !KNOWN_CLIENTS.find(c => c.toLowerCase() === clientSearch.toLowerCase()) && (
                       <div onClick={() => { set('client', clientSearch); setClientSearch(clientSearch); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#0F6F73', fontWeight: 600 }}>
                         + {t.addClient.replace('{name}', clientSearch)}
                       </div>
@@ -489,23 +474,21 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
 
               {/* Confidential toggle */}
               <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '12px 14px', border: `1.5px solid ${form.confidential ? '#F77F00' : '#E4E7ED'}`, borderRadius: '12px', background: form.confidential ? '#FFF8F0' : 'transparent', transition: 'all 150ms' }}>
-                <input type="checkbox" checked={form.confidential} onChange={(e) => { set('confidential', e.target.checked); if (e.target.checked) setClientSearch(''); }} style={{ width: '20px', height: '20px', accentColor: '#F77F00', borderRadius: '4px', flexShrink: 0 }} />
+                <input type="checkbox" checked={form.confidential} onChange={e => { set('confidential', e.target.checked); if (e.target.checked) setClientSearch(''); }} style={{ width: '20px', height: '20px', accentColor: '#F77F00', borderRadius: '4px', flexShrink: 0 }} />
                 <span style={{ fontSize: '13px', fontWeight: 600, color: form.confidential ? '#E06B00' : '#444B5A' }}>{t.confidential}</span>
               </label>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>{t.year}</label>
-                  <input type="number" value={form.year} onChange={(e) => set('year', e.target.value)} min={2000} max={2030} style={inputStyle} />
+                  <input type="number" value={form.year} onChange={e => set('year', e.target.value)} min={2000} max={2030} style={inputStyle} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '4px' }}>
-                    {t.budget}
-                  </label>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '4px' }}>{t.budget}</label>
                   <div style={{ fontSize: '11px', color: '#9AA0AE', marginBottom: '6px' }}>
                     {lang === 'th' ? 'ไม่แสดงสาธารณะ — ช่วยให้ลูกค้ากรองตามมูลค่าโปรเจกต์' : 'Not shown publicly — helps buyers filter by project value'}
                   </div>
-                  <select value={form.budget} onChange={(e) => set('budget', e.target.value)} style={inputStyle}>
+                  <select value={form.budget} onChange={e => set('budget', e.target.value)} style={inputStyle}>
                     <option value="">— Select —</option>
                     <option>Under ฿50,000</option>
                     <option>฿50,000 – 100,000</option>
@@ -517,58 +500,44 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                 </div>
               </div>
 
-              {/* Bilingual descriptions */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>
                     {t.descEn}
                     <span style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '10px', padding: '1px 6px', borderRadius: '999px', fontWeight: 600 }}>EN</span>
                   </label>
-                  <textarea value={form.descEn} onChange={(e) => set('descEn', e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }} />
+                  <textarea value={form.descEn} onChange={e => set('descEn', e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }} />
                 </div>
                 <div>
                   <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>
                     {t.descTh}
                     <span style={{ background: '#FFF6EC', color: '#E06B00', fontSize: '10px', padding: '1px 6px', borderRadius: '999px', fontWeight: 600 }}>TH</span>
                   </label>
-                  <textarea value={form.descTh} onChange={(e) => set('descTh', e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }} />
+                  <textarea value={form.descTh} onChange={e => set('descTh', e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }} />
                 </div>
               </div>
 
-              {/* Challenge / What made it difficult */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>
                     What made it difficult
                     <span style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '10px', padding: '1px 6px', borderRadius: '999px', fontWeight: 600 }}>EN</span>
                   </label>
-                  <textarea
-                    value={form.challengeEn}
-                    onChange={(e) => set('challengeEn', e.target.value)}
-                    rows={3}
-                    placeholder="e.g. Delivered in 3 days while coordinating with a K-POP group"
-                    style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }}
-                  />
+                  <textarea value={form.challengeEn} onChange={e => set('challengeEn', e.target.value)} rows={3} placeholder="e.g. Delivered in 3 days while coordinating with a K-POP group" style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }} />
                 </div>
                 <div>
                   <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>
                     ความท้าทายของโปรเจคนี้คือ
                     <span style={{ background: '#FFF6EC', color: '#E06B00', fontSize: '10px', padding: '1px 6px', borderRadius: '999px', fontWeight: 600 }}>TH</span>
                   </label>
-                  <textarea
-                    value={form.challengeTh}
-                    onChange={(e) => set('challengeTh', e.target.value)}
-                    rows={3}
-                    placeholder="เช่น ต้องจัดงานให้เสร็จใน 3 วัน พร้อมประสานงานกับศิลปินต่างชาติ"
-                    style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }}
-                  />
+                  <textarea value={form.challengeTh} onChange={e => set('challengeTh', e.target.value)} rows={3} placeholder="เช่น ต้องจัดงานให้เสร็จใน 3 วัน พร้อมประสานงานกับศิลปินต่างชาติ" style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }} />
                 </div>
               </div>
 
               {saveLog.length > 0 && (
                 <div style={{ background: '#0E1017', borderRadius: '8px', padding: '10px 12px', fontFamily: 'monospace', fontSize: '11px', lineHeight: '1.7', maxHeight: '160px', overflowY: 'auto' }}>
                   {saveLog.map((line, i) => (
-                    <div key={i} style={{ color: line.includes('✓') || line.includes('Saved') ? '#6BF' : line.toLowerCase().includes('fail') || line.toLowerCase().includes('error') ? '#F66' : '#9AA0AE' }}>
+                    <div key={i} style={{ color: line.includes('✓') ? '#6BF' : line.toLowerCase().includes('fail') ? '#F66' : '#9AA0AE' }}>
                       {line}
                     </div>
                   ))}
