@@ -30,6 +30,7 @@ interface Project {
   challengeTh: string;
   images: string[];
   coverImage?: string | null;
+  previewUrls?: (string | null)[];
 }
 
 interface PortfolioClientProps {
@@ -91,7 +92,6 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
     newFiles[slot] = file;
     setImageFiles(newFiles);
     const newPreviews = [...imagePreviews];
-    if (newPreviews[slot]?.startsWith('blob:')) URL.revokeObjectURL(newPreviews[slot]!);
     newPreviews[slot] = URL.createObjectURL(file);
     setImagePreviews(newPreviews);
   };
@@ -105,7 +105,6 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       budget: '', confidential: false,
     });
     setClientSearch('');
-    imagePreviews.forEach((url) => { if (url) URL.revokeObjectURL(url); });
     setImageFiles(Array(5).fill(null));
     setImagePreviews(Array(5).fill(null));
     setSaveError('');
@@ -182,6 +181,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       }).eq('id', editingId);
       if (error) throw error;
 
+      const blobPreviews = imagePreviews.map(url => (url?.startsWith('blob:') ? url : null));
+
       setProjects(projects.map(p => p.id === editingId ? {
         ...p,
         title: form.title,
@@ -197,6 +198,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         challengeTh: form.challengeTh,
         images: imageUrls,
         coverImage: imageUrls[0] ?? p.coverImage ?? null,
+        previewUrls: blobPreviews,
       } : p));
 
       setShowModal(false);
@@ -257,6 +259,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       });
       if (insertErr) throw insertErr;
 
+      const blobPreviews = imagePreviews.map(url => (url?.startsWith('blob:') ? url : null));
+
       setProjects([...projects, {
         id: projectId,
         title: form.title,
@@ -273,6 +277,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         challengeTh: form.challengeTh,
         images: imageUrls,
         coverImage: imageUrls[0] ?? null,
+        previewUrls: blobPreviews,
       }]);
 
       setShowModal(false);
@@ -313,8 +318,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         {projects.map((proj) => (
           <div key={proj.id} onClick={() => openEdit(proj)} style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden', cursor: 'pointer', transition: 'all 200ms' }}>
             <div style={{ aspectRatio: '4/3', background: 'linear-gradient(135deg, #F0F9F9, #D4EEEF)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-              {(proj.coverImage || proj.images[0]) ? (
-                <img src={toProxyUrl(proj.coverImage || proj.images[0]) ?? ''} alt={proj.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              {(proj.previewUrls?.[0] || proj.coverImage || proj.images[0]) ? (
+                <img src={proj.previewUrls?.[0] || toProxyUrl(proj.coverImage || proj.images[0]) || ''} alt={proj.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#A8DCDF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
@@ -325,8 +330,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2px', background: '#E4E7ED' }}>
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} style={{ aspectRatio: '1', background: '#F0F9F9', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {proj.images[i] ? (
-                    <img src={toProxyUrl(proj.images[i]) ?? ''} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  {(proj.previewUrls?.[i] || proj.images[i]) ? (
+                    <img src={proj.previewUrls?.[i] || toProxyUrl(proj.images[i]) || ''} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C8CDD7" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                   )}
