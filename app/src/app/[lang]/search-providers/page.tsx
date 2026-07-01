@@ -16,6 +16,8 @@ export type Company = {
   premium: boolean;
   views: number;
   logo_initial: string | null;
+  logo_url: string | null;
+  banner_url: string | null;
   email: string | null;
   phone: string | null;
   website: string | null;
@@ -46,7 +48,7 @@ export default async function SearchProvidersPage({
   const [{ data: companies }, { data: portfolioBudgetRows }] = await Promise.all([
     supabase
       .from('companies')
-      .select('id, name, name_th, description, description_th, province, services, industry, verified, premium, views, logo_initial, email, phone, website, founded_year, team_size, address, line_id, social_facebook, social_instagram')
+      .select('id, name, name_th, description, description_th, province, services, industry, verified, premium, views, logo_initial, logo_url, banner_url, email, phone, website, founded_year, team_size, address, line_id, social_facebook, social_instagram')
       .order('premium', { ascending: false })
       .order('views', { ascending: false }),
     supabase

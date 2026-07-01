@@ -56,16 +56,28 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
       <PublicNav locale={lang} dict={dict} dark={false} />
 
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #0E1017 0%, #0F6F73 100%)', padding: '40px 24px 64px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 40% 60% at 80% 50%, rgba(247,127,0,0.1) 0%, transparent 60%)', pointerEvents: 'none' }} />
+      <div style={{
+        background: company.banner_url ? undefined : 'linear-gradient(135deg, #0E1017 0%, #0F6F73 100%)',
+        backgroundImage: company.banner_url ? `url(${company.banner_url})` : undefined,
+        backgroundSize: 'cover', backgroundPosition: 'center',
+        padding: '40px 24px 64px', position: 'relative', overflow: 'hidden',
+      }}>
+        {company.banner_url && (
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(14,16,23,0.82) 0%, rgba(15,111,115,0.75) 100%)' }} />
+        )}
+        {!company.banner_url && (
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 40% 60% at 80% 50%, rgba(247,127,0,0.1) 0%, transparent 60%)', pointerEvents: 'none' }} />
+        )}
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '960px', margin: '0 auto' }}>
           <Link href={`/${lang}/search-providers`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'rgba(255,255,255,0.5)', textDecoration: 'none', marginBottom: '24px' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6"/></svg>
             {isTh ? 'กลับไปค้นหา' : 'Back to search'}
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
-            <div style={{ width: '88px', height: '88px', borderRadius: '22px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '28px', flexShrink: 0, border: '2px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)' }}>
-              {initial}
+            <div style={{ width: '96px', height: '96px', borderRadius: '22px', background: company.logo_url ? 'none' : 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '28px', flexShrink: 0, border: '2.5px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', overflow: 'hidden' }}>
+              {company.logo_url ? (
+                <img src={company.logo_url} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : initial}
             </div>
             <div>
               <h1 style={{ fontSize: 'clamp(22px, 3vw, 30px)', fontWeight: 700, color: 'white', marginBottom: '10px', letterSpacing: '-0.02em' }}>

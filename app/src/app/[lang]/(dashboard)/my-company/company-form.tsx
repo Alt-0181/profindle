@@ -58,6 +58,7 @@ interface MyCompanyFormProps {
     lineIdType: 'oa' | 'id' | 'phone'; lineIdValue: string;
     dbdCertPath: string | null; dbdCertName: string | null;
     services: string[];
+    logoUrl: string | null; bannerUrl: string | null;
   };
 }
 
@@ -128,6 +129,68 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
     return null;
   };
 
+  const [logoUrl, setLogoUrl] = useState<string | null>(initialData?.logoUrl ?? null);
+  const [logoDisplayUrl, setLogoDisplayUrl] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoError, setLogoError] = useState('');
+  const [bannerUrl, setBannerUrl] = useState<string | null>(initialData?.bannerUrl ?? null);
+  const [bannerDisplayUrl, setBannerDisplayUrl] = useState<string | null>(null);
+  const [bannerUploading, setBannerUploading] = useState(false);
+  const [bannerError, setBannerError] = useState('');
+  const [bannerHover, setBannerHover] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoUploading(true);
+    setLogoError('');
+    const blob = URL.createObjectURL(file);
+    setLogoDisplayUrl(blob);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('type', 'logo');
+      const res = await fetch('/api/company-upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Upload failed');
+      setLogoUrl(data.url);
+      setLogoDisplayUrl(data.url + '?v=' + Date.now());
+      URL.revokeObjectURL(blob);
+    } catch (err: any) {
+      setLogoError(err.message);
+      setLogoDisplayUrl(null);
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
+  const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBannerUploading(true);
+    setBannerError('');
+    const blob = URL.createObjectURL(file);
+    setBannerDisplayUrl(blob);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('type', 'banner');
+      const res = await fetch('/api/company-upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Upload failed');
+      setBannerUrl(data.url);
+      setBannerDisplayUrl(data.url + '?v=' + Date.now());
+      URL.revokeObjectURL(blob);
+    } catch (err: any) {
+      setBannerError(err.message);
+      setBannerDisplayUrl(null);
+    } finally {
+      setBannerUploading(false);
+    }
+  };
+
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState('');
 
@@ -192,6 +255,8 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         email: form.emailPublic || null,
         line_id: form.lineIdValue ? `${form.lineIdType}:${form.lineIdValue.trim()}` : null,
         ...(dbdPath ? { dbd_certificate_url: dbdPath, dbd_certificate_name: uploadFile?.name ?? initialData?.dbdCertName ?? null } : {}),
+        ...(logoUrl ? { logo_url: logoUrl } : {}),
+        ...(bannerUrl ? { banner_url: bannerUrl } : {}),
         updated_at: new Date().toISOString(),
       };
 
@@ -235,8 +300,123 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
     padding: '28px', marginBottom: '20px',
   };
 
+  const logoSrc = logoDisplayUrl ?? logoUrl;
+  const bannerSrc = bannerDisplayUrl ?? bannerUrl;
+  const logoInitial = (form.nameEn || form.nameTh || 'A').slice(0, 2).toUpperCase();
+
   return (
     <form onSubmit={handleSave}>
+      {/* Profile Branding */}
+      <div style={sectionStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </div>
+          <div>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: '#171A21' }}>
+              {lang === 'th' ? 'แบรนด์โปรไฟล์' : 'Profile Branding'}
+            </div>
+            <div style={{ fontSize: '13px', color: '#9AA0AE', marginTop: '1px' }}>
+              {lang === 'th' ? 'อัพโหลดโลโก้และแบนเนอร์เพื่อสร้างความโดดเด่น' : 'Upload your logo and banner to stand out in search'}
+            </div>
+          </div>
+        </div>
+
+        {/* Banner upload */}
+        <input ref={bannerInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleBannerChange} />
+        <div
+          onClick={() => !bannerUploading && bannerInputRef.current?.click()}
+          onMouseEnter={() => setBannerHover(true)}
+          onMouseLeave={() => setBannerHover(false)}
+          style={{
+            position: 'relative', width: '100%', paddingBottom: '38%',
+            borderRadius: '14px', overflow: 'hidden',
+            cursor: bannerUploading ? 'wait' : 'pointer',
+            marginBottom: '20px',
+            border: `2px dashed ${bannerSrc ? 'transparent' : '#C8CDD7'}`,
+            background: bannerSrc ? 'none' : 'linear-gradient(135deg, #0E1017, #0F6F73)',
+          }}
+        >
+          {bannerSrc && (
+            <img src={bannerSrc} alt="Banner" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+          )}
+
+          {/* Overlay */}
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            {!bannerSrc && !bannerUploading && (
+              <>
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <div style={{ fontSize: '15px', fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>
+                  {lang === 'th' ? 'อัพโหลดแบนเนอร์ของคุณ' : 'Upload your banner'}
+                </div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+                  {lang === 'th' ? 'ขนาดปกเฟซบุ๊ก (820×312px) หรือกว้างกว่า' : 'Facebook cover size (820×312px) or wider'}
+                </div>
+              </>
+            )}
+            {bannerUploading && (
+              <div style={{ fontSize: '14px', fontWeight: 600, color: 'white', background: 'rgba(0,0,0,0.5)', padding: '8px 20px', borderRadius: '999px' }}>
+                {lang === 'th' ? 'กำลังอัพโหลด…' : 'Uploading…'}
+              </div>
+            )}
+            {bannerSrc && !bannerUploading && bannerHover && (
+              <div style={{ background: 'rgba(0,0,0,0.55)', padding: '8px 18px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: 'white' }}>
+                  {lang === 'th' ? 'เปลี่ยนแบนเนอร์' : 'Change Banner'}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+        {bannerError && <div style={{ fontSize: '12px', color: '#FF5A5F', marginBottom: '12px' }}>{bannerError}</div>}
+
+        {/* Logo upload */}
+        <input ref={logoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleLogoChange} />
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px' }}>
+          <div
+            onClick={() => !logoUploading && logoInputRef.current?.click()}
+            style={{
+              width: '86px', height: '86px', borderRadius: '18px', flexShrink: 0,
+              background: logoSrc ? 'none' : 'linear-gradient(135deg, #0E1017, #0F6F73)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: logoUploading ? 'wait' : 'pointer', position: 'relative', overflow: 'hidden',
+              border: '2.5px solid rgba(255,255,255,0.15)',
+              boxShadow: '0 2px 12px rgba(14,16,23,0.15)',
+            }}
+          >
+            {logoSrc ? (
+              <img src={logoSrc} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <span style={{ fontSize: '26px', fontWeight: 700, color: 'rgba(255,255,255,0.7)' }}>{logoInitial}</span>
+            )}
+            {logoUploading && (
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: 'white' }}>…</div>
+              </div>
+            )}
+          </div>
+          <div style={{ paddingTop: '6px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#171A21', marginBottom: '5px' }}>
+              {lang === 'th' ? 'โลโก้บริษัท' : 'Company Logo'}
+            </div>
+            <div style={{ fontSize: '12px', color: '#6B7385', lineHeight: 1.65 }}>
+              {lang === 'th'
+                ? 'คลิกที่กรอบเพื่ออัพโหลดโลโก้\nแนะนำ: ภาพสี่เหลี่ยม PNG หรือ JPG ขนาดไม่ต่ำกว่า 200×200px'
+                : <>Click the square to upload your logo.<br />Recommended: square PNG or JPG, min 200×200px.</>
+              }
+            </div>
+            {logoError && <div style={{ fontSize: '12px', color: '#FF5A5F', marginTop: '5px' }}>{logoError}</div>}
+          </div>
+        </div>
+      </div>
+
       {/* Basic Information */}
       <div style={sectionStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>

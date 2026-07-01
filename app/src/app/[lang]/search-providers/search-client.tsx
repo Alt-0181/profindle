@@ -375,26 +375,35 @@ function ProfileDrawer({ provider, lang, isTh, dict, onClose }: {
           style={{ width: '100%', height: '100vh', overflowY: 'auto', background: 'white', animation: 'profileSlideIn 250ms cubic-bezier(0.4,0,0.2,1)' }}
           onClick={e => e.stopPropagation()}
         >
-          {/* Hero — gradient spans full width, content is padded to align with body */}
-          <div style={{
-            background: 'linear-gradient(135deg, #0E1017, #0F6F73)',
-            paddingTop: '28px', paddingBottom: '24px',
-            paddingLeft: heroPad, paddingRight: heroPad,
-            position: 'relative',
-          }}>
-            <button onClick={onClose} style={{ position: 'absolute', top: '16px', right: '16px', width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.12)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+          {/* Hero — banner spans full width if available */}
+          <div style={{ position: 'relative', background: 'linear-gradient(135deg, #0E1017, #0F6F73)' }}>
+            {/* Close button — always top-right */}
+            <button onClick={onClose} style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10, width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.12)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
-            <div style={{ width: '72px', height: '72px', borderRadius: '18px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '26px', marginBottom: '14px', border: '2px solid rgba(255,255,255,0.2)' }}>
-              {initial}
-            </div>
-            <div style={{ fontSize: '20px', fontWeight: 700, color: 'white', letterSpacing: '-0.02em', marginBottom: '4px' }}>{displayName}</div>
-            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '14px' }}>
-              {provider.province}{provider.services?.[0] ? ` · ${provider.services[0]}` : ''}
-            </div>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {provider.verified && <span style={{ background: 'rgba(255,255,255,0.15)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '999px' }}>✓ {isTh ? 'ยืนยันแล้ว' : 'Verified'}</span>}
-              {provider.premium && <span style={{ background: 'linear-gradient(135deg, #F77F00, #E06B00)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '999px' }}>✦ Pro</span>}
+
+            {/* Banner image */}
+            {provider.banner_url && (
+              <div style={{ height: '180px', backgroundImage: `url(${provider.banner_url})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(14,16,23,0.7) 100%)' }} />
+              </div>
+            )}
+
+            {/* Content area */}
+            <div style={{ paddingTop: provider.banner_url ? '16px' : '28px', paddingBottom: '24px', paddingLeft: heroPad, paddingRight: heroPad }}>
+              <div style={{ width: '86px', height: '86px', borderRadius: '20px', background: provider.logo_url ? 'none' : 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '28px', marginBottom: '14px', border: '2.5px solid rgba(255,255,255,0.2)', overflow: 'hidden', flexShrink: 0 }}>
+                {provider.logo_url ? (
+                  <img src={provider.logo_url} alt={provider.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : initial}
+              </div>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: 'white', letterSpacing: '-0.02em', marginBottom: '4px' }}>{displayName}</div>
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '14px' }}>
+                {provider.province}{provider.services?.[0] ? ` · ${provider.services[0]}` : ''}
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {provider.verified && <span style={{ background: 'rgba(255,255,255,0.15)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '999px' }}>✓ {isTh ? 'ยืนยันแล้ว' : 'Verified'}</span>}
+                {provider.premium && <span style={{ background: 'linear-gradient(135deg, #F77F00, #E06B00)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '999px' }}>✦ Pro</span>}
+              </div>
             </div>
           </div>
 
@@ -768,8 +777,10 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
                 >
                   {/* Top row */}
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
-                    <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '18px', flexShrink: 0 }}>
-                      {initial}
+                    <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: p.logo_url ? 'none' : 'linear-gradient(135deg, #0F6F73, #1A9DA3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '18px', flexShrink: 0, overflow: 'hidden' }}>
+                      {p.logo_url ? (
+                        <img src={p.logo_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : initial}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
