@@ -49,6 +49,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [saveLog, setSaveLog] = useState<string[]>([]);
+  const [debugMode, setDebugMode] = useState(false);
   const [form, setForm] = useState({
     title: '', client: '',
     year: new Date().getFullYear().toString(),
@@ -108,6 +110,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
     setImageFiles(Array(5).fill(null));
     setImagePreviews(Array(5).fill(null));
     setSaveError('');
+    setSaveLog([]);
   };
 
   const openEdit = (proj: Project) => {
@@ -148,22 +151,33 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
 
       const existing = projects.find(p => p.id === editingId);
       const imageUrls: string[] = existing?.images ? [...existing.images] : [];
+      const log: string[] = [`Editing project ${editingId?.slice(-8)}`];
 
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
-        if (!file) continue;
+        if (!file) {
+          log.push(`Slot ${i}: no new file → keeping "${imageUrls[i] ? imageUrls[i].slice(-40) : 'empty'}"`);
+          continue;
+        }
+        log.push(`Slot ${i}: uploading ${file.name} (${Math.round(file.size/1024)}KB)…`);
+        setSaveLog([...log]);
         const fd = new FormData();
         fd.append('file', file);
-        fd.append('projectId', editingId);
+        fd.append('projectId', editingId!);
         fd.append('slotIndex', String(i));
         const res = await fetch('/api/portfolio-upload', { method: 'POST', body: fd });
         if (!res.ok) {
           const { error } = await res.json();
-          throw new Error(`Image ${i + 1} failed: ${error}`);
+          throw new Error(`Slot ${i} upload failed: ${error}`);
         }
         const { url } = await res.json();
         imageUrls[i] = url;
+        log.push(`Slot ${i}: ✓ → "${url.slice(-40)}"`);
+        setSaveLog([...log]);
       }
+
+      log.push(`Saving to DB… images[0]="${imageUrls[0]?.slice(-40) ?? 'empty'}"`);
+      setSaveLog([...log]);
 
       const { error } = await supabase.from('portfolio_projects').update({
         title: form.title,
@@ -181,10 +195,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       }).eq('id', editingId);
       if (error) throw error;
 
-      // For each slot: use new blob if just uploaded, else carry forward old blob from previous save
-      const blobPreviews = imagePreviews.map((url, i) =>
-        url?.startsWith('blob:') ? url : (existing?.previewUrls?.[i] ?? null)
-      );
+      // Only use blob URLs that were freshly uploaded this session; never carry forward stale blobs
+      const blobPreviews = imagePreviews.map(url => (url?.startsWith('blob:') ? url : null));
 
       setProjects(projects.map(p => p.id === editingId ? {
         ...p,
@@ -204,12 +216,15 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         previewUrls: blobPreviews,
       } : p));
 
+      log.push('Saved ✓');
+      setSaveLog([...log]);
+
       setShowModal(false);
       setEditingId(null);
       resetModal();
       router.refresh();
     } catch (err: any) {
-      setSaveError(lang === 'th' ? 'บันทึกไม่สำเร็จ — กรุณาลองใหม่' : err.message ?? 'Save failed — please try again');
+      setSaveError(err.message ?? 'Save failed — please try again');
     } finally {
       setSaving(false);
     }
@@ -315,12 +330,17 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
           <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{t.title}</h1>
           <p style={{ fontSize: '14px', color: '#6B7385' }}>{t.subtitle}</p>
         </div>
-        <button onClick={() => setShowModal(true)} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          {t.addProject}
-        </button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button onClick={() => setDebugMode(d => !d)} style={{ padding: '8px 12px', background: debugMode ? '#FFF3CD' : '#F4F5F7', border: `1px solid ${debugMode ? '#F77F00' : '#E4E7ED'}`, color: debugMode ? '#E06B00' : '#9AA0AE', fontSize: '12px', fontWeight: 600, borderRadius: '8px', cursor: 'pointer', fontFamily: 'monospace' }}>
+            {debugMode ? '🔍 Debug ON' : '🔍 Debug'}
+          </button>
+          <button onClick={() => setShowModal(true)} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            {t.addProject}
+          </button>
+        </div>
       </div>
 
       {/* Portfolio grid */}
@@ -348,6 +368,18 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                 </div>
               ))}
             </div>
+            {debugMode && (
+              <div style={{ background: '#0E1017', padding: '8px', fontFamily: 'monospace', fontSize: '10px', lineHeight: '1.6' }} onClick={e => e.stopPropagation()}>
+                {[0,1,2,3,4].map(i => {
+                  const blob = proj.previewUrls?.[i];
+                  const dbUrl = proj.images?.[i];
+                  const src = blob ? 'BLOB' : dbUrl ? 'PROXY' : 'EMPTY';
+                  const color = blob ? '#6BF' : dbUrl ? '#6F6' : '#F66';
+                  const tail = (blob || dbUrl || '').slice(-45);
+                  return <div key={i} style={{ color }}>[{i}] {src} …{tail}</div>;
+                })}
+              </div>
+            )}
             <div style={{ padding: '16px' }}>
               <div style={{ fontSize: '15px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{proj.title}</div>
               <div style={{ fontSize: '12px', color: '#9AA0AE' }}>{proj.client} · {proj.year}</div>
@@ -532,6 +564,16 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                   />
                 </div>
               </div>
+
+              {saveLog.length > 0 && (
+                <div style={{ background: '#0E1017', borderRadius: '8px', padding: '10px 12px', fontFamily: 'monospace', fontSize: '11px', lineHeight: '1.7', maxHeight: '160px', overflowY: 'auto' }}>
+                  {saveLog.map((line, i) => (
+                    <div key={i} style={{ color: line.includes('✓') || line.includes('Saved') ? '#6BF' : line.toLowerCase().includes('fail') || line.toLowerCase().includes('error') ? '#F66' : '#9AA0AE' }}>
+                      {line}
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {saveError && (
                 <p style={{ fontSize: '13px', color: '#D32F2F', background: '#FFF5F5', border: '1px solid #FFCDD2', borderRadius: '8px', padding: '10px 14px' }}>
