@@ -38,7 +38,9 @@ type PortfolioProject = {
 function toProxyUrl(url: string): string {
   const match = url.match(/\/portfolio-images\/(.+?)(?:\?|$)/);
   if (!match) return url;
-  return `/api/portfolio-image?path=${encodeURIComponent(match[1])}`;
+  const vMatch = url.match(/[?&]v=(\d+)/);
+  const vParam = vMatch ? `&v=${vMatch[1]}` : '';
+  return `/api/portfolio-image?path=${encodeURIComponent(match[1])}${vParam}`;
 }
 
 function coverGradient(color: string | null): string {

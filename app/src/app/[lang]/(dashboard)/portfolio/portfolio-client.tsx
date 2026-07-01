@@ -147,7 +147,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         const path = `${user.id}/${editingId}/${i}.${ext}`;
         await supabase.storage.from('portfolio-images').upload(path, file, { upsert: true });
         const { data: urlData } = supabase.storage.from('portfolio-images').getPublicUrl(path);
-        imageUrls[i] = urlData.publicUrl;
+        imageUrls[i] = urlData.publicUrl + '?v=' + Date.now();
       }
 
       const { error } = await supabase.from('portfolio_projects').update({
@@ -215,7 +215,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         const { error: uploadErr } = await supabase.storage.from('portfolio-images').upload(path, file);
         if (uploadErr) throw uploadErr;
         const { data: urlData } = supabase.storage.from('portfolio-images').getPublicUrl(path);
-        imageUrls.push(urlData.publicUrl);
+        imageUrls.push(urlData.publicUrl + '?v=' + Date.now());
       }
 
       const { error: insertErr } = await supabase.from('portfolio_projects').insert({
