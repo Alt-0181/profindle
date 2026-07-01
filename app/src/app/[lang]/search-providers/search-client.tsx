@@ -375,47 +375,55 @@ function ProfileDrawer({ provider, lang, isTh, dict, onClose }: {
           style={{ width: '100%', height: '100vh', overflowY: 'auto', background: 'white', animation: 'profileSlideIn 250ms cubic-bezier(0.4,0,0.2,1)' }}
           onClick={e => e.stopPropagation()}
         >
-          {/* Hero — banner as background-image on the outer div guarantees full-width coverage */}
+          {/* Hero */}
           <div style={{
-            backgroundImage: provider.banner_url ? `url(${provider.banner_url})` : 'linear-gradient(135deg, #0E1017, #0F6F73)',
+            position: 'relative',
+            height: provider.banner_url ? '220px' : 'auto',
+            background: provider.banner_url ? undefined : 'linear-gradient(135deg, #0E1017, #0F6F73)',
+            backgroundImage: provider.banner_url ? `url(${provider.banner_url})` : undefined,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            position: 'relative',
           }}>
             {/* Close button */}
             <button onClick={onClose} style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10, width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.12)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
 
-            {/* Spacer to show banner area before content */}
-            {provider.banner_url && <div style={{ height: '130px' }} />}
-
-            {/* Content */}
-            <div style={{ position: 'relative', zIndex: 1, paddingTop: provider.banner_url ? '0' : '28px', paddingBottom: '24px', paddingLeft: heroPad, paddingRight: heroPad, background: provider.banner_url ? 'linear-gradient(135deg, #0E1017, #0F6F73)' : undefined }}>
-              <div style={{
-                width: '86px', height: '86px', borderRadius: '20px',
-                marginTop: '0',
-                marginBottom: '12px',
-                background: provider.logo_url ? 'none' : 'rgba(255,255,255,0.15)',
-                border: '2.5px solid rgba(255,255,255,0.25)',
-                overflow: 'hidden', flexShrink: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'white', fontWeight: 700, fontSize: '28px',
-                boxShadow: '0 2px 16px rgba(0,0,0,0.35)',
-              }}>
-                {provider.logo_url ? (
-                  <img src={provider.logo_url} alt={provider.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : initial}
+            {provider.banner_url ? (
+              <>
+                {/* Subtle bottom fade so white text stays readable on any photo */}
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '160px', background: 'linear-gradient(to top, rgba(14,16,23,0.80) 0%, transparent 100%)', pointerEvents: 'none' }} />
+                {/* Content overlaid at bottom of banner */}
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: `0 ${heroPad} 20px`, zIndex: 1 }}>
+                  <div style={{ width: '72px', height: '72px', borderRadius: '16px', marginBottom: '10px', background: provider.logo_url ? 'none' : 'rgba(255,255,255,0.15)', border: '2px solid rgba(255,255,255,0.3)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '22px', boxShadow: '0 2px 12px rgba(0,0,0,0.4)' }}>
+                    {provider.logo_url ? <img src={provider.logo_url} alt={provider.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initial}
+                  </div>
+                  <div style={{ fontSize: '20px', fontWeight: 700, color: 'white', letterSpacing: '-0.02em', marginBottom: '4px' }}>{displayName}</div>
+                  <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', marginBottom: '10px' }}>
+                    {provider.province}{provider.services?.[0] ? ` · ${provider.services[0]}` : ''}
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {provider.verified && <span style={{ background: 'rgba(255,255,255,0.18)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '999px', backdropFilter: 'blur(4px)' }}>✓ {isTh ? 'ยืนยันแล้ว' : 'Verified'}</span>}
+                    {provider.premium && <span style={{ background: 'linear-gradient(135deg, #F77F00, #E06B00)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '999px' }}>✦ Pro</span>}
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* No banner: standard stacked layout */
+              <div style={{ paddingTop: '28px', paddingBottom: '24px', paddingLeft: heroPad, paddingRight: heroPad }}>
+                <div style={{ width: '86px', height: '86px', borderRadius: '20px', marginBottom: '12px', background: provider.logo_url ? 'none' : 'rgba(255,255,255,0.15)', border: '2.5px solid rgba(255,255,255,0.25)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '28px', boxShadow: '0 2px 16px rgba(0,0,0,0.35)' }}>
+                  {provider.logo_url ? <img src={provider.logo_url} alt={provider.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initial}
+                </div>
+                <div style={{ fontSize: '20px', fontWeight: 700, color: 'white', letterSpacing: '-0.02em', marginBottom: '4px' }}>{displayName}</div>
+                <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '14px' }}>
+                  {provider.province}{provider.services?.[0] ? ` · ${provider.services[0]}` : ''}
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {provider.verified && <span style={{ background: 'rgba(255,255,255,0.15)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '999px' }}>✓ {isTh ? 'ยืนยันแล้ว' : 'Verified'}</span>}
+                  {provider.premium && <span style={{ background: 'linear-gradient(135deg, #F77F00, #E06B00)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '999px' }}>✦ Pro</span>}
+                </div>
               </div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: 'white', letterSpacing: '-0.02em', marginBottom: '4px' }}>{displayName}</div>
-              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '14px' }}>
-                {provider.province}{provider.services?.[0] ? ` · ${provider.services[0]}` : ''}
-              </div>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {provider.verified && <span style={{ background: 'rgba(255,255,255,0.15)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '999px' }}>✓ {isTh ? 'ยืนยันแล้ว' : 'Verified'}</span>}
-                {provider.premium && <span style={{ background: 'linear-gradient(135deg, #F77F00, #E06B00)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '999px' }}>✦ Pro</span>}
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Body — max-width centered */}
