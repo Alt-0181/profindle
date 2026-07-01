@@ -375,23 +375,35 @@ function ProfileDrawer({ provider, lang, isTh, dict, onClose }: {
           style={{ width: '100%', height: '100vh', overflowY: 'auto', background: 'white', animation: 'profileSlideIn 250ms cubic-bezier(0.4,0,0.2,1)' }}
           onClick={e => e.stopPropagation()}
         >
-          {/* Hero — banner spans full width if available */}
+          {/* Hero */}
           <div style={{ position: 'relative', background: 'linear-gradient(135deg, #0E1017, #0F6F73)' }}>
-            {/* Close button — always top-right */}
+            {/* Close button */}
             <button onClick={onClose} style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10, width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.12)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
 
-            {/* Banner image */}
+            {/* Banner */}
             {provider.banner_url && (
-              <div style={{ height: '180px', backgroundImage: `url(${provider.banner_url})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(14,16,23,0.7) 100%)' }} />
+              <div style={{ height: '160px', backgroundImage: `url(${provider.banner_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '160px', background: 'linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(14,16,23,0.55) 100%)' }} />
               </div>
             )}
 
-            {/* Content area */}
-            <div style={{ paddingTop: provider.banner_url ? '16px' : '28px', paddingBottom: '24px', paddingLeft: heroPad, paddingRight: heroPad }}>
-              <div style={{ width: '86px', height: '86px', borderRadius: '20px', background: provider.logo_url ? 'none' : 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '28px', marginBottom: '14px', border: '2.5px solid rgba(255,255,255,0.2)', overflow: 'hidden', flexShrink: 0 }}>
+            {/* Content */}
+            <div style={{ paddingTop: provider.banner_url ? '0' : '28px', paddingBottom: '24px', paddingLeft: heroPad, paddingRight: heroPad }}>
+              {/* Logo — overlaps banner bottom when banner is present */}
+              <div style={{
+                width: '86px', height: '86px', borderRadius: '20px',
+                marginTop: provider.banner_url ? '-43px' : '0',
+                marginBottom: '12px',
+                position: 'relative', zIndex: 2,
+                background: provider.logo_url ? 'none' : 'rgba(255,255,255,0.15)',
+                border: provider.banner_url ? '3px solid #0E1017' : '2.5px solid rgba(255,255,255,0.2)',
+                overflow: 'hidden', flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'white', fontWeight: 700, fontSize: '28px',
+                boxShadow: provider.banner_url ? '0 2px 12px rgba(0,0,0,0.3)' : 'none',
+              }}>
                 {provider.logo_url ? (
                   <img src={provider.logo_url} alt={provider.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : initial}
