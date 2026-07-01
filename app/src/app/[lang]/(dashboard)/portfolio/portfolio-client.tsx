@@ -154,7 +154,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         if (!file) continue;
         const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
         const path = `${user.id}/${editingId}/${i}.${ext}`;
-        await supabase.storage.from('portfolio-images').upload(path, file, { upsert: true });
+        const { error: uploadErr } = await supabase.storage.from('portfolio-images').upload(path, file, { upsert: true });
+        if (uploadErr) throw new Error(`Image ${i + 1} upload failed: ${uploadErr.message}`);
         const { data: urlData } = supabase.storage.from('portfolio-images').getPublicUrl(path);
         imageUrls[i] = urlData.publicUrl + '?v=' + Date.now();
       }
