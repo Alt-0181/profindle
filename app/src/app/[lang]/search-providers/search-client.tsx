@@ -378,9 +378,7 @@ function ProfileDrawer({ provider, lang, isTh, dict, onClose }: {
           {/* Hero */}
           <div style={{
             position: 'relative',
-            aspectRatio: provider.banner_url ? '820 / 312' : undefined,
-            maxHeight: provider.banner_url ? '360px' : undefined,
-            height: provider.banner_url ? undefined : 'auto',
+            height: provider.banner_url ? 'clamp(200px, 20vw, 320px)' : 'auto',
             background: provider.banner_url ? undefined : 'linear-gradient(135deg, #0E1017, #0F6F73)',
             backgroundImage: provider.banner_url ? `url(${provider.banner_url})` : undefined,
             backgroundSize: 'cover',
