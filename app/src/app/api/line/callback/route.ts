@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { pushMessage, makeWelcomeMessage } from '@/lib/line';
+import { notifyAdmin } from '@/lib/notify';
 
 export async function GET(request: NextRequest) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
@@ -66,12 +67,20 @@ export async function GET(request: NextRequest) {
     return res;
   }
 
+  const { data: company } = await supabase.from('companies').select('name').eq('user_id', user.id).maybeSingle();
   await supabase.from('companies').update({ line_user_id: lineUserId, line_display_name: lineDisplayName }).eq('user_id', user.id);
 
-  // Send welcome push (best-effort)
-  try {
-    await pushMessage(lineUserId, [makeWelcomeMessage(lineUserId)]);
-  } catch {}
+  const companyName = company?.name ?? user.email ?? 'Unknown';
+
+  // Send welcome push to provider (best-effort)
+  try { await pushMessage(lineUserId, [makeWelcomeMessage(lineUserId)]); } catch {}
+
+  // Notify admin
+  await notifyAdmin(
+    `[Profindle] New LINE Connection: ${companyName}`,
+    `<p><strong>${companyName}</strong> just connected their LINE account on Profindle.</p><p>LINE UID: <code>${lineUserId}</code></p><p><a href="https://profindle.com/en/admin">View in Admin Panel →</a></p>`,
+    `🔗 New LINE Connection!\n\n${companyName} just connected their LINE account.\n\nAdmin panel: https://profindle.com/en/admin`,
+  );
 
   const res = NextResponse.redirect(`${appUrl}/en/settings?line=connected&section=line`);
   res.cookies.delete('line_oauth_state');

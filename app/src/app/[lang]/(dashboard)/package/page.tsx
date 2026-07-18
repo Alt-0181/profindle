@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
+import { EarlyBirdButton } from './early-bird-button';
 
 export default async function PackagePage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
@@ -17,6 +18,15 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
         <p style={{ fontSize: '15px', color: '#6B7385' }}>{t.subtitle}</p>
       </div>
 
+      {/* Free plan notice */}
+      <div style={{ background: '#F4F5F7', border: '1px solid #E4E7ED', borderRadius: '12px', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+        <span style={{ fontSize: '13px', color: '#6B7385' }}>
+          {lang === 'th'
+            ? '📋 คุณอยู่ใน แผนฟรี — ฟีเจอร์บางส่วนถูกจำกัดสำหรับสมาชิก Premium เท่านั้น'
+            : '📋 You\'re on the Free plan — some features are limited to Premium members only'}
+        </span>
+      </div>
+
       {/* Early Bird Banner */}
       <div style={{ background: 'linear-gradient(135deg, #FFF8EE, #FFFBF5)', border: '1.5px solid rgba(247,127,0,0.3)', borderRadius: '16px', padding: '16px 24px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
         <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #F77F00, #FFB347)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -27,9 +37,10 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
         <div style={{ flex: 1 }}>
           <span style={{ fontSize: '14px', fontWeight: 700, color: '#E06B00' }}>{t.earlyBirdBanner}</span>
         </div>
-        <a href="mailto:support@profindle.com?subject=Premium%20Early%20Bird%20Request" style={{ padding: '8px 20px', background: 'linear-gradient(135deg, #F77F00, #FFB347)', color: 'white', fontWeight: 700, fontSize: '13px', border: 'none', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', textDecoration: 'none', display: 'inline-block' }}>
-          {t.claimBtn}
-        </a>
+        <EarlyBirdButton
+          label={t.claimBtn}
+          style={{ padding: '8px 20px', background: 'linear-gradient(135deg, #F77F00, #FFB347)', color: 'white', fontWeight: 700, fontSize: '13px', borderRadius: '10px', whiteSpace: 'nowrap' }}
+        />
       </div>
 
       {/* Plan cards */}
@@ -92,9 +103,10 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
             ))}
           </ul>
 
-          <a href="mailto:support@profindle.com?subject=Premium%20Early%20Bird%20Request" style={{ padding: '14px', background: 'linear-gradient(135deg, #F77F00, #FFB347)', color: 'white', fontWeight: 700, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit', position: 'relative', zIndex: 1, transition: 'all 150ms', textDecoration: 'none', display: 'block', textAlign: 'center' }}>
-            {t.claimBtn}
-          </a>
+          <EarlyBirdButton
+            label={t.claimBtn}
+            style={{ padding: '14px', background: 'linear-gradient(135deg, #F77F00, #FFB347)', color: 'white', fontWeight: 700, fontSize: '15px', borderRadius: '12px', position: 'relative', zIndex: 1, width: '100%', textAlign: 'center' }}
+          />
         </div>
       </div>
 
