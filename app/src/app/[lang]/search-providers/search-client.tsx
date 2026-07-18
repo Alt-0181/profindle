@@ -372,7 +372,7 @@ function ProfileDrawer({ provider, lang, isTh, dict, onClose }: {
         {/* Full-width drawer */}
         <div
           ref={drawerRef}
-          style={{ width: '100%', height: '100vh', overflowY: 'auto', background: 'white', animation: 'profileSlideIn 250ms cubic-bezier(0.4,0,0.2,1)' }}
+          style={{ width: '100vw', height: '100vh', overflowY: 'auto', background: 'white', animation: 'profileSlideIn 250ms cubic-bezier(0.4,0,0.2,1)' }}
           onClick={e => e.stopPropagation()}
         >
           {/* Hero */}
