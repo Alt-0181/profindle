@@ -536,11 +536,36 @@ function CompaniesTab({ companies: initial }: { companies: Company[] }) {
 
 // ─── Tab 2: Users ─────────────────────────────────────────────────────────────
 
-function UsersTab({ users }: { users: AuthUser[] }) {
+function UsersTab({ users: initial }: { users: AuthUser[] }) {
+  const [users, setUsers] = useState(initial);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
   const roleBadge = (role?: string) => {
     if (role === 'super_admin') return { bg: '#F0F0FF', color: '#5B4EBB', label: 'Super Admin' };
     if (role === 'admin') return { bg: '#E8F5E9', color: '#2E7D32', label: 'Admin' };
     return { bg: '#F4F5F7', color: '#9AA0AE', label: 'User' };
+  };
+
+  const deleteUser = async (userId: string, email?: string) => {
+    if (!confirm(`Delete user ${email ?? userId}? This cannot be undone.`)) return;
+    setDeleting(userId);
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        alert(json.error || 'Failed to delete user');
+        return;
+      }
+      setUsers(prev => prev.filter(u => u.id !== userId));
+    } catch {
+      alert('Failed to delete user. Please try again.');
+    } finally {
+      setDeleting(null);
+    }
   };
 
   return (
@@ -558,17 +583,18 @@ function UsersTab({ users }: { users: AuthUser[] }) {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: '#F4F5F7' }}>
-              {['Email', 'Display Name', 'Role', 'Joined'].map(col => (
+              {['Email', 'Display Name', 'Role', 'Joined', 'Actions'].map(col => (
                 <th key={col} style={thStyle}>{col}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {users.length === 0 ? (
-              <tr><td colSpan={4} style={{ padding: '48px', textAlign: 'center', color: '#9AA0AE', fontSize: '14px' }}>No users yet</td></tr>
+              <tr><td colSpan={5} style={{ padding: '48px', textAlign: 'center', color: '#9AA0AE', fontSize: '14px' }}>No users yet</td></tr>
             ) : users.map((u, i) => {
               const badge = roleBadge(u.user_metadata?.role);
               const displayName = u.user_metadata?.display_name || u.user_metadata?.full_name || '—';
+              const isSuperAdmin = u.user_metadata?.role === 'super_admin';
               return (
                 <tr key={u.id} style={{ borderTop: i > 0 ? '1px solid #F4F5F7' : undefined }}>
                   <td style={tdStyle}>
@@ -580,6 +606,19 @@ function UsersTab({ users }: { users: AuthUser[] }) {
                     <span style={{ background: badge.bg, color: badge.color, fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '6px' }}>{badge.label}</span>
                   </td>
                   <td style={{ ...tdStyle, fontSize: '12px', color: '#9AA0AE' }}>{fmt(u.created_at)}</td>
+                  <td style={tdStyle}>
+                    {isSuperAdmin ? (
+                      <span style={{ fontSize: '11px', color: '#C8CDD7' }}>Protected</span>
+                    ) : (
+                      <button
+                        onClick={() => deleteUser(u.id, u.email)}
+                        disabled={deleting === u.id}
+                        style={{ ...dangerBtn, opacity: deleting === u.id ? 0.6 : 1 }}
+                      >
+                        {deleting === u.id ? '…' : 'Delete'}
+                      </button>
+                    )}
+                  </td>
                 </tr>
               );
             })}
