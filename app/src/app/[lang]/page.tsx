@@ -31,6 +31,12 @@ export default async function LandingPage({ params }: { params: Promise<{ lang: 
 
   return (
     <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif", margin: 0, padding: 0 }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .how-grid { grid-template-columns: 1fr !important; }
+          .features-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       <PublicNav locale={lang} dict={dict} dark />
 
       {/* Hero Section */}
@@ -136,7 +142,7 @@ export default async function LandingPage({ params }: { params: Promise<{ lang: 
           {t.featuresTitle}
         </h2>
 
-        <div style={{
+        <div className="features-grid" style={{
           display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px',
           maxWidth: '780px', width: '100%',
         }}>

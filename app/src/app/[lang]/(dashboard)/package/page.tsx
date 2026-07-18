@@ -27,9 +27,9 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
         <div style={{ flex: 1 }}>
           <span style={{ fontSize: '14px', fontWeight: 700, color: '#E06B00' }}>{t.earlyBirdBanner}</span>
         </div>
-        <button style={{ padding: '8px 20px', background: 'linear-gradient(135deg, #F77F00, #FFB347)', color: 'white', fontWeight: 700, fontSize: '13px', border: 'none', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+        <a href="mailto:support@profindle.com?subject=Premium%20Early%20Bird%20Request" style={{ padding: '8px 20px', background: 'linear-gradient(135deg, #F77F00, #FFB347)', color: 'white', fontWeight: 700, fontSize: '13px', border: 'none', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', textDecoration: 'none', display: 'inline-block' }}>
           {t.claimBtn}
-        </button>
+        </a>
       </div>
 
       {/* Plan cards */}
@@ -92,9 +92,9 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
             ))}
           </ul>
 
-          <button style={{ padding: '14px', background: 'linear-gradient(135deg, #F77F00, #FFB347)', color: 'white', fontWeight: 700, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit', position: 'relative', zIndex: 1, transition: 'all 150ms' }}>
+          <a href="mailto:support@profindle.com?subject=Premium%20Early%20Bird%20Request" style={{ padding: '14px', background: 'linear-gradient(135deg, #F77F00, #FFB347)', color: 'white', fontWeight: 700, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit', position: 'relative', zIndex: 1, transition: 'all 150ms', textDecoration: 'none', display: 'block', textAlign: 'center' }}>
             {t.claimBtn}
-          </button>
+          </a>
         </div>
       </div>
 
