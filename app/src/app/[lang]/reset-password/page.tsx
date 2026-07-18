@@ -18,6 +18,13 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const supabase = createClient();
+
+    // Exchange PKCE code from email link if present
+    const code = new URLSearchParams(window.location.search).get('code');
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).catch(() => {});
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') setReady(true);
     });
