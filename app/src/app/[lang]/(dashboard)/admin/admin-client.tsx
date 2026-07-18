@@ -345,24 +345,6 @@ function CompanyDetailPanel({ company, onClose, onUpdate, onDelete }: {
               </button>
             </div>
             <button
-              onClick={async () => {
-                if (!confirm(`Delete company "${company.name}"? This cannot be undone.`)) return;
-                setLoading('delete');
-                try {
-                  const res = await fetch('/api/admin/companies', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ companyId: company.id }),
-                  });
-                  if (!res.ok) throw new Error('Failed');
-                  onClose();
-                  onUpdate({ id: company.id } as never);
-                } catch {
-                  alert('Failed to delete company. Please try again.');
-                } finally {
-                  setLoading(null);
-                }
-              }}
               disabled={loading === 'delete'}
               style={{ ...dangerBtn, width: '100%', marginTop: '10px', padding: '10px', fontSize: '13px', opacity: loading === 'delete' ? 0.6 : 1 }}
               onClick={async () => {
