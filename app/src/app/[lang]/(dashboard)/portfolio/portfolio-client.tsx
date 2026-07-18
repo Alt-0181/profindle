@@ -462,10 +462,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                   <input type="number" value={form.year} onChange={e => set('year', e.target.value)} min={2000} max={2030} style={inputStyle} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '4px' }}>{t.budget}</label>
-                  <div style={{ fontSize: '11px', color: '#9AA0AE', marginBottom: '6px' }}>
-                    {lang === 'th' ? 'ไม่แสดงสาธารณะ — ช่วยให้ลูกค้ากรองตามมูลค่าโปรเจกต์' : 'Not shown publicly — helps buyers filter by project value'}
-                  </div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>{t.budget}</label>
                   <select value={form.budget} onChange={e => set('budget', e.target.value)} style={inputStyle}>
                     <option value="">— Select —</option>
                     <option>Under ฿50,000</option>
@@ -475,6 +472,9 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                     <option>฿1,000,000 – 5,000,000</option>
                     <option>Above ฿5,000,000</option>
                   </select>
+                  <div style={{ fontSize: '11px', color: '#9AA0AE', marginTop: '4px' }}>
+                    {lang === 'th' ? 'ไม่แสดงสาธารณะ — ช่วยให้ลูกค้ากรองตามมูลค่าโปรเจกต์' : 'Not shown publicly — helps buyers filter by project value'}
+                  </div>
                 </div>
               </div>
 
