@@ -31,6 +31,10 @@ export async function DELETE(request: NextRequest) {
   }
 
   const admin = getAdmin();
+
+  // Delete associated company first (ignore if none exists)
+  await admin.from('companies').delete().eq('user_id', userId);
+
   const { error } = await admin.auth.admin.deleteUser(userId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

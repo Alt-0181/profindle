@@ -37,3 +37,18 @@ export async function PATCH(request: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }
+
+// DELETE /api/admin/companies  { companyId }
+export async function DELETE(request: NextRequest) {
+  const user = await requireSuperAdmin();
+  if (!user) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+  const { companyId } = await request.json();
+  if (!companyId) return NextResponse.json({ error: 'companyId required' }, { status: 400 });
+
+  const admin = getAdmin();
+  const { error } = await admin.from('companies').delete().eq('id', companyId);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ ok: true });
+}

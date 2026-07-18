@@ -141,10 +141,11 @@ function KpiCard({ label, value, warn }: { label: string; value: number | string
 
 // ─── Company Detail Panel ─────────────────────────────────────────────────────
 
-function CompanyDetailPanel({ company, onClose, onUpdate }: {
+function CompanyDetailPanel({ company, onClose, onUpdate, onDelete }: {
   company: Company;
   onClose: () => void;
   onUpdate: (updated: Partial<Company>) => void;
+  onDelete: () => void;
 }) {
   const [loading, setLoading] = useState<string | null>(null);
   const [lineUidInput, setLineUidInput] = useState(company.line_user_id ?? '');
@@ -317,7 +318,7 @@ function CompanyDetailPanel({ company, onClose, onUpdate }: {
           {/* Actions */}
           <section>
             <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9AA0AE', marginBottom: '10px' }}>Actions</div>
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               <button
                 onClick={() => toggle('verified', company.verified)}
                 disabled={loading === 'verified'}
@@ -343,6 +344,47 @@ function CompanyDetailPanel({ company, onClose, onUpdate }: {
                 {loading === 'premium' ? '…' : company.premium ? '⭐ Premium' : 'Set Premium'}
               </button>
             </div>
+            <button
+              onClick={async () => {
+                if (!confirm(`Delete company "${company.name}"? This cannot be undone.`)) return;
+                setLoading('delete');
+                try {
+                  const res = await fetch('/api/admin/companies', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ companyId: company.id }),
+                  });
+                  if (!res.ok) throw new Error('Failed');
+                  onClose();
+                  onUpdate({ id: company.id } as never);
+                } catch {
+                  alert('Failed to delete company. Please try again.');
+                } finally {
+                  setLoading(null);
+                }
+              }}
+              disabled={loading === 'delete'}
+              style={{ ...dangerBtn, width: '100%', marginTop: '10px', padding: '10px', fontSize: '13px', opacity: loading === 'delete' ? 0.6 : 1 }}
+              onClick={async () => {
+                if (!confirm(`Delete company "${company.name}"? This cannot be undone.`)) return;
+                setLoading('delete');
+                try {
+                  const res = await fetch('/api/admin/companies', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ companyId: company.id }),
+                  });
+                  if (!res.ok) throw new Error('Failed');
+                  onDelete();
+                  onClose();
+                } catch {
+                  alert('Failed to delete company. Please try again.');
+                  setLoading(null);
+                }
+              }}
+            >
+              {loading === 'delete' ? '…' : 'Delete Company'}
+            </button>
           </section>
         </div>
       </div>
@@ -400,6 +442,7 @@ function CompaniesTab({ companies: initial }: { companies: Company[] }) {
           company={selected}
           onClose={() => setSelected(null)}
           onUpdate={(updates) => handleUpdate(selected.id, updates)}
+          onDelete={() => setCompanies(prev => prev.filter(c => c.id !== selected.id))}
         />
       )}
 
