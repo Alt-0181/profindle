@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import type { Dictionary } from '@/dictionaries';
 
@@ -13,6 +15,14 @@ interface PublicNavProps {
 
 export function PublicNav({ locale, dict, dark = false }: PublicNavProps) {
   const pathname = usePathname();
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data }) => {
+      setLoggedIn(!!data.session);
+    });
+  }, []);
 
   return (
     <nav
@@ -67,35 +77,53 @@ export function PublicNav({ locale, dict, dark = false }: PublicNavProps) {
           ))}
         </div>
 
-        {/* Join as Provider FREE */}
-        <Link
-          href={`/${locale}/signup`}
-          style={{
-            fontSize: '14px', fontWeight: 500, textDecoration: 'none', transition: 'color 150ms',
-            color: dark ? 'rgba(255,255,255,0.75)' : '#444B5A',
-          }}
-          className="hidden sm:block"
-        >
-          {locale === 'th' ? (
-            <>สมัครเป็นผู้ให้บริการ <strong style={{ color: '#F77F00', fontWeight: 700 }}>ฟรี</strong></>
-          ) : (
-            <>Join as Provider <strong style={{ color: '#F77F00', fontWeight: 700 }}>FREE</strong></>
-          )}
-        </Link>
+        {loggedIn ? (
+          /* Already signed in — go to dashboard */
+          <Link
+            href={`/${locale}/home`}
+            style={{
+              fontSize: '13px', fontWeight: 600, padding: '8px 18px', borderRadius: '10px',
+              textDecoration: 'none', transition: 'all 150ms',
+              background: dark ? 'rgba(255,255,255,0.12)' : '#171A21',
+              color: 'white',
+              border: dark ? '1.5px solid rgba(255,255,255,0.2)' : 'none',
+            }}
+          >
+            {locale === 'th' ? 'แดชบอร์ด' : 'Dashboard'}
+          </Link>
+        ) : (
+          <>
+            {/* Join as Provider FREE */}
+            <Link
+              href={`/${locale}/signup`}
+              style={{
+                fontSize: '14px', fontWeight: 500, textDecoration: 'none', transition: 'color 150ms',
+                color: dark ? 'rgba(255,255,255,0.75)' : '#444B5A',
+              }}
+              className="hidden sm:block"
+            >
+              {locale === 'th' ? (
+                <>สมัครเป็นผู้ให้บริการ <strong style={{ color: '#F77F00', fontWeight: 700 }}>ฟรี</strong></>
+              ) : (
+                <>Join as Provider <strong style={{ color: '#F77F00', fontWeight: 700 }}>FREE</strong></>
+              )}
+            </Link>
 
-        {/* Sign In */}
-        <Link
-          href={`/${locale}/login`}
-          style={{
-            fontSize: '13px', fontWeight: 600, padding: '8px 18px', borderRadius: '10px',
-            textDecoration: 'none', transition: 'all 150ms',
-            background: dark ? 'rgba(255,255,255,0.12)' : '#171A21',
-            color: 'white',
-            border: dark ? '1.5px solid rgba(255,255,255,0.2)' : 'none',
-          }}
-        >
-          {dict.nav.signIn}
-        </Link>
+            {/* Sign In */}
+            <Link
+              href={`/${locale}/login`}
+              style={{
+                fontSize: '13px', fontWeight: 600, padding: '8px 18px', borderRadius: '10px',
+                textDecoration: 'none', transition: 'all 150ms',
+                background: dark ? 'rgba(255,255,255,0.12)' : '#171A21',
+                color: 'white',
+                border: dark ? '1.5px solid rgba(255,255,255,0.2)' : 'none',
+              }}
+            >
+              {dict.nav.signIn}
+            </Link>
+          </>
+        )}
       </div>
     </nav>
   );
