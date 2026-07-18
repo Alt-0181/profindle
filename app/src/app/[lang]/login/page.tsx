@@ -63,9 +63,18 @@ export default function LoginPage({ params }: { params: Promise<{ lang: string }
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '100vh', fontFamily: "'Inter', 'Noto Sans Thai', sans-serif" }}>
+    <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif" }}>
+      <style>{`
+        .auth-grid { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+        .auth-left { display: flex; }
+        @media (max-width: 768px) {
+          .auth-grid { grid-template-columns: 1fr; }
+          .auth-left { display: none; }
+        }
+      `}</style>
+    <div className="auth-grid">
       {/* Left panel */}
-      <div style={{ background: 'linear-gradient(135deg, #171A21 0%, #0F6F73 100%)', padding: '48px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', overflow: 'hidden' }}>
+      <div className="auth-left" style={{ background: 'linear-gradient(135deg, #171A21 0%, #0F6F73 100%)', padding: '48px', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 60% at 70% 40%, rgba(26,157,163,0.2) 0%, transparent 65%)' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <Link href={`/${lang}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
@@ -144,6 +153,7 @@ export default function LoginPage({ params }: { params: Promise<{ lang: string }
           </form>
         </div>
       </div>
+    </div>
     </div>
   );
 }

@@ -26,7 +26,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
 
   const { data: company } = await supabase
     .from('companies')
-    .select('id, dbd_certificate_url, industry, line_user_id, verified, premium')
+    .select('id, dbd_certificate_url, industry, line_user_id, verified, premium, views')
     .eq('user_id', user?.id ?? '')
     .maybeSingle();
   const hasCompany = !!company;
@@ -34,6 +34,15 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
   const lineConnected = !!(company as any)?.line_user_id;
   const companyVerified = !!(company as any)?.verified;
   const companyPremium = !!(company as any)?.premium;
+
+  const profileViews = (company as any)?.views ?? 0;
+
+  const { count: broadcastCount } = company
+    ? await supabase
+        .from('broadcasts')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user?.id ?? '')
+    : { count: 0 };
 
   const { count: portfolioCount } = company
     ? await supabase
@@ -139,8 +148,8 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
         </div>
         <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: '12px', flexShrink: 0 }}>
           {[
-            { val: '0', label: isTh ? 'การเข้าชม' : 'Profile views' },
-            { val: '0', label: isTh ? 'กระจายข่าว' : 'Broadcasts' },
+            { val: String(profileViews), label: isTh ? 'การเข้าชม' : 'Profile views' },
+            { val: String(broadcastCount ?? 0), label: isTh ? 'กระจายข่าว' : 'Broadcasts' },
             { val: companyPremium ? (isTh ? 'พรีเมียม' : 'Premium') : (isTh ? 'ฟรี' : 'Free'), label: isTh ? 'แพ็กเกจปัจจุบัน' : 'Current plan', orange: true },
           ].map((stat) => (
             <div key={stat.label} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '14px 18px', textAlign: 'center', minWidth: '80px' }}>
