@@ -1,0 +1,167 @@
+import { NextRequest, NextResponse } from 'next/server';
+import Anthropic from '@anthropic-ai/sdk';
+import { createClient } from '@/lib/supabase/server';
+import { SERVICES } from '@/lib/services';
+
+const PROVINCES = [
+  'Bangkok', 'Amnat Charoen', 'Ang Thong', 'Bueng Kan', 'Buri Ram',
+  'Chachoengsao', 'Chai Nat', 'Chaiyaphum', 'Chanthaburi', 'Chiang Mai',
+  'Chiang Rai', 'Chon Buri', 'Chumphon', 'Kalasin', 'Kamphaeng Phet',
+  'Kanchanaburi', 'Khon Kaen', 'Krabi', 'Lampang', 'Lamphun',
+  'Loei', 'Lop Buri', 'Mae Hong Son', 'Maha Sarakham', 'Mukdahan',
+  'Nakhon Nayok', 'Nakhon Pathom', 'Nakhon Phanom', 'Nakhon Ratchasima', 'Nakhon Sawan',
+  'Nakhon Si Thammarat', 'Nan', 'Narathiwat', 'Nong Bua Lam Phu', 'Nong Khai',
+  'Nonthaburi', 'Pathum Thani', 'Pattani', 'Phang Nga', 'Phatthalung',
+  'Phayao', 'Phetchabun', 'Phetchaburi', 'Phichit', 'Phitsanulok',
+  'Phra Nakhon Si Ayutthaya', 'Phrae', 'Phuket', 'Prachin Buri', 'Prachuap Khiri Khan',
+  'Ranong', 'Ratchaburi', 'Rayong', 'Roi Et', 'Sa Kaeo',
+  'Sakon Nakhon', 'Samut Prakan', 'Samut Sakhon', 'Samut Songkhram', 'Sara Buri',
+  'Satun', 'Sing Buri', 'Si Sa Ket', 'Songkhla', 'Sukhothai',
+  'Suphan Buri', 'Surat Thani', 'Surin', 'Tak', 'Trang',
+  'Trat', 'Ubon Ratchathani', 'Udon Thani', 'Uthai Thani', 'Uttaradit',
+  'Yala', 'Yasothon',
+];
+const TEAM_SIZES = ['1-5', '6-15', '16-50', '51-200', '200+'];
+
+/** Strip a fetched HTML page down to readable text for the model. */
+function htmlToText(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export async function POST(request: NextRequest) {
+  // Must be signed in to use autofill.
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json({ error: 'AI autofill is not configured yet.' }, { status: 503 });
+  }
+
+  let url: string;
+  try {
+    ({ url } = await request.json());
+  } catch {
+    return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
+  }
+  if (!url || typeof url !== 'string') {
+    return NextResponse.json({ error: 'A website URL is required.' }, { status: 400 });
+  }
+  url = url.trim();
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+  // Fetch the website server-side.
+  let pageText = '';
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const res = await fetch(url, {
+      signal: controller.signal,
+      redirect: 'follow',
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ProfindleBot/1.0; +https://profindle.com)' },
+    });
+    clearTimeout(timer);
+    if (!res.ok) {
+      return NextResponse.json({ error: `Could not reach that website (status ${res.status}).` }, { status: 422 });
+    }
+    pageText = htmlToText(await res.text()).slice(0, 15000);
+  } catch {
+    return NextResponse.json({ error: 'Could not load that website. Check the URL and try again.' }, { status: 422 });
+  }
+  if (pageText.length < 40) {
+    return NextResponse.json({ error: 'That website did not return enough readable content to analyze.' }, { status: 422 });
+  }
+
+  const serviceLabels = SERVICES.map((s) => s.label);
+
+  const schema = {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      nameEn: { type: 'string', description: 'Company trading/brand name in English. Empty string if unknown.' },
+      nameTh: { type: 'string', description: 'Company name in Thai. Translate/transliterate from English if the site has no Thai name. Empty string if unknown.' },
+      descEn: { type: 'string', description: '1-3 sentence company description in English. Empty string if unknown.' },
+      descTh: { type: 'string', description: 'The same description in Thai. Empty string if unknown.' },
+      services: { type: 'array', items: { type: 'string' }, description: 'Up to 8 services, chosen ONLY from the provided allowed list — exact strings.' },
+      province: { type: 'string', description: 'Thai province in English, chosen ONLY from the allowed list. Empty string if unknown.' },
+      teamSize: { type: 'string', description: 'One of the allowed team-size buckets. Empty string if unknown.' },
+      foundedYear: { type: 'string', description: 'Four-digit founding year, e.g. "2018". Empty string if unknown.' },
+      phone: { type: 'string', description: 'Public contact phone. Empty string if unknown.' },
+      emailPublic: { type: 'string', description: 'Public contact email. Empty string if unknown.' },
+    },
+    required: ['nameEn', 'nameTh', 'descEn', 'descTh', 'services', 'province', 'teamSize', 'foundedYear', 'phone', 'emailPublic'],
+  };
+
+  const prompt = `You are helping a Thai B2B service provider fill in their company profile from their website.
+
+Extract the fields below from the website text. Rules:
+- Only use information actually present in the text. Never invent facts. If a field is unknown, return an empty string (or [] for services).
+- Write descTh and nameTh in natural Thai. If the site is English-only, translate for descTh and transliterate/translate the name for nameTh.
+- For "services", pick ONLY exact strings from this allowed list (up to 8, most relevant first):
+${serviceLabels.join(', ')}
+- For "province", pick ONLY from: ${PROVINCES.join(', ')}
+- For "teamSize", pick ONLY from: ${TEAM_SIZES.join(', ')}
+
+WEBSITE TEXT:
+"""
+${pageText}
+"""`;
+
+  try {
+    const anthropic = new Anthropic({ apiKey });
+    const message = await anthropic.messages.create({
+      model: 'claude-haiku-4-5',
+      max_tokens: 2000,
+      output_config: { format: { type: 'json_schema', schema } },
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const textBlock = message.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
+    if (!textBlock) return NextResponse.json({ error: 'The AI returned no usable result. Please try again.' }, { status: 502 });
+
+    const raw = JSON.parse(textBlock.text) as Record<string, unknown>;
+
+    // Validate/sanitise against the known option sets.
+    const services = Array.isArray(raw.services)
+      ? (raw.services as unknown[]).filter((s): s is string => typeof s === 'string' && serviceLabels.includes(s)).slice(0, 8)
+      : [];
+    const province = typeof raw.province === 'string' && PROVINCES.includes(raw.province) ? raw.province : '';
+    const teamSize = typeof raw.teamSize === 'string' && TEAM_SIZES.includes(raw.teamSize) ? raw.teamSize : '';
+    const yearStr = typeof raw.foundedYear === 'string' ? raw.foundedYear.trim() : '';
+    const yearNum = Number(yearStr);
+    const foundedYear = /^\d{4}$/.test(yearStr) && yearNum >= 1900 && yearNum <= 2026 ? yearStr : '';
+    const str = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+
+    return NextResponse.json({
+      data: {
+        nameEn: str(raw.nameEn),
+        nameTh: str(raw.nameTh),
+        descEn: str(raw.descEn),
+        descTh: str(raw.descTh),
+        services,
+        province,
+        teamSize,
+        foundedYear,
+        phone: str(raw.phone),
+        emailPublic: str(raw.emailPublic),
+      },
+    });
+  } catch (err) {
+    console.error('Autofill failed:', err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: 'AI autofill failed. Please try again in a moment.' }, { status: 502 });
+  }
+}
