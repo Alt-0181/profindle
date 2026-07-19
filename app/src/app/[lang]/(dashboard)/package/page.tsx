@@ -55,6 +55,7 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
         </div>
         <EarlyBirdButton
           label={t.claimBtn}
+          sentLabel={isTh ? '✓ ส่งคำขอแล้ว' : '✓ Requested'}
           style={{ padding: '8px 20px', background: 'linear-gradient(135deg, #F77F00, #FFB347)', color: 'white', fontWeight: 700, fontSize: '13px', borderRadius: '10px', whiteSpace: 'nowrap' }}
         />
       </div>
@@ -126,6 +127,7 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
           ) : (
             <EarlyBirdButton
               label={t.claimBtn}
+              sentLabel={isTh ? '✓ ได้รับคำขอแล้ว — เราจะเปิดใช้งานเร็วๆ นี้' : '✓ Request received — we\'ll upgrade you soon'}
               style={{ padding: '14px', background: 'linear-gradient(135deg, #F77F00, #FFB347)', color: 'white', fontWeight: 700, fontSize: '15px', borderRadius: '12px', position: 'relative', zIndex: 1, width: '100%', textAlign: 'center' }}
             />
           )}
