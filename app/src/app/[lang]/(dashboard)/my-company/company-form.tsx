@@ -61,6 +61,7 @@ interface MyCompanyFormProps {
     dbdCertPath: string | null; dbdCertName: string | null;
     services: string[];
     logoUrl: string | null; bannerUrl: string | null;
+    buyerOnly: boolean;
   };
 }
 
@@ -69,6 +70,7 @@ const EMPTY = {
   province: '', address: '',
   teamSize: '', foundedYear: '', website: '',
   phone: '', emailPublic: '', lineIdType: 'id' as 'oa' | 'id' | 'phone', lineIdValue: '',
+  buyerOnly: false,
 };
 
 export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
@@ -312,6 +314,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         phone: form.phone || null,
         email: form.emailPublic || null,
         line_id: form.lineIdValue ? `${form.lineIdType}:${form.lineIdValue.trim()}` : null,
+        buyer_only: form.buyerOnly,
         ...(dbdPath ? { dbd_certificate_url: dbdPath, dbd_certificate_name: uploadFile?.name ?? initialData?.dbdCertName ?? null } : {}),
         ...(logoUrl ? { logo_url: logoUrl } : {}),
         ...(bannerUrl ? { banner_url: bannerUrl } : {}),
@@ -404,6 +407,28 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
             {autofillMsg.text}
           </div>
         )}
+      </div>
+
+      {/* Buyer-only toggle */}
+      <div style={sectionStyle}>
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={form.buyerOnly}
+            onChange={(e) => { setForm((prev) => ({ ...prev, buyerOnly: e.target.checked })); setSaved(false); }}
+            style={{ width: '18px', height: '18px', marginTop: '2px', accentColor: '#0F6F73', flexShrink: 0, cursor: 'pointer' }}
+          />
+          <div>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: '#171A21' }}>
+              {lang === 'th' ? 'ฉันต้องการค้นหาและจ้างผู้ให้บริการเท่านั้น' : "I'm only here to find and hire service providers"}
+            </div>
+            <div style={{ fontSize: '13px', color: '#6B7385', marginTop: '4px', lineHeight: 1.5 }}>
+              {lang === 'th'
+                ? 'เลือกช่องนี้หากคุณเป็นผู้ซื้อ ไม่ใช่ผู้ให้บริการ — คุณจะไม่ได้รับการแจ้งเตือนผ่าน LINE เกี่ยวกับคำขอจากลูกค้า (การแจ้งเตือนนี้มีไว้สำหรับผู้ให้บริการที่ต้องการหาลูกค้า)'
+                : "Check this if you're a buyer, not a provider. You won't receive LINE notifications about new client requests — those are only for providers looking for leads."}
+            </div>
+          </div>
+        </label>
       </div>
 
       {/* Profile Branding */}

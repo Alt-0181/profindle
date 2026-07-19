@@ -67,15 +67,18 @@ export async function POST(request: NextRequest) {
   if (broadcastErr) return NextResponse.json({ error: broadcastErr.message }, { status: 500 });
 
   // Find ALL premium providers with matching services
-  const { data: allProviders } = await admin
+  const { data: providerRows } = await admin
     .from('companies')
-    .select('id, line_user_id')
+    .select('id, line_user_id, buyer_only')
     .neq('id', buyerCompany.id)
     .eq('premium', true)
     .contains('services', [category])
     .limit(50);
 
-  if (!allProviders || allProviders.length === 0) {
+  // Exclude buyer-only companies — they're here to hire, not to receive leads.
+  const allProviders = (providerRows ?? []).filter((p: any) => !p.buyer_only);
+
+  if (allProviders.length === 0) {
     return NextResponse.json({ broadcastId: broadcast.id, matched: 0, notified: 0 });
   }
 

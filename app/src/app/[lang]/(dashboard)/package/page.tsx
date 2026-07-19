@@ -143,13 +143,13 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
           </ul>
 
           {isPremium ? (
-            <div style={{ padding: '14px', background: 'rgba(6,199,85,0.15)', border: '1.5px solid rgba(6,199,85,0.4)', color: '#06C755', fontWeight: 700, fontSize: '15px', borderRadius: '12px', position: 'relative', zIndex: 1, textAlign: 'center' }}>
+            <div style={{ padding: '14px', background: 'rgba(255,255,255,0.96)', border: '1.5px solid rgba(255,255,255,0.7)', color: '#0F6F73', fontWeight: 700, fontSize: '15px', borderRadius: '12px', position: 'relative', zIndex: 1, textAlign: 'center' }}>
               {isTh ? '✓ แผนปัจจุบันของคุณ' : '✓ Your current plan'}
             </div>
           ) : (
             <EarlyBirdButton
               label={t.claimBtn}
-              sentLabel={isTh ? '✓ ได้รับคำขอแล้ว — เราจะเปิดใช้งานเร็วๆ นี้' : '✓ Request received — we\'ll upgrade you soon'}
+              sentLabel={isTh ? '✓ ได้รับคำขอแล้ว ระบบจะดำเนินการเปลี่ยนให้โดยเร็วที่สุด' : '✓ Request received — we\'ll upgrade you soon'}
               initialRequested={earlyBirdRequested}
               style={{ padding: '14px', background: 'linear-gradient(135deg, #F77F00, #FFB347)', color: 'white', fontWeight: 700, fontSize: '15px', borderRadius: '12px', position: 'relative', zIndex: 1, width: '100%', textAlign: 'center' }}
             />

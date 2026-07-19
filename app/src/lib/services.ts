@@ -161,10 +161,18 @@ export const SERVICES: ServiceItem[] = [
 ];
 
 export function searchServices(query: string, limit = 8): ServiceItem[] {
-  if (!query || query.length < 1) return [];
-  const q = query.toLowerCase();
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  // Match the service LABEL only (every typed word must appear in it). This
+  // keeps results relevant to what was typed — e.g. "event" surfaces
+  // event-labelled services, not every service in the Event Management
+  // industry (Catering, DJ, …).
+  const tokens = q.split(/\s+/);
   return SERVICES
-    .filter(s => s.label.toLowerCase().includes(q) || s.industry.toLowerCase().includes(q))
+    .filter(s => {
+      const label = s.label.toLowerCase();
+      return tokens.every(tok => label.includes(tok));
+    })
     .slice(0, limit);
 }
 
