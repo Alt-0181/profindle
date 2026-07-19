@@ -278,7 +278,9 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
 
       if (error) throw error;
       setSaved(true);
-      router.refresh();
+      // Show the success toast briefly, then take the user to the
+      // dashboard home so they know what to do next.
+      setTimeout(() => router.push(`/${lang}/home`), 900);
     } catch (err: any) {
       console.error('Save failed:', err.message);
     } finally {
