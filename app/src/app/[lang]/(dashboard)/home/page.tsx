@@ -58,7 +58,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
   const dbdCertPath = company?.dbd_certificate_url ?? null;
   const dbdFileExt = dbdCertPath ? dbdCertPath.split('.').pop()?.toUpperCase() : null;
 
-  const completedSteps = [hasCompany, hasPortfolio, lineConnected, false /* early bird */].filter(Boolean).length;
+  const completedSteps = [hasCompany, hasPortfolio, lineConnected, companyPremium /* early bird */].filter(Boolean).length;
 
   const gettingStartedSteps = [
     {
@@ -102,26 +102,28 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
     },
     {
       num: 3,
+      title: isTh ? 'รับสิทธิ์ Early Bird' : 'Claim Early Bird offer',
+      desc: isTh ? `รับฟีเจอร์ Premium ทั้งหมดฟรี — เหลือ ${earlyBirdLeft} จาก ${earlyBirdTotal} สิทธิ์` : `Get all Premium features FREE — ${earlyBirdLeft} of ${earlyBirdTotal} spots left.`,
+      done: companyPremium,
+      status: companyPremium ? (companyPlan === 'vip' ? 'VIP' : (isTh ? 'พรีเมียม' : 'Premium')) : (isTh ? 'จำกัด' : 'Limited'),
+      bodyText: isTh ? '100 บริษัทแรกบน Profindle จะได้รับฟีเจอร์ Premium ทั้งหมดฟรีตลอดชีพ (รวมถึงการเชื่อม LINE ในขั้นตอนที่ 4) เมื่อสิทธิ์หมด จะไม่มีอีก' : 'First 100 companies on Profindle get all Premium features free for life — including LINE alerts in step 4. Once spots are gone, they\'re gone.',
+      ctaLabel: companyPremium ? (isTh ? 'ดูแพ็กเกจ' : 'View plan') : (isTh ? 'รับสิทธิ์ →' : 'Claim now →'),
+      ctaHref: `/${lang}/package`,
+      ctaStyle: 'amber' as const,
+    },
+    {
+      num: 4,
       title: isTh ? 'เชื่อม LINE เพื่อรับการแจ้งเตือน' : 'Connect LINE for alerts',
       desc: isTh ? 'สำหรับผู้ให้บริการ — รับแจ้งเตือนทันทีเมื่อมีคำขอที่ตรงกับบริการของคุณ' : 'For service providers — get notified when buyers post requests matching your services.',
       done: lineConnected,
       providerOnly: true,
-      status: lineConnected ? (isTh ? 'เชื่อมแล้ว' : 'Connected') : (isTh ? 'ยังไม่ได้เชื่อม' : 'Not connected'),
-      bodyText: isTh ? 'ไม่พลาดทุกคำขอจากลูกค้า เชื่อมบัญชี LINE ครั้งเดียว เราจะแจ้งเตือนทุกคำขอที่ตรงกับบริการของคุณ หมายเหตุ: แนะนำให้ใช้บัญชี LINE ของบริษัท ไม่ใช่บัญชีส่วนตัว' : 'Never miss a client broadcast. Connect LINE once and we\'ll notify you on every matching request. Note: use a company LINE account, not a personal one — staff changes break personal connections.',
-      ctaLabel: isTh ? 'เชื่อม LINE' : 'Connect LINE',
-      ctaHref: `/${lang}/settings`,
-      ctaStyle: 'line' as const,
-    },
-    {
-      num: 4,
-      title: isTh ? 'รับสิทธิ์ Early Bird' : 'Claim Early Bird offer',
-      desc: isTh ? `รับฟีเจอร์ Premium ทั้งหมดฟรี — เหลือ ${earlyBirdLeft} จาก ${earlyBirdTotal} สิทธิ์` : `Get all Premium features FREE — ${earlyBirdLeft} of ${earlyBirdTotal} spots left.`,
-      done: false,
-      status: isTh ? 'จำกัด' : 'Limited',
-      bodyText: isTh ? '100 บริษัทแรกบน Profindle จะได้รับฟีเจอร์ Premium ทั้งหมดฟรีตลอดชีพ เมื่อสิทธิ์หมด จะไม่มีอีก' : 'First 100 companies on Profindle get all Premium features free for life. Once spots are gone, they\'re gone.',
-      ctaLabel: isTh ? 'รับสิทธิ์ →' : 'Claim now →',
-      ctaHref: `/${lang}/package`,
-      ctaStyle: 'amber' as const,
+      premium: !companyPremium,
+      status: lineConnected ? (isTh ? 'เชื่อมแล้ว' : 'Connected') : companyPremium ? (isTh ? 'ยังไม่ได้เชื่อม' : 'Not connected') : (isTh ? 'ต้องใช้ Premium' : 'Premium only'),
+      bodyText: (isTh ? 'ไม่พลาดทุกคำขอจากลูกค้า เชื่อมบัญชี LINE ครั้งเดียว เราจะแจ้งเตือนทุกคำขอที่ตรงกับบริการของคุณ หมายเหตุ: แนะนำให้ใช้บัญชี LINE ของบริษัท ไม่ใช่บัญชีส่วนตัว' : 'Never miss a client broadcast. Connect LINE once and we\'ll notify you on every matching request. Note: use a company LINE account, not a personal one — staff changes break personal connections.')
+        + (companyPremium ? '' : (isTh ? ' — ฟีเจอร์นี้สำหรับสมาชิก Premium: รับสิทธิ์ Early Bird ในขั้นตอนที่ 3 ก่อนเพื่อปลดล็อก' : ' — This is a Premium feature: claim the Early Bird offer in step 3 first to unlock it.')),
+      ctaLabel: companyPremium ? (isTh ? 'เชื่อม LINE' : 'Connect LINE') : (isTh ? 'รับสิทธิ์ Early Bird ก่อน →' : 'Claim Early Bird first →'),
+      ctaHref: companyPremium ? `/${lang}/settings` : `/${lang}/package`,
+      ctaStyle: companyPremium ? ('line' as const) : ('amber' as const),
     },
   ];
 

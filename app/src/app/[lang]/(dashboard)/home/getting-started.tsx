@@ -17,6 +17,7 @@ interface Step {
   done: boolean;
   status: string;
   providerOnly?: boolean;
+  premium?: boolean;
   subTasks?: SubTask[];
   buyerShortcut?: { text: string; label: string; href: string };
   bodyText?: string;
@@ -109,6 +110,11 @@ export function GettingStartedAccordion({ steps, lang, completedCount }: Props) 
                   {step.providerOnly && (
                     <span style={{ fontSize: '10px', fontWeight: 700, padding: '1px 7px', borderRadius: '999px', background: '#F0F9F9', color: '#0F6F73', border: '1px solid rgba(15,111,115,0.2)', whiteSpace: 'nowrap' }}>
                       Providers
+                    </span>
+                  )}
+                  {step.premium && (
+                    <span style={{ fontSize: '10px', fontWeight: 700, padding: '1px 7px', borderRadius: '999px', background: 'linear-gradient(135deg,#FFF3E0,#FFE0B2)', color: '#E06B00', border: '1px solid rgba(240,107,0,0.3)', whiteSpace: 'nowrap' }}>
+                      ★ Premium
                     </span>
                   )}
                 </div>
