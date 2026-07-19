@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as adminClient } from '@supabase/supabase-js';
+import { AutoRefresh } from '@/components/auto-refresh';
 import { EarlyBirdButton } from './early-bird-button';
 
 export default async function PackagePage({ params }: { params: Promise<{ lang: string }> }) {
@@ -20,11 +22,36 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
   const isPremium = !!(company as any)?.premium || ['vip', 'premium'].includes(companyPlan);
   const isTh = lang === 'th';
 
+  // Has this user already submitted an Early Bird request that's still pending?
+  // The claims table is RLS-locked, so read it with the service-role client.
+  // Falls back to false if the table doesn't exist or env vars are missing.
+  let earlyBirdRequested = false;
+  if (user && !isPremium) {
+    try {
+      const admin = adminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        { auth: { persistSession: false } }
+      );
+      const { data: claim } = await admin
+        .from('early_bird_claims')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('status', 'pending')
+        .maybeSingle();
+      earlyBirdRequested = !!claim;
+    } catch {
+      // ignore — button just starts in its default state
+    }
+  }
+
   const freeFeatures = [t.freeFeature1, t.freeFeature2, t.freeFeature3, t.freeFeature4];
   const premFeatures = [t.premFeature1, t.premFeature2, t.premFeature3, t.premFeature4, t.premFeature5, t.premFeature6];
 
   return (
     <div className="page-body">
+      {/* Auto-refresh so an admin's Premium grant reflects here without a manual reload */}
+      <AutoRefresh />
       <div style={{ marginBottom: '32px', textAlign: 'center' }}>
         <h1 style={{ fontSize: '28px', fontWeight: 700, color: '#171A21', marginBottom: '8px' }}>{t.title}</h1>
         <p style={{ fontSize: '15px', color: '#6B7385' }}>{t.subtitle}</p>
@@ -53,11 +80,6 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
         <div style={{ flex: 1 }}>
           <span style={{ fontSize: '14px', fontWeight: 700, color: '#E06B00' }}>{t.earlyBirdBanner}</span>
         </div>
-        <EarlyBirdButton
-          label={t.claimBtn}
-          sentLabel={isTh ? '✓ ส่งคำขอแล้ว' : '✓ Requested'}
-          style={{ padding: '8px 20px', background: 'linear-gradient(135deg, #F77F00, #FFB347)', color: 'white', fontWeight: 700, fontSize: '13px', borderRadius: '10px', whiteSpace: 'nowrap' }}
-        />
       </div>
 
       {/* Plan cards */}
@@ -128,6 +150,7 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
             <EarlyBirdButton
               label={t.claimBtn}
               sentLabel={isTh ? '✓ ได้รับคำขอแล้ว — เราจะเปิดใช้งานเร็วๆ นี้' : '✓ Request received — we\'ll upgrade you soon'}
+              initialRequested={earlyBirdRequested}
               style={{ padding: '14px', background: 'linear-gradient(135deg, #F77F00, #FFB347)', color: 'white', fontWeight: 700, fontSize: '15px', borderRadius: '12px', position: 'relative', zIndex: 1, width: '100%', textAlign: 'center' }}
             />
           )}

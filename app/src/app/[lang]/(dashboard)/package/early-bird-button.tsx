@@ -6,11 +6,13 @@ interface Props {
   label: string;
   /** Label shown after a successful request (localised by the caller). */
   sentLabel?: string;
+  /** Start in the "done" state — e.g. the user already has a pending claim. */
+  initialRequested?: boolean;
   style?: React.CSSProperties;
 }
 
-export function EarlyBirdButton({ label, sentLabel, style }: Props) {
-  const [state, setState] = useState<'idle' | 'sending' | 'done'>('idle');
+export function EarlyBirdButton({ label, sentLabel, initialRequested, style }: Props) {
+  const [state, setState] = useState<'idle' | 'sending' | 'done'>(initialRequested ? 'done' : 'idle');
 
   const handleClick = async () => {
     if (state !== 'idle') return;
