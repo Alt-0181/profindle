@@ -14,9 +14,10 @@ interface SettingsClientProps {
   userName: string;
   lineOAuthResult: string | null;
   initialSection: string | null;
+  isPremium: boolean;
 }
 
-export function SettingsClient({ lang, dict, initialLineUserId, initialLineDisplayName, userEmail, userName, lineOAuthResult, initialSection }: SettingsClientProps) {
+export function SettingsClient({ lang, dict, initialLineUserId, initialLineDisplayName, userEmail, userName, lineOAuthResult, initialSection, isPremium }: SettingsClientProps) {
   const t = dict.settings;
   const router = useRouter();
   const [activeSection, setActiveSection] = useState(initialSection ?? 'account');
@@ -256,8 +257,26 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
         {/* LINE Connect */}
         {activeSection === 'line' && (
           <div>
+            {/* Premium gate */}
+            {!isPremium && (
+              <div style={{ background: 'linear-gradient(135deg, #FFF8EE, #FFFBF5)', border: '1.5px solid rgba(247,127,0,0.35)', borderRadius: '14px', padding: '24px', marginBottom: '20px', textAlign: 'center' }}>
+                <div style={{ fontSize: '32px', marginBottom: '12px' }}>⭐</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#171A21', marginBottom: '8px' }}>
+                  {lang === 'th' ? 'ฟีเจอร์สำหรับสมาชิก Premium เท่านั้น' : 'Premium Members Only'}
+                </div>
+                <p style={{ fontSize: '13px', color: '#6B7385', marginBottom: '20px', lineHeight: 1.6 }}>
+                  {lang === 'th'
+                    ? 'การเชื่อมต่อ LINE เพื่อรับการแจ้งเตือน Broadcast เป็นฟีเจอร์เฉพาะสมาชิก Premium อัปเกรดเพื่อรับโอกาสทางธุรกิจได้ทันที'
+                    : 'LINE notifications for broadcast requests are a Premium feature. Upgrade to receive instant business opportunities.'}
+                </p>
+                <a href={`/${lang}/package`} style={{ display: 'inline-block', padding: '10px 28px', background: 'linear-gradient(135deg, #F77F00, #FFB347)', color: 'white', fontWeight: 700, fontSize: '14px', borderRadius: '10px', textDecoration: 'none' }}>
+                  {lang === 'th' ? 'อัปเกรดเป็น Premium →' : 'Upgrade to Premium →'}
+                </a>
+              </div>
+            )}
+
             {/* LINE card */}
-            <div style={{ background: 'linear-gradient(135deg, #06C755, #04a544)', borderRadius: '14px', padding: '20px', display: 'flex', gap: '16px', marginBottom: '20px' }}>
+            <div style={{ background: 'linear-gradient(135deg, #06C755, #04a544)', borderRadius: '14px', padding: '20px', display: 'flex', gap: '16px', marginBottom: '20px', opacity: isPremium ? 1 : 0.4, pointerEvents: isPremium ? 'auto' : 'none' }}>
               <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <svg width="28" height="28" viewBox="0 0 50 50" fill="#06C755">
                   <path d="M25 2C12.3 2 2 10.8 2 21.7c0 9.5 8.4 17.5 19.8 19.4.8.2 1.8.5 2.1 1.2.2.6.1 1.5 0 2.1l-.3 1.9c-.1.6-.5 2.4 2.1 1.3 2.6-1.1 14-8.2 19.1-14.1C48 30.1 48 26 48 21.7 48 10.8 37.7 2 25 2z" />
@@ -269,14 +288,17 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
               </div>
             </div>
 
-            <div style={sectionStyle}>
+            <div style={{ ...sectionStyle, opacity: isPremium ? 1 : 0.4, pointerEvents: isPremium ? 'auto' : 'none' }}>
               {!lineConnected ? (
                 <>
                   <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#171A21', marginBottom: '6px' }}>
                     {lang === 'th' ? 'เชื่อมต่อบัญชี LINE' : 'Connect your LINE account'}
                   </h3>
-                  <p style={{ fontSize: '13px', color: '#9AA0AE', marginBottom: '24px' }}>
+                  <p style={{ fontSize: '13px', color: '#9AA0AE', marginBottom: '4px' }}>
                     {lang === 'th' ? 'รับการแจ้งเตือน Broadcast ทันทีผ่าน LINE' : 'Get instant broadcast notifications on LINE'}
+                  </p>
+                  <p style={{ fontSize: '12px', color: '#C8CDD7', marginBottom: '24px' }}>
+                    {lang === 'th' ? '(หากทำการเชื่อมต่อบน Desktop กรุณา Log In LINE ก่อน)' : '(If connecting on Desktop, please log in to LINE first)'}
                   </p>
 
                   {/* Primary: LINE OAuth button */}
