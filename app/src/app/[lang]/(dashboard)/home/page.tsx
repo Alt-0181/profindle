@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/server';
+import { AutoRefresh } from '@/components/auto-refresh';
 import { GettingStartedAccordion } from './getting-started';
 
 export default async function DashboardHomePage({ params }: { params: Promise<{ lang: string }> }) {
@@ -129,6 +130,8 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
 
   return (
     <div className="page-body">
+      {/* Auto-refresh so a Premium grant unlocks gated steps without a manual reload */}
+      <AutoRefresh />
 
       {/* Welcome Banner */}
       <div style={{ background: 'linear-gradient(135deg,#0E1017 0%,#0F6F73 100%)', borderRadius: '20px', padding: '28px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '24px', position: 'relative', overflow: 'hidden', marginBottom: '24px' }}>

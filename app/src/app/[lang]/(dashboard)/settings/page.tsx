@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/server';
+import { AutoRefresh } from '@/components/auto-refresh';
 import { SettingsClient } from './settings-client';
 
 export default async function SettingsPage({
@@ -34,6 +35,8 @@ export default async function SettingsPage({
 
   return (
     <div className="page-body">
+      {/* Auto-refresh so a Premium grant lifts the LINE gate without a manual reload */}
+      <AutoRefresh />
       <SettingsClient
         lang={lang}
         dict={dict}
