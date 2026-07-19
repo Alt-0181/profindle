@@ -227,62 +227,6 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
     setSaved(false);
   };
 
-  // ─── AI auto-fill from website ────────────────────────────────────────────
-  const [autofillUrl, setAutofillUrl] = useState(initialData?.website ?? '');
-  const [autofilling, setAutofilling] = useState(false);
-  const [autofillMsg, setAutofillMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
-
-  const handleAutofill = async () => {
-    const url = autofillUrl.trim();
-    if (!url) {
-      setAutofillMsg({ type: 'err', text: lang === 'th' ? 'กรุณากรอก URL เว็บไซต์ก่อน' : 'Enter your website URL first.' });
-      return;
-    }
-    setAutofilling(true);
-    setAutofillMsg(null);
-    try {
-      const res = await fetch('/api/company/autofill', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        setAutofillMsg({ type: 'err', text: json.error || (lang === 'th' ? 'ดึงข้อมูลไม่สำเร็จ' : 'Autofill failed.') });
-        return;
-      }
-      const d = json.data;
-      // Only fill fields the user has left blank — never overwrite their input.
-      setForm((prev) => ({
-        ...prev,
-        nameEn: prev.nameEn || d.nameEn,
-        nameTh: prev.nameTh || d.nameTh,
-        descEn: prev.descEn || d.descEn,
-        descTh: prev.descTh || d.descTh,
-        province: prev.province || d.province,
-        teamSize: prev.teamSize || d.teamSize,
-        foundedYear: prev.foundedYear || d.foundedYear,
-        phone: prev.phone || d.phone,
-        emailPublic: prev.emailPublic || d.emailPublic,
-        website: prev.website || url,
-      }));
-      if (Array.isArray(d.services) && d.services.length) {
-        setSelectedServices((prev) => Array.from(new Set([...prev, ...d.services])));
-      }
-      setSaved(false);
-      setAutofillMsg({
-        type: 'ok',
-        text: lang === 'th'
-          ? '✓ กรอกข้อมูลจากเว็บไซต์แล้ว — กรุณาตรวจสอบและแก้ไขก่อนบันทึก'
-          : '✓ Filled in from your website — please review and edit before saving.',
-      });
-    } catch {
-      setAutofillMsg({ type: 'err', text: lang === 'th' ? 'เกิดข้อผิดพลาด กรุณาลองใหม่' : 'Something went wrong. Please try again.' });
-    } finally {
-      setAutofilling(false);
-    }
-  };
-
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -366,46 +310,6 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
 
   return (
     <form onSubmit={handleSave}>
-      {/* ✨ AI Auto-fill from website */}
-      <div style={{ ...sectionStyle, background: 'linear-gradient(135deg,#F0F9F9,#EAF6F6)', border: '1.5px solid rgba(15,111,115,0.25)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-          <span style={{ fontSize: '18px' }}>✨</span>
-          <div style={{ fontSize: '16px', fontWeight: 700, color: '#0F6F73' }}>
-            {lang === 'th' ? 'กรอกข้อมูลอัตโนมัติจากเว็บไซต์' : 'Auto-fill from your website'}
-          </div>
-        </div>
-        <div style={{ fontSize: '13px', color: '#6B7385', marginBottom: '14px' }}>
-          {lang === 'th'
-            ? 'วางลิงก์เว็บไซต์ทางการของคุณ แล้ว AI จะช่วยกรอกชื่อ คำอธิบาย และบริการให้อัตโนมัติ'
-            : 'Paste your official website and AI will fill in your name, description, and services automatically.'}
-        </div>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <input
-            type="text"
-            value={autofillUrl}
-            onChange={(e) => setAutofillUrl(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAutofill(); } }}
-            placeholder="https://yourcompany.com"
-            style={{ ...inputStyle, flex: '1 1 240px' }}
-          />
-          <button
-            type="button"
-            onClick={handleAutofill}
-            disabled={autofilling}
-            style={{ padding: '10px 20px', background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)', color: 'white', fontWeight: 700, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: autofilling ? 'default' : 'pointer', fontFamily: 'inherit', opacity: autofilling ? 0.7 : 1, whiteSpace: 'nowrap' }}
-          >
-            {autofilling
-              ? (lang === 'th' ? 'กำลังวิเคราะห์…' : 'Analyzing…')
-              : (lang === 'th' ? '✨ กรอกอัตโนมัติ' : '✨ Auto-fill')}
-          </button>
-        </div>
-        {autofillMsg && (
-          <div style={{ marginTop: '10px', fontSize: '13px', color: autofillMsg.type === 'ok' ? '#0F8A4C' : '#C0392B' }}>
-            {autofillMsg.text}
-          </div>
-        )}
-      </div>
-
       {/* Profile Branding */}
       <div style={sectionStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
