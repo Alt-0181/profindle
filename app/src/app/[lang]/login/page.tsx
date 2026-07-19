@@ -48,7 +48,20 @@ export default function LoginPage({ params }: { params: Promise<{ lang: string }
     setError('');
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      setError(lang === 'th' ? 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' : 'Invalid email or password');
+      try {
+        const res = await fetch('/api/auth/check-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        const { exists } = await res.json();
+        setError(exists
+          ? (lang === 'th' ? 'รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่หรือรีเซ็ตรหัสผ่าน' : 'Incorrect password. Try again or reset your password.')
+          : (lang === 'th' ? 'ไม่พบบัญชีที่ใช้อีเมลนี้ กรุณาสมัครสมาชิก' : 'No account found with this email. Try signing up instead.')
+        );
+      } catch {
+        setError(lang === 'th' ? 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' : 'Invalid email or password');
+      }
       setLoading(false);
       return;
     }

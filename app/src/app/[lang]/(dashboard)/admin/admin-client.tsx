@@ -428,7 +428,7 @@ function CompaniesTab({ companies: initial }: { companies: Company[] }) {
         />
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '14px', marginBottom: '24px' }}>
         <KpiCard label="Total Companies" value={companies.length} />
         <KpiCard label="Verified" value={verified.length} />
         <KpiCard label="Pending Review" value={pending.length} warn={pending.length > 0} />
@@ -441,7 +441,8 @@ function CompaniesTab({ companies: initial }: { companies: Company[] }) {
             <span style={{ fontSize: '15px', fontWeight: 700, color: '#171A21' }}>Verification Queue</span>
             <span style={{ background: '#FFF6EC', color: '#E06B00', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px' }}>{pending.length} pending</span>
           </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '520px' }}>
             <thead>
               <tr style={{ background: '#F4F5F7' }}>
                 {['Company', 'Email', 'Document', 'Joined', 'Actions'].map(col => (
@@ -476,6 +477,7 @@ function CompaniesTab({ companies: initial }: { companies: Company[] }) {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
@@ -483,7 +485,8 @@ function CompaniesTab({ companies: initial }: { companies: Company[] }) {
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #F4F5F7' }}>
           <span style={{ fontSize: '15px', fontWeight: 700, color: '#171A21' }}>All Companies</span>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
           <thead>
             <tr style={{ background: '#F4F5F7' }}>
               {['Company', 'Services', 'Verified', 'Premium', 'LINE', 'Joined'].map(col => (
@@ -554,6 +557,7 @@ function CompaniesTab({ companies: initial }: { companies: Company[] }) {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
@@ -595,7 +599,7 @@ function UsersTab({ users: initial }: { users: AuthUser[] }) {
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '14px', marginBottom: '24px' }}>
         <KpiCard label="Total Users" value={users.length} />
         <KpiCard label="Super Admins" value={users.filter(u => u.user_metadata?.role === 'super_admin').length} />
         <KpiCard label="Regular Users" value={users.filter(u => !u.user_metadata?.role || u.user_metadata.role === 'user').length} />
@@ -605,7 +609,8 @@ function UsersTab({ users: initial }: { users: AuthUser[] }) {
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #F4F5F7' }}>
           <span style={{ fontSize: '15px', fontWeight: 700, color: '#171A21' }}>All Users</span>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '480px' }}>
           <thead>
             <tr style={{ background: '#F4F5F7' }}>
               {['Email', 'Display Name', 'Role', 'Joined', 'Actions'].map(col => (
@@ -649,6 +654,7 @@ function UsersTab({ users: initial }: { users: AuthUser[] }) {
             })}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
@@ -756,8 +762,8 @@ function ServicesTab() {
       <div style={{ ...card, marginBottom: '24px', padding: '20px' }}>
         <div style={{ fontSize: '15px', fontWeight: 700, color: '#171A21', marginBottom: '16px' }}>Add New Service</div>
         {error && <div style={{ color: '#C0392B', fontSize: '12px', marginBottom: '12px', padding: '8px 12px', background: '#FFF0F0', borderRadius: '8px' }}>{error}</div>}
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
-          <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <div style={{ flex: '1 1 180px' }}>
             <label style={{ fontSize: '11px', fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '6px' }}>Service Name</label>
             <input
               type="text"
@@ -768,7 +774,7 @@ function ServicesTab() {
               style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid rgba(15,111,115,0.2)', fontSize: '13px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: '1 1 160px' }}>
             <label style={{ fontSize: '11px', fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '6px' }}>Industry</label>
             <select
               value={newIndustry}
@@ -781,7 +787,7 @@ function ServicesTab() {
           <button
             onClick={addService}
             disabled={adding || !newLabel.trim()}
-            style={{ ...primaryBtn, padding: '9px 20px', opacity: adding || !newLabel.trim() ? 0.6 : 1, whiteSpace: 'nowrap' }}
+            style={{ ...primaryBtn, padding: '9px 20px', opacity: adding || !newLabel.trim() ? 0.6 : 1, whiteSpace: 'nowrap', flexShrink: 0 }}
           >
             {adding ? 'Adding…' : '+ Add Service'}
           </button>
@@ -789,7 +795,7 @@ function ServicesTab() {
       </div>
 
       {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '14px', marginBottom: '24px' }}>
         <KpiCard label="Total Services" value={services.length} />
         <KpiCard label="Industries" value={industryList.length} />
         <KpiCard label="Avg per Industry" value={industryList.length ? Math.round(services.length / industryList.length) : 0} />
@@ -958,7 +964,7 @@ function LineConfigTab({ companies: initial }: { companies: Company[] }) {
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '14px', marginBottom: '24px' }}>
         <KpiCard label="Linked Accounts" value={linked.length} />
         <KpiCard label="Messages Sent" value="—" />
         <KpiCard label="Delivery Rate" value="—" />
@@ -974,7 +980,8 @@ function LineConfigTab({ companies: initial }: { companies: Company[] }) {
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #F4F5F7' }}>
           <span style={{ fontSize: '15px', fontWeight: 700, color: '#171A21' }}>Linked Companies</span>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '420px' }}>
           <thead>
             <tr style={{ background: '#F4F5F7' }}>
               {['Company', 'LINE UID', 'Linked Date', 'Actions'].map(col => (
@@ -1010,6 +1017,7 @@ function LineConfigTab({ companies: initial }: { companies: Company[] }) {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
@@ -1055,7 +1063,7 @@ function RequestsTab({ broadcasts: initial }: { broadcasts: Broadcast[] }) {
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '14px', marginBottom: '24px' }}>
         <KpiCard label="Total Requests" value={initial.length} />
         <KpiCard label="This Month" value={thisMonth.length} />
         <KpiCard label="Active" value={initial.filter(b => b.status === 'active').length} />
@@ -1084,7 +1092,8 @@ function RequestsTab({ broadcasts: initial }: { broadcasts: Broadcast[] }) {
           <span style={{ fontSize: '15px', fontWeight: 700, color: '#171A21' }}>Broadcast Requests</span>
           <span style={{ fontSize: '12px', color: '#9AA0AE' }}>{filtered.length} of {initial.length} shown</span>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '680px' }}>
           <thead>
             <tr style={{ background: '#F4F5F7' }}>
               {['ID', 'Buyer', 'Service', 'Budget', 'Timeline', 'Matches', 'Status', 'Date'].map(col => (
@@ -1118,6 +1127,7 @@ function RequestsTab({ broadcasts: initial }: { broadcasts: Broadcast[] }) {
             })}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

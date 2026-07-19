@@ -143,12 +143,58 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
   };
 
   return (
-    <div style={{ maxWidth: '860px', display: 'grid', gridTemplateColumns: '220px 1fr', gap: '24px', alignItems: 'start' }}>
+    <div>
+      <style>{`
+        .settings-layout {
+          max-width: 860px;
+          display: grid;
+          grid-template-columns: 220px 1fr;
+          gap: 24px;
+          align-items: start;
+        }
+        .settings-nav {
+          position: sticky;
+          top: 80px;
+          background: white;
+          border-radius: 16px;
+          border: 1px solid rgba(15,111,115,0.10);
+          padding: 8px;
+        }
+        .settings-nav-btn {
+          display: block;
+          width: 100%;
+          text-align: left;
+          white-space: nowrap;
+        }
+        @media (max-width: 640px) {
+          .settings-layout {
+            grid-template-columns: 1fr;
+            gap: 12px;
+          }
+          .settings-nav {
+            position: static;
+            display: flex;
+            flex-direction: row;
+            overflow-x: auto;
+            padding: 4px;
+            gap: 4px;
+            border-radius: 12px;
+            -webkit-overflow-scrolling: touch;
+          }
+          .settings-nav::-webkit-scrollbar { display: none; }
+          .settings-nav-btn {
+            display: inline-block !important;
+            width: auto !important;
+            flex-shrink: 0;
+          }
+        }
+      `}</style>
+    <div className="settings-layout">
       {/* Nav */}
-      <div style={{ position: 'sticky', top: '80px', background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', padding: '8px' }}>
+      <div className="settings-nav">
         {navItems.map((item) => (
-          <button key={item.id} onClick={() => setActiveSection(item.id)} style={{
-            display: 'block', width: '100%', textAlign: 'left', padding: '10px 12px',
+          <button key={item.id} onClick={() => setActiveSection(item.id)} className="settings-nav-btn" style={{
+            padding: '10px 12px',
             borderRadius: '10px', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
             fontSize: '14px', fontWeight: activeSection === item.id ? 600 : 400,
             background: activeSection === item.id ? '#F0F9F9' : 'transparent',
@@ -435,6 +481,7 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }
