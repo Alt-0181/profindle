@@ -42,7 +42,9 @@ export async function PATCH(request: NextRequest) {
   if (action === 'grant') {
     // Upgrade the company to Premium. Prefer company_id; fall back to user_id
     // in case the company row was recreated after the claim was made.
-    const upgrade = { premium: true, plan: 'vip' };
+    // Use 'premium' — it matches the "Premium" tier in the pricing UI and the
+    // companies_plan_check DB constraint (which does not include 'vip').
+    const upgrade = { premium: true, plan: 'premium' };
     let upgradeErr = null;
     if (claim.company_id) {
       ({ error: upgradeErr } = await admin.from('companies').update(upgrade).eq('id', claim.company_id));
