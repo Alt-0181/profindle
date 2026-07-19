@@ -82,10 +82,12 @@ export default async function SearchProvidersPage({
     if (!budgetMap[row.company_id].includes(row.budget)) budgetMap[row.company_id].push(row.budget);
   }
 
-  const companiesWithBudgets = (companies ?? []).map((c) => ({
-    ...c,
-    portfolioBudgets: budgetMap[c.id] ?? [],
-  }));
+  const companiesWithBudgets = (companies ?? [])
+    .filter((c) => c.name)
+    .map((c) => ({
+      ...c,
+      portfolioBudgets: budgetMap[c.id] ?? [],
+    }));
 
   const provinces = [...new Set(companiesWithBudgets.map((c) => c.province).filter(Boolean))] as string[];
 

@@ -359,7 +359,7 @@ function ProfileDrawer({ provider, lang, isTh, dict, onClose }: {
   };
 
   const displayName = isTh && provider.name_th ? provider.name_th : provider.name;
-  const initial = provider.logo_initial ?? provider.name.slice(0, 2).toUpperCase();
+  const initial = provider.logo_initial ?? (provider.name ?? '??').slice(0, 2).toUpperCase();
   // Pad hero content so it aligns with the max-width body content
   const heroPad = 'max(28px, calc((100vw - 1200px)/2 + 28px))';
 
@@ -643,7 +643,7 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
     })
     .sort((a, b) => {
       if (sort === 'views') return (b.views ?? 0) - (a.views ?? 0);
-      if (sort === 'az') return a.name.localeCompare(b.name);
+      if (sort === 'az') return (a.name ?? '').localeCompare(b.name ?? '');
       if (b.premium !== a.premium) return b.premium ? 1 : -1;
       if (b.verified !== a.verified) return b.verified ? 1 : -1;
       return (b.views ?? 0) - (a.views ?? 0);
@@ -785,7 +785,7 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
             {filtered.map(p => {
               const name = isTh && p.name_th ? p.name_th : p.name;
               const desc = isTh && p.description_th ? p.description_th : p.description;
-              const initial = p.logo_initial ?? p.name.slice(0, 2).toUpperCase();
+              const initial = p.logo_initial ?? (p.name ?? '??').slice(0, 2).toUpperCase();
               return (
                 <div
                   key={p.id}
