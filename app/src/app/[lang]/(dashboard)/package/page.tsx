@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
+import { createClient } from '@/lib/supabase/server';
 import { EarlyBirdButton } from './early-bird-button';
 
 export default async function PackagePage({ params }: { params: Promise<{ lang: string }> }) {
@@ -7,6 +8,17 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
   if (!hasLocale(lang)) notFound();
   const dict = await getDictionary(lang as Locale);
   const t = dict.package;
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: company } = await supabase
+    .from('companies')
+    .select('premium, plan')
+    .eq('user_id', user?.id ?? '')
+    .maybeSingle();
+  const companyPlan: string = (company as any)?.plan ?? 'free';
+  const isPremium = !!(company as any)?.premium || ['vip', 'premium'].includes(companyPlan);
+  const isTh = lang === 'th';
 
   const freeFeatures = [t.freeFeature1, t.freeFeature2, t.freeFeature3, t.freeFeature4];
   const premFeatures = [t.premFeature1, t.premFeature2, t.premFeature3, t.premFeature4, t.premFeature5, t.premFeature6];
@@ -18,12 +30,16 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
         <p style={{ fontSize: '15px', color: '#6B7385' }}>{t.subtitle}</p>
       </div>
 
-      {/* Free plan notice */}
-      <div style={{ background: '#F4F5F7', border: '1px solid #E4E7ED', borderRadius: '12px', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-        <span style={{ fontSize: '13px', color: '#6B7385' }}>
-          {lang === 'th'
-            ? '📋 คุณอยู่ใน แผนฟรี — ฟีเจอร์บางส่วนถูกจำกัดสำหรับสมาชิก Premium เท่านั้น'
-            : '📋 You\'re on the Free plan — some features are limited to Premium members only'}
+      {/* Current plan notice */}
+      <div style={{ background: isPremium ? 'linear-gradient(135deg,#F0FFF4,#E8F5E9)' : '#F4F5F7', border: `1px solid ${isPremium ? 'rgba(6,199,85,0.3)' : '#E4E7ED'}`, borderRadius: '12px', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+        <span style={{ fontSize: '13px', color: isPremium ? '#1B5E20' : '#6B7385' }}>
+          {isPremium
+            ? (isTh
+                ? `⭐ คุณอยู่ใน แผน ${companyPlan === 'vip' ? 'VIP' : 'Premium'} — ฟีเจอร์ทั้งหมดพร้อมใช้งาน`
+                : `⭐ You're on the ${companyPlan === 'vip' ? 'VIP' : 'Premium'} plan — all features unlocked`)
+            : (isTh
+                ? '📋 คุณอยู่ใน แผนฟรี — ฟีเจอร์บางส่วนถูกจำกัดสำหรับสมาชิก Premium เท่านั้น'
+                : '📋 You\'re on the Free plan — some features are limited to Premium members only')}
         </span>
       </div>
 
@@ -68,8 +84,8 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
             ))}
           </ul>
 
-          <div style={{ padding: '12px', background: '#F0F9F9', borderRadius: '12px', textAlign: 'center', fontSize: '14px', fontWeight: 700, color: '#0F6F73' }}>
-            {t.currentPlan}
+          <div style={{ padding: '12px', background: isPremium ? '#F4F5F7' : '#F0F9F9', borderRadius: '12px', textAlign: 'center', fontSize: '14px', fontWeight: 700, color: isPremium ? '#9AA0AE' : '#0F6F73' }}>
+            {isPremium ? (isTh ? 'ไม่ใช่แผนปัจจุบัน' : 'Not your plan') : t.currentPlan}
           </div>
         </div>
 
@@ -103,10 +119,16 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
             ))}
           </ul>
 
-          <EarlyBirdButton
-            label={t.claimBtn}
-            style={{ padding: '14px', background: 'linear-gradient(135deg, #F77F00, #FFB347)', color: 'white', fontWeight: 700, fontSize: '15px', borderRadius: '12px', position: 'relative', zIndex: 1, width: '100%', textAlign: 'center' }}
-          />
+          {isPremium ? (
+            <div style={{ padding: '14px', background: 'rgba(6,199,85,0.15)', border: '1.5px solid rgba(6,199,85,0.4)', color: '#06C755', fontWeight: 700, fontSize: '15px', borderRadius: '12px', position: 'relative', zIndex: 1, textAlign: 'center' }}>
+              {isTh ? '✓ แผนปัจจุบันของคุณ' : '✓ Your current plan'}
+            </div>
+          ) : (
+            <EarlyBirdButton
+              label={t.claimBtn}
+              style={{ padding: '14px', background: 'linear-gradient(135deg, #F77F00, #FFB347)', color: 'white', fontWeight: 700, fontSize: '15px', borderRadius: '12px', position: 'relative', zIndex: 1, width: '100%', textAlign: 'center' }}
+            />
+          )}
         </div>
       </div>
 

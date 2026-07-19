@@ -20,13 +20,16 @@ export default async function SettingsPage({
 
   const { data: company } = await supabase
     .from('companies')
-    .select('line_user_id, line_display_name, premium')
+    .select('line_user_id, line_display_name, premium, plan')
     .eq('user_id', user?.id ?? '')
     .maybeSingle();
 
   const lineUserId = (company as any)?.line_user_id ?? null;
   const lineDisplayName = (company as any)?.line_display_name ?? null;
-  const isPremium = (company as any)?.premium ?? false;
+  const isPremium = !!(
+    (company as any)?.premium ||
+    ['vip', 'premium'].includes((company as any)?.plan ?? '')
+  );
   const userName: string = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
 
   return (
