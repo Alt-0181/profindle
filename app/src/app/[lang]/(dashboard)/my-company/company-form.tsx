@@ -40,11 +40,13 @@ function deriveIndustries(selected: string[]): string[] {
 }
 
 function fuzzyMatch(query: string, target: string): boolean {
-  const q = query.toLowerCase(); const t = target.toLowerCase();
-  if (t.includes(q)) return true;
-  let qi = 0;
-  for (let i = 0; i < t.length && qi < q.length; i++) { if (t[i] === q[qi]) qi++; }
-  return qi === q.length;
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  const t = target.toLowerCase();
+  // every whitespace-separated token must appear as a substring
+  // (so "web dev" matches "Web Development", but "event" no longer
+  //  matches every "...Development" service via scattered letters)
+  return q.split(/\s+/).every(token => t.includes(token));
 }
 
 interface MyCompanyFormProps {
