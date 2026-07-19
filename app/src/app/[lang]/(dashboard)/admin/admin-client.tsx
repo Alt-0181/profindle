@@ -47,6 +47,15 @@ export interface Broadcast {
   match_count: number;
 }
 
+export interface EarlyBirdClaim {
+  id: string;
+  company_name: string | null;
+  user_email: string | null;
+  status: 'pending' | 'granted' | 'dismissed';
+  created_at: string;
+  resolved_at: string | null;
+}
+
 interface Template {
   id: string;
   name: string;
@@ -65,6 +74,7 @@ interface Props {
   companies: Company[];
   users: AuthUser[];
   broadcasts: Broadcast[];
+  earlyBirdClaims: EarlyBirdClaim[];
   lang: string;
 }
 
@@ -660,6 +670,121 @@ function UsersTab({ users: initial }: { users: AuthUser[] }) {
   );
 }
 
+// ─── Tab: Early Bird Requests ─────────────────────────────────────────────────
+
+function EarlyBirdTab({ claims: initial }: { claims: EarlyBirdClaim[] }) {
+  const [claims, setClaims] = useState(initial);
+  const [processing, setProcessing] = useState<string | null>(null);
+
+  const statusBadge = (status: EarlyBirdClaim['status']) => {
+    if (status === 'granted') return { bg: '#E8F5E9', color: '#2E7D32', label: 'Granted' };
+    if (status === 'dismissed') return { bg: '#F4F5F7', color: '#9AA0AE', label: 'Dismissed' };
+    return { bg: '#FFF3E0', color: '#E06B00', label: 'Pending' };
+  };
+
+  const act = async (claimId: string, action: 'grant' | 'dismiss') => {
+    if (action === 'grant' && !confirm('Grant Premium (VIP) to this company? This unlocks all Premium features for them.')) return;
+    setProcessing(claimId);
+    try {
+      const res = await fetch('/api/admin/early-bird', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ claimId, action }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        alert(json.error || 'Action failed. Please try again.');
+        return;
+      }
+      setClaims(prev => prev.map(c => c.id === claimId
+        ? { ...c, status: action === 'grant' ? 'granted' : 'dismissed', resolved_at: new Date().toISOString() }
+        : c));
+    } catch {
+      alert('Action failed. Please try again.');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  // Pending first, then most recently resolved.
+  const sorted = [...claims].sort((a, b) => {
+    if (a.status === 'pending' && b.status !== 'pending') return -1;
+    if (a.status !== 'pending' && b.status === 'pending') return 1;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
+  const pending = claims.filter(c => c.status === 'pending').length;
+  const granted = claims.filter(c => c.status === 'granted').length;
+
+  const grantBtn: React.CSSProperties = {
+    padding: '6px 14px', borderRadius: '8px', background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)',
+    color: 'white', fontSize: '12px', fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+  };
+  const dismissBtn: React.CSSProperties = {
+    padding: '6px 12px', borderRadius: '8px', background: '#F4F5F7',
+    color: '#6B7385', fontSize: '12px', fontWeight: 600, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '14px', marginBottom: '24px' }}>
+        <KpiCard label="Pending Requests" value={pending} warn={pending > 0} />
+        <KpiCard label="Granted" value={granted} />
+        <KpiCard label="Total Requests" value={claims.length} />
+      </div>
+
+      <div style={card}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #F4F5F7' }}>
+          <span style={{ fontSize: '15px', fontWeight: 700, color: '#171A21' }}>Early Bird Requests</span>
+          <span style={{ fontSize: '12px', color: '#9AA0AE', marginLeft: '8px' }}>Companies that clicked “Claim Early Bird”. Grant to unlock Premium.</span>
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '560px' }}>
+          <thead>
+            <tr style={{ background: '#F4F5F7' }}>
+              {['Company', 'Email', 'Requested', 'Status', 'Actions'].map(col => (
+                <th key={col} style={thStyle}>{col}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.length === 0 ? (
+              <tr><td colSpan={5} style={{ padding: '48px', textAlign: 'center', color: '#9AA0AE', fontSize: '14px' }}>No Early Bird requests yet</td></tr>
+            ) : sorted.map((c, i) => {
+              const badge = statusBadge(c.status);
+              return (
+                <tr key={c.id} style={{ borderTop: i > 0 ? '1px solid #F4F5F7' : undefined }}>
+                  <td style={{ ...tdStyle, fontSize: '13px', color: '#171A21', fontWeight: 600 }}>{c.company_name || '—'}</td>
+                  <td style={{ ...tdStyle, fontSize: '13px', color: '#444B5A' }}>{c.user_email || '—'}</td>
+                  <td style={{ ...tdStyle, fontSize: '12px', color: '#9AA0AE' }}>{fmt(c.created_at)}</td>
+                  <td style={tdStyle}>
+                    <span style={{ background: badge.bg, color: badge.color, fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '6px' }}>{badge.label}</span>
+                  </td>
+                  <td style={tdStyle}>
+                    {c.status === 'pending' ? (
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => act(c.id, 'grant')} disabled={processing === c.id} style={{ ...grantBtn, opacity: processing === c.id ? 0.6 : 1 }}>
+                          {processing === c.id ? '…' : 'Grant Premium'}
+                        </button>
+                        <button onClick={() => act(c.id, 'dismiss')} disabled={processing === c.id} style={{ ...dismissBtn, opacity: processing === c.id ? 0.6 : 1 }}>
+                          Dismiss
+                        </button>
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: '11px', color: '#C8CDD7' }}>{c.resolved_at ? fmt(c.resolved_at) : '—'}</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Tab 3: Industries & Services ────────────────────────────────────────────
 
 function ServicesTab() {
@@ -1152,6 +1277,7 @@ function ActivityLogsTab() {
 const TABS = [
   { id: 'companies', label: 'Companies' },
   { id: 'users', label: 'Users' },
+  { id: 'earlybird', label: 'Early Bird' },
   { id: 'services', label: 'Industries & Services' },
   { id: 'templates', label: 'LINE Templates' },
   { id: 'line', label: 'LINE Config' },
@@ -1159,8 +1285,9 @@ const TABS = [
   { id: 'logs', label: 'Activity Logs' },
 ];
 
-export function AdminClient({ companies, users, broadcasts, lang: _lang }: Props) {
+export function AdminClient({ companies, users, broadcasts, earlyBirdClaims, lang: _lang }: Props) {
   const [activeTab, setActiveTab] = useState('companies');
+  const pendingEarlyBird = earlyBirdClaims.filter(c => c.status === 'pending').length;
 
   return (
     <div className="page-body">
@@ -1189,9 +1316,15 @@ export function AdminClient({ companies, users, broadcasts, lang: _lang }: Props
               fontFamily: 'inherit',
               whiteSpace: 'nowrap',
               transition: 'color 0.15s',
+              display: 'inline-flex', alignItems: 'center', gap: '7px',
             }}
           >
             {tab.label}
+            {tab.id === 'earlybird' && pendingEarlyBird > 0 && (
+              <span style={{ fontSize: '11px', fontWeight: 700, minWidth: '18px', height: '18px', padding: '0 5px', borderRadius: '999px', background: 'linear-gradient(135deg,#F77F00,#E06B00)', color: 'white', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                {pendingEarlyBird}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -1199,6 +1332,7 @@ export function AdminClient({ companies, users, broadcasts, lang: _lang }: Props
       {/* Tab content */}
       {activeTab === 'companies' && <CompaniesTab companies={companies} />}
       {activeTab === 'users' && <UsersTab users={users} />}
+      {activeTab === 'earlybird' && <EarlyBirdTab claims={earlyBirdClaims} />}
       {activeTab === 'services' && <ServicesTab />}
       {activeTab === 'templates' && <TemplatesTab />}
       {activeTab === 'line' && <LineConfigTab companies={companies} />}

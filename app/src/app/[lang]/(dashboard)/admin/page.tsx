@@ -67,6 +67,14 @@ export default async function AdminPage({ params }: { params: Promise<{ lang: st
     match_count: Array.isArray(b.broadcast_matches) ? b.broadcast_matches.length : 0,
   }));
 
+  // Fetch Early Bird claim requests (newest first). Falls back to [] if the
+  // table hasn't been created yet, so the panel never crashes pre-migration.
+  const { data: earlyBirdClaims } = await admin
+    .from('early_bird_claims')
+    .select('id, company_name, user_email, status, created_at, resolved_at')
+    .order('created_at', { ascending: false })
+    .limit(200);
+
   // Sanitise auth users for client (only pass needed fields)
   const clientUsers = (users ?? []).map(u => ({
     id: u.id,
@@ -84,6 +92,7 @@ export default async function AdminPage({ params }: { params: Promise<{ lang: st
       companies={enriched}
       users={clientUsers}
       broadcasts={enrichedBroadcasts}
+      earlyBirdClaims={earlyBirdClaims ?? []}
       lang={lang}
     />
   );
