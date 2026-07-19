@@ -675,6 +675,7 @@ function UsersTab({ users: initial }: { users: AuthUser[] }) {
 function EarlyBirdTab({ claims: initial }: { claims: EarlyBirdClaim[] }) {
   const [claims, setClaims] = useState(initial);
   const [processing, setProcessing] = useState<string | null>(null);
+  const [confirmClaim, setConfirmClaim] = useState<EarlyBirdClaim | null>(null);
 
   const statusBadge = (status: EarlyBirdClaim['status']) => {
     if (status === 'granted') return { bg: '#E8F5E9', color: '#2E7D32', label: 'Granted' };
@@ -683,7 +684,6 @@ function EarlyBirdTab({ claims: initial }: { claims: EarlyBirdClaim[] }) {
   };
 
   const act = async (claimId: string, action: 'grant' | 'dismiss') => {
-    if (action === 'grant' && !confirm('Grant Premium (VIP) to this company? This unlocks all Premium features for them.')) return;
     setProcessing(claimId);
     try {
       const res = await fetch('/api/admin/early-bird', {
@@ -763,7 +763,7 @@ function EarlyBirdTab({ claims: initial }: { claims: EarlyBirdClaim[] }) {
                   <td style={tdStyle}>
                     {c.status === 'pending' ? (
                       <div style={{ display: 'flex', gap: '8px' }}>
-                        <button onClick={() => act(c.id, 'grant')} disabled={processing === c.id} style={{ ...grantBtn, opacity: processing === c.id ? 0.6 : 1 }}>
+                        <button onClick={() => setConfirmClaim(c)} disabled={processing === c.id} style={{ ...grantBtn, opacity: processing === c.id ? 0.6 : 1 }}>
                           {processing === c.id ? '…' : 'Grant Premium'}
                         </button>
                         <button onClick={() => act(c.id, 'dismiss')} disabled={processing === c.id} style={{ ...dismissBtn, opacity: processing === c.id ? 0.6 : 1 }}>
@@ -781,6 +781,42 @@ function EarlyBirdTab({ claims: initial }: { claims: EarlyBirdClaim[] }) {
         </table>
         </div>
       </div>
+
+      {/* Grant confirmation modal */}
+      {confirmClaim && (
+        <div
+          onClick={() => setConfirmClaim(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(23,26,33,0.55)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: 'white', borderRadius: '20px', maxWidth: '420px', width: '100%', padding: '28px', boxShadow: '0 20px 60px rgba(23,26,33,0.35)', textAlign: 'center' }}
+          >
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'linear-gradient(135deg,#FFF3E0,#FFE0B2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <span style={{ fontSize: '28px' }}>⭐</span>
+            </div>
+            <div style={{ fontSize: '19px', fontWeight: 700, color: '#171A21', marginBottom: '8px' }}>Grant Premium?</div>
+            <p style={{ fontSize: '14px', color: '#6B7385', lineHeight: 1.55, margin: '0 0 4px' }}>
+              This upgrades <strong style={{ color: '#171A21' }}>{confirmClaim.company_name || 'this company'}</strong> to the Premium plan immediately, unlocking all Premium features (including LINE alerts).
+            </p>
+            <p style={{ fontSize: '12.5px', color: '#9AA0AE', margin: '8px 0 24px' }}>{confirmClaim.user_email}</p>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => setConfirmClaim(null)}
+                style={{ flex: 1, padding: '11px', borderRadius: '12px', background: '#F4F5F7', color: '#444B5A', fontSize: '14px', fontWeight: 600, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { const id = confirmClaim.id; setConfirmClaim(null); act(id, 'grant'); }}
+                style={{ flex: 1, padding: '11px', borderRadius: '12px', background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)', color: 'white', fontSize: '14px', fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                Grant Premium
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
