@@ -26,10 +26,11 @@ export function PublicNav({ locale, dict, dark = false }: PublicNavProps) {
 
   return (
     <nav
+      className="px-4 sm:px-12"
       style={{
         position: dark ? 'absolute' : 'sticky',
         top: 0, left: 0, right: 0, zIndex: 50,
-        height: '64px', padding: '0 48px',
+        height: '64px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         background: dark ? 'transparent' : 'rgba(255,255,255,0.95)',
         backdropFilter: dark ? 'none' : 'blur(8px)',
@@ -53,7 +54,7 @@ export function PublicNav({ locale, dict, dark = false }: PublicNavProps) {
       </Link>
 
       {/* Right nav */}
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-2 sm:gap-5">
         {/* Language pill toggle */}
         <div style={{
           display: 'flex', alignItems: 'center', borderRadius: '999px', padding: '3px', gap: '2px',
@@ -82,8 +83,8 @@ export function PublicNav({ locale, dict, dark = false }: PublicNavProps) {
           <Link
             href={`/${locale}/home`}
             style={{
-              fontSize: '13px', fontWeight: 600, padding: '8px 18px', borderRadius: '10px',
-              textDecoration: 'none', transition: 'all 150ms',
+              fontSize: '13px', fontWeight: 600, padding: '8px 16px', borderRadius: '10px',
+              textDecoration: 'none', transition: 'all 150ms', whiteSpace: 'nowrap',
               background: dark ? 'rgba(255,255,255,0.12)' : '#171A21',
               color: 'white',
               border: dark ? '1.5px solid rgba(255,255,255,0.2)' : 'none',

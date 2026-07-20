@@ -133,8 +133,25 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
       {/* Auto-refresh so a Premium grant unlocks gated steps without a manual reload */}
       <AutoRefresh />
 
+      <style>{`
+        .home-welcome { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+        .home-welcome-stats { display: flex; gap: 12px; flex-shrink: 0; }
+        .home-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+        .home-row2 { display: grid; grid-template-columns: 3fr 2fr; gap: 20px; align-items: start; }
+        @media (max-width: 720px) {
+          .home-welcome { flex-direction: column; }
+          .home-welcome-stats { width: 100%; }
+          .home-welcome-stats > div { flex: 1; }
+          .home-kpis { grid-template-columns: repeat(2, 1fr); }
+          .home-row2 { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 430px) {
+          .home-kpis { grid-template-columns: 1fr; }
+        }
+      `}</style>
+
       {/* Welcome Banner */}
-      <div style={{ background: 'linear-gradient(135deg,#0E1017 0%,#0F6F73 100%)', borderRadius: '20px', padding: '28px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '24px', position: 'relative', overflow: 'hidden', marginBottom: '24px' }}>
+      <div className="home-welcome" style={{ background: 'linear-gradient(135deg,#0E1017 0%,#0F6F73 100%)', borderRadius: '20px', padding: '28px 32px', position: 'relative', overflow: 'hidden', marginBottom: '24px' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 50% 60% at 80% 50%,rgba(247,127,0,0.1) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 20% 50%,rgba(43,190,197,0.12) 0%,transparent 55%)' }} />
         <div style={{ position: 'relative', zIndex: 1, flex: 1 }}>
           <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'white', letterSpacing: '-0.02em', marginBottom: '4px' }}>
@@ -152,7 +169,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
             </span>
           </div>
         </div>
-        <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: '12px', flexShrink: 0 }}>
+        <div className="home-welcome-stats" style={{ position: 'relative', zIndex: 1 }}>
           {[
             { val: String(profileViews), label: isTh ? 'การเข้าชม' : 'Profile views' },
             { val: String(broadcastCount ?? 0), label: isTh ? 'กระจายข่าว' : 'Broadcasts' },
@@ -187,7 +204,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
       )}
 
       {/* KPI Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '24px' }}>
+      <div className="home-kpis" style={{ marginBottom: '24px' }}>
         {[
           { label: isTh ? 'การเข้าชมโปรไฟล์' : 'Profile Views', value: '—', sub: isTh ? 'ข้อมูลจะแสดงเมื่อมีการเข้าชมครั้งแรก' : 'Data appears after your first profile view' },
           { label: isTh ? 'คำขอกระจายข่าวที่ส่ง' : 'Broadcast Requests Sent', value: '—', sub: isTh ? 'ฟรี 4 ครั้ง/เดือน' : '4 free broadcasts/month' },
@@ -226,7 +243,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
       </div>
 
       {/* Row 2: Recent Activity (left) | Need Help (right) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '20px', alignItems: 'start' }}>
+      <div className="home-row2">
         {/* Recent Activity */}
         <div style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden' }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid #F4F5F7', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

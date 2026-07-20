@@ -369,6 +369,10 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
 
   return (
     <form onSubmit={handleSave}>
+      <style>{`
+        .mc-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (max-width: 640px) { .mc-row-2 { grid-template-columns: 1fr; } }
+      `}</style>
       {/* ✨ AI Auto-fill from website */}
       <div style={{ ...sectionStyle, background: 'linear-gradient(135deg,#F0F9F9,#EAF6F6)', border: '1.5px solid rgba(15,111,115,0.25)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
@@ -558,7 +562,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
 
         {/* Bilingual company name */}
         <div style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div className="mc-row-2">
             <div>
               <label style={labelStyle}>{t.companyNameEn} <span style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>EN</span></label>
               <input type="text" value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} style={inputStyle} placeholder="Acme" />
@@ -584,7 +588,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
 
         {/* Bilingual description */}
         <div style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div className="mc-row-2">
             <div>
               <label style={labelStyle}>{t.descriptionEn} <span style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>EN</span></label>
               <textarea value={form.descEn} onChange={(e) => set('descEn', e.target.value)} rows={4} style={{ ...inputStyle, minHeight: '96px', resize: 'vertical' }} placeholder={t.descPh} />
@@ -662,7 +666,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         </div>
 
         {/* Team size + Founded year */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+        <div className="mc-row-2" style={{ marginBottom: '20px' }}>
           <div>
             <label style={labelStyle}>{t.teamSize}</label>
             <select value={form.teamSize} onChange={(e) => set('teamSize', e.target.value)} style={inputStyle}>
@@ -677,7 +681,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         </div>
 
         {/* Address + Website */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div className="mc-row-2">
           <div>
             <label style={labelStyle}>{t.address}</label>
             <input type="text" value={form.address} onChange={(e) => set('address', e.target.value)} style={inputStyle} placeholder={t.addressPh} />

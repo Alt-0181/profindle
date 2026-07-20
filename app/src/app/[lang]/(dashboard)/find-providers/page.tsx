@@ -47,7 +47,7 @@ export default async function FindProvidersPage({ params }: { params: Promise<{ 
         <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#171A21', marginBottom: '16px' }}>
           {lang === 'th' ? 'บริการยอดนิยม' : 'Popular Services'}
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
           {popularServices.map((svc) => (
             <Link
               key={svc.name}
@@ -66,7 +66,7 @@ export default async function FindProvidersPage({ params }: { params: Promise<{ 
         <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#171A21', marginBottom: '24px' }}>
           {lang === 'th' ? 'วิธีการทำงานของ Broadcast' : 'How Broadcast Works'}
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px' }}>
           {[
             { step: '1', title: lang === 'th' ? 'อธิบายงานของคุณ' : 'Describe your project', desc: lang === 'th' ? 'บอกเราว่าคุณต้องการอะไรและงบประมาณคือเท่าไร' : 'Tell us what you need and your budget range.' },
             { step: '2', title: lang === 'th' ? 'รับข้อเสนอ' : 'Receive proposals', desc: lang === 'th' ? 'ผู้ให้บริการที่ตรงกับคุณจะส่งข้อเสนอมาให้' : 'Matched providers send you their best proposals.' },

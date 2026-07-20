@@ -378,11 +378,12 @@ function ProfileDrawer({ provider, lang, isTh, dict, onClose }: {
           {/* Hero */}
           <div style={{
             position: 'relative',
-            height: provider.banner_url ? 'min(38vw, 420px)' : 'auto',
+            height: provider.banner_url ? 'clamp(150px, 38vw, 420px)' : 'auto',
             background: provider.banner_url ? undefined : 'linear-gradient(135deg, #0E1017, #0F6F73)',
             backgroundImage: provider.banner_url ? `url(${provider.banner_url})` : undefined,
             backgroundSize: 'cover',
-            backgroundPosition: 'center',
+            backgroundPosition: 'center center',
+            backgroundRepeat: 'no-repeat',
           }}>
             {/* Close button */}
             <button onClick={onClose} style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10, width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.12)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
@@ -781,7 +782,7 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
             </Link>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
             {filtered.map(p => {
               const name = isTh && p.name_th ? p.name_th : p.name;
               const desc = isTh && p.description_th ? p.description_th : p.description;
