@@ -96,59 +96,63 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
       <style>{`
         .pp-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
         .pp-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .pp-cover { position: relative; width: 100%; max-width: 1200px; margin: 0 auto; padding-bottom: 38%; background: #0E1017; overflow: hidden; }
         .pp-banner-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: ${bdx}% ${bdy}%; transform: scale(${bz / 100}); transform-origin: ${bdx}% ${bdy}%; }
+        .pp-identity { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+        .pp-idrow { display: flex; align-items: flex-end; gap: 20px; margin-top: -44px; position: relative; z-index: 2; flex-wrap: wrap; }
         @media (max-width: 820px) {
           .pp-grid { grid-template-columns: 1fr; }
           .pp-stats { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 768px) {
+          .pp-cover { padding-bottom: 62%; }
           .pp-banner-img { object-position: ${bmx}% ${bmy}%; transform: scale(${bmz / 100}); transform-origin: ${bmx}% ${bmy}%; }
+          .pp-idrow { margin-top: -34px; gap: 14px; }
         }
       `}</style>
       <PublicNav locale={lang} dict={dict} dark={false} />
 
-      {/* Header */}
-      <div style={{
-        background: company.banner_url ? '#0E1017' : 'linear-gradient(135deg, #0E1017 0%, #0F6F73 100%)',
-        padding: '40px 24px 64px', position: 'relative', overflow: 'hidden',
-      }}>
-        {company.banner_url && (
-          <>
-            <img className="pp-banner-img" src={company.banner_url} alt="" />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(14,16,23,0.82) 0%, rgba(15,111,115,0.75) 100%)' }} />
-          </>
+      {/* Back link */}
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '16px 24px 12px' }}>
+        <Link href={`/${lang}/search-providers`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#6B7385', textDecoration: 'none' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6"/></svg>
+          {isTh ? 'กลับไปค้นหา' : 'Back to search'}
+        </Link>
+      </div>
+
+      {/* Cover — matches the framing chosen in the editor exactly */}
+      <div className="pp-cover">
+        {company.banner_url ? (
+          <img className="pp-banner-img" src={company.banner_url} alt="" />
+        ) : (
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #0E1017 0%, #0F6F73 100%)' }} />
         )}
-        {!company.banner_url && (
-          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 40% 60% at 80% 50%, rgba(247,127,0,0.1) 0%, transparent 60%)', pointerEvents: 'none' }} />
-        )}
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: '960px', margin: '0 auto' }}>
-          <Link href={`/${lang}/search-providers`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'rgba(255,255,255,0.5)', textDecoration: 'none', marginBottom: '24px' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6"/></svg>
-            {isTh ? 'กลับไปค้นหา' : 'Back to search'}
-          </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
-            <div style={{ width: '96px', height: '96px', borderRadius: '22px', background: company.logo_url ? 'none' : 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '28px', flexShrink: 0, border: '2.5px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', overflow: 'hidden' }}>
-              {company.logo_url ? (
-                <img src={company.logo_url} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : initial}
-            </div>
-            <div>
-              <h1 style={{ fontSize: 'clamp(22px, 3vw, 30px)', fontWeight: 700, color: 'white', marginBottom: '10px', letterSpacing: '-0.02em' }}>
-                {displayName}
-              </h1>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                {company.verified && <span style={{ background: 'rgba(255,255,255,0.15)', color: 'white', fontSize: '12px', fontWeight: 600, padding: '4px 12px', borderRadius: '999px' }}>✓ {isTh ? 'ยืนยันแล้ว' : 'Verified'}</span>}
-                {company.premium && <span style={{ background: 'linear-gradient(135deg, #F77F00, #E06B00)', color: 'white', fontSize: '12px', fontWeight: 600, padding: '4px 12px', borderRadius: '999px' }}>✦ Premium</span>}
-                {company.province && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'rgba(255,255,255,0.55)' }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>{company.province}</span>}
-                {company.industry && <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>· {company.industry}</span>}
-              </div>
+      </div>
+
+      {/* Identity */}
+      <div className="pp-identity">
+        <div className="pp-idrow">
+          <div style={{ width: '96px', height: '96px', borderRadius: '22px', background: company.logo_url ? 'white' : '#0F6F73', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '28px', flexShrink: 0, border: '3px solid white', boxShadow: '0 4px 14px rgba(14,16,23,0.18)', overflow: 'hidden' }}>
+            {company.logo_url ? (
+              <img src={company.logo_url} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : initial}
+          </div>
+          <div style={{ paddingBottom: '4px' }}>
+            <h1 style={{ fontSize: 'clamp(22px, 3vw, 30px)', fontWeight: 700, color: '#171A21', marginBottom: '8px', letterSpacing: '-0.02em' }}>
+              {displayName}
+            </h1>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              {company.verified && <span style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '12px', fontWeight: 600, padding: '4px 12px', borderRadius: '999px' }}>✓ {isTh ? 'ยืนยันแล้ว' : 'Verified'}</span>}
+              {company.premium && <span style={{ background: 'linear-gradient(135deg, #F77F00, #E06B00)', color: 'white', fontSize: '12px', fontWeight: 600, padding: '4px 12px', borderRadius: '999px' }}>✦ Premium</span>}
+              {company.province && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#6B7385' }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>{company.province}</span>}
+              {company.industry && <span style={{ fontSize: '13px', color: '#9AA0AE' }}>· {company.industry}</span>}
             </div>
           </div>
         </div>
       </div>
 
       {/* Main content */}
-      <div style={{ maxWidth: '960px', margin: '-32px auto 48px', padding: '0 24px', position: 'relative', zIndex: 2 }}>
+      <div style={{ maxWidth: '960px', margin: '24px auto 48px', padding: '0 24px', position: 'relative', zIndex: 2 }}>
         <div className="pp-grid">
 
           {/* Left column */}

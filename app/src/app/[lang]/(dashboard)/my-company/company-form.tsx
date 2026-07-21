@@ -541,7 +541,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
               onPointerMove={(e) => { if (panStart.current) movePan(e.clientX, e.clientY); }}
               onPointerUp={endPan}
               onPointerCancel={endPan}
-              style={{ position: 'relative', width: '100%', maxWidth: bannerDevice === 'mobile' ? '420px' : '100%', margin: bannerDevice === 'mobile' ? '0 auto' : undefined, paddingBottom: bannerDevice === 'mobile' ? '62%' : '30%', borderRadius: '14px', overflow: 'hidden', cursor: panStart.current ? 'grabbing' : 'grab', background: '#0E1017', touchAction: 'none', userSelect: 'none' }}
+              style={{ position: 'relative', width: '100%', maxWidth: bannerDevice === 'mobile' ? '420px' : '100%', margin: bannerDevice === 'mobile' ? '0 auto' : undefined, paddingBottom: bannerDevice === 'mobile' ? '62%' : '38%', borderRadius: '14px', overflow: 'hidden', cursor: panStart.current ? 'grabbing' : 'grab', background: '#0E1017', touchAction: 'none', userSelect: 'none' }}
             >
               <img src={bannerSrc} alt="Banner" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', objectPosition: `${curFocus.x}% ${curFocus.y}%`, transform: `scale(${curZoom / 100})`, transformOrigin: `${curFocus.x}% ${curFocus.y}%`, userSelect: 'none' }} />
               <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '999px', pointerEvents: 'none' }}>
