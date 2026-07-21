@@ -390,7 +390,7 @@ function ProfileDrawer({ provider, lang, isTh, dict, onClose }: {
             background: provider.banner_url ? undefined : 'linear-gradient(135deg, #0E1017, #0F6F73)',
             backgroundImage: provider.banner_url ? `url(${provider.banner_url})` : undefined,
             backgroundSize: 'cover',
-            backgroundPosition: 'center center',
+            backgroundPosition: `${(provider as any).banner_focus_x ?? 50}% ${(provider as any).banner_focus_y ?? 50}%`,
             backgroundRepeat: 'no-repeat',
           }}>
             {/* Close button */}

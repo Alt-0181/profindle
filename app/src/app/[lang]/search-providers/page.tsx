@@ -66,7 +66,7 @@ export default async function SearchProvidersPage({
   const [{ data: companies }, { data: portfolioBudgetRows }] = await Promise.all([
     supabase
       .from('companies')
-      .select('id, name, name_th, description, description_th, province, services, industry, verified, premium, views, logo_initial, logo_url, banner_url, email, phone, website, founded_year, team_size, address, line_id, social_facebook, social_instagram')
+      .select('id, name, name_th, description, description_th, province, services, industry, verified, premium, views, logo_initial, logo_url, banner_url, banner_focus_x, banner_focus_y, email, phone, website, founded_year, team_size, address, line_id, social_facebook, social_instagram')
       .order('premium', { ascending: false })
       .order('views', { ascending: false }),
     supabase

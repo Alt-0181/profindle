@@ -101,7 +101,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
       <div style={{
         background: company.banner_url ? undefined : 'linear-gradient(135deg, #0E1017 0%, #0F6F73 100%)',
         backgroundImage: company.banner_url ? `url(${company.banner_url})` : undefined,
-        backgroundSize: 'cover', backgroundPosition: 'center',
+        backgroundSize: 'cover', backgroundPosition: `${(company as any).banner_focus_x ?? 50}% ${(company as any).banner_focus_y ?? 50}%`,
         padding: '40px 24px 64px', position: 'relative', overflow: 'hidden',
       }}>
         {company.banner_url && (
