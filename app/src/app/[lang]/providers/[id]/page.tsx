@@ -99,7 +99,8 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
         .pp-cover { position: relative; width: 100%; max-width: 1200px; margin: 0 auto; padding-bottom: 38%; background: #0E1017; overflow: hidden; }
         .pp-banner-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: ${bdx}% ${bdy}%; transform: scale(${bz / 100}); transform-origin: ${bdx}% ${bdy}%; }
         .pp-identity { max-width: 960px; margin: 0 auto; padding: 0 24px; }
-        .pp-idrow { display: flex; align-items: flex-end; gap: 20px; margin-top: -44px; position: relative; z-index: 2; flex-wrap: wrap; }
+        .pp-idrow { display: flex; align-items: flex-end; gap: 20px; padding-top: 14px; position: relative; z-index: 2; flex-wrap: wrap; }
+        .pp-idlogo { margin-top: -56px; }
         @media (max-width: 820px) {
           .pp-grid { grid-template-columns: 1fr; }
           .pp-stats { grid-template-columns: repeat(2, 1fr); }
@@ -107,7 +108,8 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
         @media (max-width: 768px) {
           .pp-cover { padding-bottom: 62%; }
           .pp-banner-img { object-position: ${bmx}% ${bmy}%; transform: scale(${bmz / 100}); transform-origin: ${bmx}% ${bmy}%; }
-          .pp-idrow { margin-top: -34px; gap: 14px; }
+          .pp-idrow { gap: 14px; padding-top: 10px; }
+          .pp-idlogo { margin-top: -40px; }
         }
       `}</style>
       <PublicNav locale={lang} dict={dict} dark={false} />
@@ -132,7 +134,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
       {/* Identity */}
       <div className="pp-identity">
         <div className="pp-idrow">
-          <div style={{ width: '96px', height: '96px', borderRadius: '22px', background: company.logo_url ? 'white' : '#0F6F73', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '28px', flexShrink: 0, border: '3px solid white', boxShadow: '0 4px 14px rgba(14,16,23,0.18)', overflow: 'hidden' }}>
+          <div className="pp-idlogo" style={{ width: '96px', height: '96px', borderRadius: '22px', background: company.logo_url ? 'white' : '#0F6F73', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '28px', flexShrink: 0, border: '3px solid white', boxShadow: '0 4px 14px rgba(14,16,23,0.18)', overflow: 'hidden' }}>
             {company.logo_url ? (
               <img src={company.logo_url} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : initial}

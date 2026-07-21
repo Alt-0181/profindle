@@ -155,8 +155,8 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const [bannerFocusY, setBannerFocusY] = useState<number>(initialData?.bannerFocusY ?? 50);
   const [bannerFocusMX, setBannerFocusMX] = useState<number>(initialData?.bannerFocusMobileX ?? 50);
   const [bannerFocusMY, setBannerFocusMY] = useState<number>(initialData?.bannerFocusMobileY ?? 50);
-  const [bannerZoom, setBannerZoom] = useState<number>(initialData?.bannerZoom ?? 100);
-  const [bannerZoomM, setBannerZoomM] = useState<number>(initialData?.bannerZoomMobile ?? 100);
+  const [bannerZoom, setBannerZoom] = useState<number>(Math.max(100, initialData?.bannerZoom ?? 100));
+  const [bannerZoomM, setBannerZoomM] = useState<number>(Math.max(100, initialData?.bannerZoomMobile ?? 100));
   const bannerBoxRef = useRef<HTMLDivElement>(null);
   const [bannerNat, setBannerNat] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
   const panStart = useRef<{ x: number; y: number; fx: number; fy: number } | null>(null);
@@ -606,7 +606,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7385" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
               <input
-                type="range" min={40} max={300} step={1} value={curZoom}
+                type="range" min={100} max={300} step={1} value={curZoom}
                 onChange={(e) => setCurZoom(Number(e.target.value))}
                 style={{ flex: 1, accentColor: '#0F6F73', cursor: 'pointer' }}
               />
@@ -616,8 +616,8 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
             <div style={{ fontSize: '12px', color: '#6B7385', marginTop: '8px', display: 'flex', alignItems: 'flex-start', gap: '6px', lineHeight: 1.5 }}>
               <span>🖐️</span>
               <span>{lang === 'th'
-                ? `ลากรูปเพื่อจัดตำแหน่ง เลื่อนเพื่อซูมเข้า หรือซูมออกเพื่อให้เห็นรูปทั้งใบ (พื้นที่ว่างจะเป็นสีเข้ม) — นี่คือลักษณะบน${bannerDevice === 'mobile' ? 'มือถือ' : 'เดสก์ท็อป'} (ตั้งค่าแยกกันได้ทั้งสองมุมมอง)`
-                : `Drag to reposition, zoom in to crop, or zoom out to show the whole image (empty space fills dark) — this is exactly how your banner shows on ${bannerDevice}. Desktop and mobile are set separately.`}</span>
+                ? `ลากเพื่อจัดตำแหน่ง เลื่อนเพื่อซูมเข้า — กรอบสว่างคือส่วนที่แสดงบน${bannerDevice === 'mobile' ? 'มือถือ' : 'เดสก์ท็อป'} ส่วนพื้นที่มืดจะไม่แสดง (ตั้งค่าแยกกันได้ทั้งสองมุมมอง)`
+                : `Drag to reposition, slide to zoom in — the bright box is what shows on ${bannerDevice}, the dimmed area is cut off. Desktop and mobile are set separately.`}</span>
             </div>
           </div>
         )}
