@@ -60,10 +60,7 @@ interface MyCompanyFormProps {
     lineIdType: 'oa' | 'id' | 'phone'; lineIdValue: string;
     dbdCertPath: string | null; dbdCertName: string | null;
     services: string[];
-    logoUrl: string | null; bannerUrl: string | null;
-    bannerFocusX?: number; bannerFocusY?: number;
-    bannerFocusMobileX?: number; bannerFocusMobileY?: number;
-    bannerZoom?: number; bannerZoomMobile?: number;
+    logoUrl: string | null; bannerUrl: string | null; bannerMobileUrl?: string | null;
     buyerOnly: boolean;
   };
 }
@@ -143,85 +140,17 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const [bannerUrl, setBannerUrl] = useState<string | null>(initialData?.bannerUrl ?? null);
   const [bannerDisplayUrl, setBannerDisplayUrl] = useState<string | null>(null);
   const [bannerUploading, setBannerUploading] = useState(false);
+  const [bannerMobileUrl, setBannerMobileUrl] = useState<string | null>(initialData?.bannerMobileUrl ?? null);
+  const [bannerMobileDisplayUrl, setBannerMobileDisplayUrl] = useState<string | null>(null);
+  const [bannerMobileUploading, setBannerMobileUploading] = useState(false);
+  const [bannerMobileError, setBannerMobileError] = useState('');
+  const [useMobileBanner, setUseMobileBanner] = useState<boolean>(!!initialData?.bannerMobileUrl);
+  const bannerMobileInputRef = useRef<HTMLInputElement>(null);
   const [bannerError, setBannerError] = useState('');
   const logoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
-  // Banner framing — a separate focal point (0-100 %) per device, so the
-  // provider can tune the desktop (wide) and mobile (near-square) crop
-  // independently. Drag the image inside the device frame to reposition.
-  const [bannerDevice, setBannerDevice] = useState<'desktop' | 'mobile'>('desktop');
-  const [bannerFocusX, setBannerFocusX] = useState<number>(initialData?.bannerFocusX ?? 50);
-  const [bannerFocusY, setBannerFocusY] = useState<number>(initialData?.bannerFocusY ?? 50);
-  const [bannerFocusMX, setBannerFocusMX] = useState<number>(initialData?.bannerFocusMobileX ?? 50);
-  const [bannerFocusMY, setBannerFocusMY] = useState<number>(initialData?.bannerFocusMobileY ?? 50);
-  const [bannerZoom, setBannerZoom] = useState<number>(Math.max(100, initialData?.bannerZoom ?? 100));
-  const [bannerZoomM, setBannerZoomM] = useState<number>(Math.max(100, initialData?.bannerZoomMobile ?? 100));
-  const bannerBoxRef = useRef<HTMLDivElement>(null);
-  const [bannerNat, setBannerNat] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
-  const bannerImgRef = useRef<HTMLImageElement>(null);
-  const panStart = useRef<{ x: number; y: number; fx: number; fy: number } | null>(null);
-  const curFocus = bannerDevice === 'mobile' ? { x: bannerFocusMX, y: bannerFocusMY } : { x: bannerFocusX, y: bannerFocusY };
-  const curZoom = bannerDevice === 'mobile' ? bannerZoomM : bannerZoom;
-  const setCurFocus = (x: number, y: number) => {
-    if (bannerDevice === 'mobile') { setBannerFocusMX(x); setBannerFocusMY(y); }
-    else { setBannerFocusX(x); setBannerFocusY(y); }
-    setSaved(false);
-  };
-  const setCurZoom = (z: number) => {
-    if (bannerDevice === 'mobile') setBannerZoomM(z); else setBannerZoom(z);
-    setSaved(false);
-  };
-  // Measured pixel width of the staging box, so the Facebook-style cropper can
-  // lay the full image out precisely (the crop rectangle is an inset of this).
-  const [bannerBoxW, setBannerBoxW] = useState<number>(0);
-  useEffect(() => {
-    const el = bannerBoxRef.current;
-    if (!el) return;
-    const update = () => setBannerBoxW(el.getBoundingClientRect().width);
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [bannerDevice]);
-
-  // Geometry: the stage matches the display frame aspect; the bright crop
-  // rectangle is inset CROP_INSET on every side so the dimmed surround shows
-  // exactly what falls outside the crop (what visitors will NOT see).
-  const CROP_INSET = 0.08; // 8% margin around the crop = context area
-  const stageW = bannerBoxW;
-  const stageAspect = bannerDevice === 'mobile' ? 0.62 : 0.38; // height / width
-  const stageH = stageW * stageAspect;
-  const cropW = stageW * (1 - CROP_INSET * 2);
-  const cropH = stageH * (1 - CROP_INSET * 2);
-  const cropLeft = stageW * CROP_INSET;
-  const cropTop = stageH * CROP_INSET;
-  const geo = (() => {
-    const nat = bannerNat;
-    if (!stageW || !nat.w || !nat.h) return null;
-    const z = curZoom / 100;
-    const coverScale = Math.max(cropW / nat.w, cropH / nat.h);
-    const dispW = nat.w * coverScale * z;
-    const dispH = nat.h * coverScale * z;
-    const overflowX = dispW - cropW;
-    const overflowY = dispH - cropH;
-    const imgLeft = cropLeft - overflowX * (curFocus.x / 100);
-    const imgTop = cropTop - overflowY * (curFocus.y / 100);
-    return { dispW, dispH, imgLeft, imgTop, overflowX, overflowY };
-  })();
-
-  const startPan = (clientX: number, clientY: number) => { panStart.current = { x: clientX, y: clientY, fx: curFocus.x, fy: curFocus.y }; };
-  const movePan = (clientX: number, clientY: number) => {
-    const s = panStart.current;
-    if (!s || !geo) return;
-    // Drag moves the image 1:1 against its overflow beyond the crop rectangle.
-    const ox = Math.max(geo.overflowX, 1);
-    const oy = Math.max(geo.overflowY, 1);
-    const nx = Math.min(100, Math.max(0, s.fx - ((clientX - s.x) / ox) * 100));
-    const ny = Math.min(100, Math.max(0, s.fy - ((clientY - s.y) / oy) * 100));
-    setCurFocus(Math.round(nx), Math.round(ny));
-  };
-  const endPan = () => { panStart.current = null; };
+  // Banner shows at a fixed Facebook cover size (centered, no drag/zoom).
 
   const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -270,6 +199,32 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
       setBannerDisplayUrl(null);
     } finally {
       setBannerUploading(false);
+    }
+  };
+
+  const handleBannerMobileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBannerMobileUploading(true);
+    setBannerMobileError('');
+    const blob = URL.createObjectURL(file);
+    setBannerMobileDisplayUrl(blob);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('type', 'banner');
+      const res = await fetch('/api/company-upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Upload failed');
+      setBannerMobileUrl(data.url);
+      setBannerMobileDisplayUrl(data.url + '?v=' + Date.now());
+      URL.revokeObjectURL(blob);
+      setSaved(false);
+    } catch (err: any) {
+      setBannerMobileError(err.message);
+      setBannerMobileDisplayUrl(null);
+    } finally {
+      setBannerMobileUploading(false);
     }
   };
 
@@ -396,12 +351,9 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         ...(dbdPath ? { dbd_certificate_url: dbdPath, dbd_certificate_name: uploadFile?.name ?? initialData?.dbdCertName ?? null } : {}),
         ...(logoUrl ? { logo_url: logoUrl } : {}),
         ...(bannerUrl ? { banner_url: bannerUrl } : {}),
-        banner_focus_x: bannerFocusX,
-        banner_focus_y: bannerFocusY,
-        banner_focus_mobile_x: bannerFocusMX,
-        banner_focus_mobile_y: bannerFocusMY,
-        banner_zoom: bannerZoom,
-        banner_zoom_mobile: bannerZoomM,
+        // A separate mobile banner if the provider chose one, else null so
+        // the public page falls back to the desktop banner.
+        banner_url_mobile: useMobileBanner ? (bannerMobileUrl ?? null) : null,
         updated_at: new Date().toISOString(),
       };
 
@@ -412,11 +364,16 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      let error;
-      if (existing?.id) {
-        ({ error } = await supabase.from('companies').update(payload).eq('id', existing.id));
-      } else {
-        ({ error } = await supabase.from('companies').insert({ ...payload, user_id: user.id }));
+      const write = (pl: any) => existing?.id
+        ? supabase.from('companies').update(pl).eq('id', existing.id)
+        : supabase.from('companies').insert({ ...pl, user_id: user.id });
+
+      let { error } = await write(payload);
+      // If the banner_url_mobile column hasn't been migrated yet, save the rest
+      // rather than failing the whole form.
+      if (error && /banner_url_mobile/.test(error.message ?? '')) {
+        const { banner_url_mobile, ...rest } = payload;
+        ({ error } = await write(rest));
       }
 
       if (error) throw error;
@@ -449,22 +406,9 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
 
   const logoSrc = logoDisplayUrl ?? logoUrl;
   const bannerSrc = bannerDisplayUrl ?? bannerUrl;
+  const bannerMobileSrc = bannerMobileDisplayUrl ?? bannerMobileUrl;
   const logoInitial = (form.nameEn || form.nameTh || 'A').slice(0, 2).toUpperCase();
 
-  // Measure the banner's natural size for the crop geometry. The rendered
-  // <img> onLoad is unreliable (a blob/cached/already-complete image may never
-  // fire it), so use a dedicated preloader Image() which always fires onload,
-  // for cached and network sources alike.
-  useEffect(() => {
-    if (!bannerSrc) { setBannerNat({ w: 0, h: 0 }); return; }
-    let alive = true;
-    const im = new window.Image();
-    im.onload = () => { if (alive) setBannerNat({ w: im.naturalWidth, h: im.naturalHeight }); };
-    im.src = bannerSrc;
-    // Cached images can already be complete synchronously.
-    if (im.complete && im.naturalWidth) setBannerNat({ w: im.naturalWidth, h: im.naturalHeight });
-    return () => { alive = false; };
-  }, [bannerSrc]);
 
   return (
     <form onSubmit={handleSave}>
@@ -573,69 +517,78 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
             </div>
           </div>
         ) : (
-          /* Editor — Desktop / Mobile tabs + draggable crop frame */
+          /* Static Facebook cover-size preview — no drag, no zoom */
           <div style={{ marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-              {(['desktop', 'mobile'] as const).map((d) => (
-                <button key={d} type="button" onClick={() => setBannerDevice(d)}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '999px', border: `1.5px solid ${bannerDevice === d ? '#0F6F73' : '#E4E7ED'}`, background: bannerDevice === d ? '#F0F9F9' : 'white', color: bannerDevice === d ? '#0F6F73' : '#6B7385', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                  {d === 'desktop'
-                    ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                    : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/></svg>}
-                  {d === 'desktop' ? (lang === 'th' ? 'เดสก์ท็อป' : 'Desktop') : (lang === 'th' ? 'มือถือ' : 'Mobile')}
-                </button>
-              ))}
-              <span title="build" style={{ fontSize: '10px', color: '#C8CDD7', fontWeight: 600, letterSpacing: '0.04em' }}>drag&nbsp;v4</span>
-              <button type="button" onClick={() => bannerInputRef.current?.click()}
-                style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#0F6F73', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                {lang === 'th' ? 'เปลี่ยนรูป' : 'Change image'}
-              </button>
-            </div>
-
-            <div
-              ref={bannerBoxRef}
-              onPointerDown={(e) => { if (!bannerUploading) { startPan(e.clientX, e.clientY); (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); } }}
-              onPointerMove={(e) => { if (panStart.current) movePan(e.clientX, e.clientY); }}
-              onPointerUp={endPan}
-              onPointerCancel={endPan}
-              style={{ position: 'relative', width: '100%', maxWidth: bannerDevice === 'mobile' ? '420px' : '100%', margin: bannerDevice === 'mobile' ? '0 auto' : undefined, paddingBottom: bannerDevice === 'mobile' ? '62%' : '38%', borderRadius: '14px', overflow: 'hidden', cursor: panStart.current ? 'grabbing' : 'grab', background: '#0E1017', touchAction: 'none', userSelect: 'none' }}
-            >
-              {/* Full image — drag to move it under the crop */}
-              <img ref={bannerImgRef} src={bannerSrc} alt="Banner" draggable={false}
-                onLoad={(e) => { const img = e.currentTarget; setBannerNat({ w: img.naturalWidth, h: img.naturalHeight }); }}
-                style={geo
-                  ? { position: 'absolute', left: `${geo.imgLeft}px`, top: `${geo.imgTop}px`, width: `${geo.dispW}px`, height: `${geo.dispH}px`, maxWidth: 'none', display: 'block', userSelect: 'none' }
-                  : { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', userSelect: 'none' }} />
-              {/* Crop rectangle: bright inside, everything outside dimmed */}
-              <div style={{ position: 'absolute', left: `${CROP_INSET * 100}%`, top: `${CROP_INSET * 100}%`, right: `${CROP_INSET * 100}%`, bottom: `${CROP_INSET * 100}%`, boxShadow: '0 0 0 9999px rgba(14,16,23,0.60)', border: '2px solid rgba(255,255,255,0.92)', borderRadius: '4px', pointerEvents: 'none' }} />
-              <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '999px', pointerEvents: 'none' }}>
-                {bannerDevice === 'desktop' ? (lang === 'th' ? 'มุมมองเดสก์ท็อป' : 'Desktop view') : (lang === 'th' ? 'มุมมองมือถือ' : 'Mobile view')}
-              </div>
+            <div style={{ position: 'relative', width: '100%', paddingBottom: '38%', borderRadius: '14px', overflow: 'hidden', background: '#0E1017' }}>
+              <img src={bannerSrc} alt="Banner" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
               {bannerUploading && (
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }}>
                   <div style={{ fontSize: '14px', fontWeight: 600, color: 'white', background: 'rgba(0,0,0,0.5)', padding: '8px 20px', borderRadius: '999px' }}>{lang === 'th' ? 'กำลังอัพโหลด…' : 'Uploading…'}</div>
                 </div>
               )}
             </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px' }}>
+              <span style={{ fontSize: '12px', color: '#6B7385' }}>{lang === 'th' ? 'ขนาดปกเฟซบุ๊ก (820×312px) เพื่อผลลัพธ์ที่ดีที่สุด' : 'Facebook cover size (820×312px) works best'}</span>
+              <button type="button" onClick={() => bannerInputRef.current?.click()}
+                style={{ background: 'none', border: 'none', color: '#0F6F73', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                {lang === 'th' ? 'เปลี่ยนรูป' : 'Change image'}
+              </button>
+            </div>
 
-            {/* Zoom control */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7385" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-              <input
-                type="range" min={100} max={300} step={1} value={curZoom}
-                onChange={(e) => setCurZoom(Number(e.target.value))}
-                style={{ flex: 1, accentColor: '#0F6F73', cursor: 'pointer' }}
-              />
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7385" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: '#6B7385', minWidth: '38px', textAlign: 'right' }}>{curZoom}%</span>
-            </div>
-            <div style={{ fontSize: '12px', color: '#6B7385', marginTop: '8px', display: 'flex', alignItems: 'flex-start', gap: '6px', lineHeight: 1.5 }}>
-              <span>🖐️</span>
-              <span>{lang === 'th'
-                ? `ลากเพื่อจัดตำแหน่ง เลื่อนเพื่อซูมเข้า — กรอบสว่างคือส่วนที่แสดงบน${bannerDevice === 'mobile' ? 'มือถือ' : 'เดสก์ท็อป'} ส่วนพื้นที่มืดจะไม่แสดง (ตั้งค่าแยกกันได้ทั้งสองมุมมอง)`
-                : `Drag to reposition, slide to zoom in — the bright box is what shows on ${bannerDevice}, the dimmed area is cut off. Desktop and mobile are set separately.`}</span>
-            </div>
+            {/* Optional separate mobile banner */}
+            <input ref={bannerMobileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleBannerMobileChange} />
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginTop: '16px', cursor: 'pointer' }}>
+              <input type="checkbox" checked={useMobileBanner}
+                onChange={(e) => { setUseMobileBanner(e.target.checked); setSaved(false); }}
+                style={{ width: '18px', height: '18px', accentColor: '#0F6F73', marginTop: '1px', cursor: 'pointer', flexShrink: 0 }} />
+              <span style={{ fontSize: '13px', color: '#444B5A', lineHeight: 1.5 }}>
+                <span style={{ fontWeight: 600 }}>{lang === 'th' ? 'ใช้รูปแยกสำหรับมือถือ' : 'Use a different image for mobile'}</span>
+                <br />
+                <span style={{ fontSize: '12px', color: '#9AA0AE' }}>{lang === 'th' ? 'ถ้าไม่เลือก ระบบจะใช้รูปเดสก์ท็อปบนมือถือด้วย' : 'If unchecked, your desktop image is used on mobile too.'}</span>
+              </span>
+            </label>
+
+            {useMobileBanner && (
+              <div style={{ marginTop: '12px', maxWidth: '360px' }}>
+                {!bannerMobileSrc ? (
+                  <div onClick={() => !bannerMobileUploading && bannerMobileInputRef.current?.click()}
+                    style={{ position: 'relative', width: '100%', paddingBottom: '62%', borderRadius: '14px', overflow: 'hidden', cursor: bannerMobileUploading ? 'wait' : 'pointer', border: '2px dashed #C8CDD7', background: 'linear-gradient(135deg, #0E1017, #0F6F73)' }}>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', textAlign: 'center' }}>
+                      {bannerMobileUploading ? (
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'white', background: 'rgba(0,0,0,0.5)', padding: '6px 16px', borderRadius: '999px' }}>{lang === 'th' ? 'กำลังอัพโหลด…' : 'Uploading…'}</div>
+                      ) : (
+                        <>
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                          <div style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{lang === 'th' ? 'อัพโหลดรูปมือถือ' : 'Upload mobile image'}</div>
+                          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{lang === 'th' ? 'แนวตั้งหรือสี่เหลี่ยมจัตุรัสเหมาะกับมือถือ' : 'A taller / squarer image suits mobile'}</div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ position: 'relative', width: '100%', paddingBottom: '62%', borderRadius: '14px', overflow: 'hidden', background: '#0E1017' }}>
+                      <img src={bannerMobileSrc} alt="Mobile banner" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
+                      {bannerMobileUploading && (
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }}>
+                          <div style={{ fontSize: '13px', fontWeight: 600, color: 'white', background: 'rgba(0,0,0,0.5)', padding: '6px 16px', borderRadius: '999px' }}>{lang === 'th' ? 'กำลังอัพโหลด…' : 'Uploading…'}</div>
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px' }}>
+                      <span style={{ fontSize: '11px', color: '#9AA0AE' }}>{lang === 'th' ? 'มุมมองมือถือ' : 'Mobile view'}</span>
+                      <button type="button" onClick={() => bannerMobileInputRef.current?.click()}
+                        style={{ background: 'none', border: 'none', color: '#0F6F73', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        {lang === 'th' ? 'เปลี่ยนรูป' : 'Change image'}
+                      </button>
+                    </div>
+                    {bannerMobileError && <div style={{ fontSize: '12px', color: '#FF5A5F', marginTop: '6px' }}>{bannerMobileError}</div>}
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
         {bannerError && <div style={{ fontSize: '12px', color: '#FF5A5F', marginBottom: '12px' }}>{bannerError}</div>}

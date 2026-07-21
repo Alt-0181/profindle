@@ -84,12 +84,6 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
   const displayDesc = isTh && company.description_th ? company.description_th : company.description;
   const initial = company.logo_initial ?? company.name.slice(0, 2).toUpperCase();
   const projects = portfolio;
-  const bdx = (company as any).banner_focus_x ?? 50;
-  const bdy = (company as any).banner_focus_y ?? 50;
-  const bmx = (company as any).banner_focus_mobile_x ?? 50;
-  const bmy = (company as any).banner_focus_mobile_y ?? 50;
-  const bz = (company as any).banner_zoom ?? 100;
-  const bmz = (company as any).banner_zoom_mobile ?? 100;
 
   return (
     <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif", minHeight: '100vh', background: '#F4F5F7' }}>
@@ -97,7 +91,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
         .pp-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
         .pp-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
         .pp-cover { position: relative; width: 100%; max-width: 1200px; margin: 0 auto; padding-bottom: 38%; background: #0E1017; overflow: hidden; }
-        .pp-banner-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: ${bdx}% ${bdy}%; transform: scale(${bz / 100}); transform-origin: ${bdx}% ${bdy}%; }
+        .pp-banner-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
         .pp-identity { max-width: 960px; margin: 0 auto; padding: 0 24px; }
         .pp-idrow { display: flex; align-items: flex-start; gap: 20px; padding-top: 12px; position: relative; z-index: 2; flex-wrap: wrap; }
         .pp-idlogo { margin-top: -68px; }
@@ -105,11 +99,13 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
           .pp-grid { grid-template-columns: 1fr; }
           .pp-stats { grid-template-columns: repeat(2, 1fr); }
         }
+        .pp-banner-mobile { display: none; }
         @media (max-width: 768px) {
           .pp-cover { padding-bottom: 62%; }
-          .pp-banner-img { object-position: ${bmx}% ${bmy}%; transform: scale(${bmz / 100}); transform-origin: ${bmx}% ${bmy}%; }
           .pp-idrow { gap: 14px; padding-top: 8px; }
           .pp-idlogo { margin-top: -48px; }
+          .pp-banner-desktop { display: none; }
+          .pp-banner-mobile { display: block; }
         }
       `}</style>
       <PublicNav locale={lang} dict={dict} dark={false} />
@@ -125,7 +121,10 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
       {/* Cover — matches the framing chosen in the editor exactly */}
       <div className="pp-cover">
         {company.banner_url ? (
-          <img className="pp-banner-img" src={company.banner_url} alt="" />
+          <>
+            <img className="pp-banner-img pp-banner-desktop" src={company.banner_url} alt="" />
+            <img className="pp-banner-img pp-banner-mobile" src={(company as any).banner_url_mobile || company.banner_url} alt="" />
+          </>
         ) : (
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #0E1017 0%, #0F6F73 100%)' }} />
         )}
