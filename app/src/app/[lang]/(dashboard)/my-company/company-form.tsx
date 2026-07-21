@@ -451,14 +451,19 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const bannerSrc = bannerDisplayUrl ?? bannerUrl;
   const logoInitial = (form.nameEn || form.nameTh || 'A').slice(0, 2).toUpperCase();
 
-  // Measure the banner's natural size for the crop geometry. onLoad alone is
-  // unreliable — a blob/cached image is often already complete before React
-  // attaches the handler, so read naturalWidth directly whenever the src changes.
+  // Measure the banner's natural size for the crop geometry. The rendered
+  // <img> onLoad is unreliable (a blob/cached/already-complete image may never
+  // fire it), so use a dedicated preloader Image() which always fires onload,
+  // for cached and network sources alike.
   useEffect(() => {
-    const img = bannerImgRef.current;
-    if (img && img.complete && img.naturalWidth) {
-      setBannerNat({ w: img.naturalWidth, h: img.naturalHeight });
-    }
+    if (!bannerSrc) { setBannerNat({ w: 0, h: 0 }); return; }
+    let alive = true;
+    const im = new window.Image();
+    im.onload = () => { if (alive) setBannerNat({ w: im.naturalWidth, h: im.naturalHeight }); };
+    im.src = bannerSrc;
+    // Cached images can already be complete synchronously.
+    if (im.complete && im.naturalWidth) setBannerNat({ w: im.naturalWidth, h: im.naturalHeight });
+    return () => { alive = false; };
   }, [bannerSrc]);
 
   return (
@@ -580,6 +585,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
                   {d === 'desktop' ? (lang === 'th' ? 'เดสก์ท็อป' : 'Desktop') : (lang === 'th' ? 'มือถือ' : 'Mobile')}
                 </button>
               ))}
+              <span title="build" style={{ fontSize: '10px', color: '#C8CDD7', fontWeight: 600, letterSpacing: '0.04em' }}>drag&nbsp;v4</span>
               <button type="button" onClick={() => bannerInputRef.current?.click()}
                 style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#0F6F73', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
