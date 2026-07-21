@@ -158,6 +158,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const [bannerZoom, setBannerZoom] = useState<number>(initialData?.bannerZoom ?? 100);
   const [bannerZoomM, setBannerZoomM] = useState<number>(initialData?.bannerZoomMobile ?? 100);
   const bannerBoxRef = useRef<HTMLDivElement>(null);
+  const bannerNat = useRef<{ w: number; h: number }>({ w: 0, h: 0 });
   const panStart = useRef<{ x: number; y: number; fx: number; fy: number } | null>(null);
   const curFocus = bannerDevice === 'mobile' ? { x: bannerFocusMX, y: bannerFocusMY } : { x: bannerFocusX, y: bannerFocusY };
   const curZoom = bannerDevice === 'mobile' ? bannerZoomM : bannerZoom;
@@ -175,8 +176,20 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
     const box = bannerBoxRef.current; const s = panStart.current;
     if (!box || !s) return;
     const rect = box.getBoundingClientRect();
-    const nx = Math.min(100, Math.max(0, s.fx - ((clientX - s.x) / rect.width) * 100));
-    const ny = Math.min(100, Math.max(0, s.fy - ((clientY - s.y) / rect.height) * 100));
+    const nat = bannerNat.current;
+    const z = curZoom / 100;
+    // Size the image the way the browser does (object-fit: cover) then apply
+    // zoom, so a finger drag moves the image 1:1 — exactly like Facebook.
+    let overflowX = rect.width, overflowY = rect.height;
+    if (nat.w > 0 && nat.h > 0) {
+      const coverScale = Math.max(rect.width / nat.w, rect.height / nat.h);
+      const dispW = nat.w * coverScale * z;
+      const dispH = nat.h * coverScale * z;
+      overflowX = Math.max(dispW - rect.width, 1);
+      overflowY = Math.max(dispH - rect.height, 1);
+    }
+    const nx = Math.min(100, Math.max(0, s.fx - ((clientX - s.x) / overflowX) * 100));
+    const ny = Math.min(100, Math.max(0, s.fy - ((clientY - s.y) / overflowY) * 100));
     setCurFocus(Math.round(nx), Math.round(ny));
   };
   const endPan = () => { panStart.current = null; };
@@ -543,7 +556,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
               onPointerCancel={endPan}
               style={{ position: 'relative', width: '100%', maxWidth: bannerDevice === 'mobile' ? '420px' : '100%', margin: bannerDevice === 'mobile' ? '0 auto' : undefined, paddingBottom: bannerDevice === 'mobile' ? '62%' : '38%', borderRadius: '14px', overflow: 'hidden', cursor: panStart.current ? 'grabbing' : 'grab', background: '#0E1017', touchAction: 'none', userSelect: 'none' }}
             >
-              <img src={bannerSrc} alt="Banner" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${curFocus.x}% ${curFocus.y}%`, transform: `scale(${curZoom / 100})`, transformOrigin: `${curFocus.x}% ${curFocus.y}%`, userSelect: 'none' }} />
+              <img src={bannerSrc} alt="Banner" draggable={false} onLoad={(e) => { const img = e.currentTarget; bannerNat.current = { w: img.naturalWidth, h: img.naturalHeight }; }} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${curFocus.x}% ${curFocus.y}%`, transform: `scale(${curZoom / 100})`, transformOrigin: `${curFocus.x}% ${curFocus.y}%`, userSelect: 'none' }} />
               <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '999px', pointerEvents: 'none' }}>
                 {bannerDevice === 'desktop' ? (lang === 'th' ? 'มุมมองเดสก์ท็อป' : 'Desktop view') : (lang === 'th' ? 'มุมมองมือถือ' : 'Mobile view')}
               </div>
