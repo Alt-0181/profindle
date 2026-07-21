@@ -13,7 +13,7 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
 
   const { data: company } = await supabase
     .from('companies')
-    .select('name, name_th, description, description_th, industry, province, address, team_size, founded_year, website, phone, email, line_id, dbd_certificate_url, dbd_certificate_name, services, logo_url, banner_url, banner_focus_x, banner_focus_y, buyer_only')
+    .select('name, name_th, description, description_th, industry, province, address, team_size, founded_year, website, phone, email, line_id, dbd_certificate_url, dbd_certificate_name, services, logo_url, banner_url, banner_focus_x, banner_focus_y, banner_focus_mobile_x, banner_focus_mobile_y, buyer_only')
     .eq('user_id', user?.id ?? '')
     .maybeSingle();
 
@@ -48,6 +48,8 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
     bannerUrl: (company as any).banner_url ?? null,
     bannerFocusX: (company as any).banner_focus_x ?? 50,
     bannerFocusY: (company as any).banner_focus_y ?? 50,
+    bannerFocusMobileX: (company as any).banner_focus_mobile_x ?? 50,
+    bannerFocusMobileY: (company as any).banner_focus_mobile_y ?? 50,
     buyerOnly: (company as any).buyer_only ?? false,
   } : undefined;
 

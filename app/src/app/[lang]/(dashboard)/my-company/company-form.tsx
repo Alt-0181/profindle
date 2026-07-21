@@ -62,6 +62,7 @@ interface MyCompanyFormProps {
     services: string[];
     logoUrl: string | null; bannerUrl: string | null;
     bannerFocusX?: number; bannerFocusY?: number;
+    bannerFocusMobileX?: number; bannerFocusMobileY?: number;
     buyerOnly: boolean;
   };
 }
@@ -142,26 +143,35 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const [bannerDisplayUrl, setBannerDisplayUrl] = useState<string | null>(null);
   const [bannerUploading, setBannerUploading] = useState(false);
   const [bannerError, setBannerError] = useState('');
-  const [bannerHover, setBannerHover] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
-  // Focal point (0-100 %). Marks what stays visible when the banner is cropped
-  // (e.g. to a square-ish frame on mobile). Provider drags a dot to set it.
+  // Banner framing — a separate focal point (0-100 %) per device, so the
+  // provider can tune the desktop (wide) and mobile (near-square) crop
+  // independently. Drag the image inside the device frame to reposition.
+  const [bannerDevice, setBannerDevice] = useState<'desktop' | 'mobile'>('mobile');
   const [bannerFocusX, setBannerFocusX] = useState<number>(initialData?.bannerFocusX ?? 50);
   const [bannerFocusY, setBannerFocusY] = useState<number>(initialData?.bannerFocusY ?? 50);
+  const [bannerFocusMX, setBannerFocusMX] = useState<number>(initialData?.bannerFocusMobileX ?? 50);
+  const [bannerFocusMY, setBannerFocusMY] = useState<number>(initialData?.bannerFocusMobileY ?? 50);
   const bannerBoxRef = useRef<HTMLDivElement>(null);
-  const draggingFocus = useRef(false);
-  const updateFocusFromPointer = (clientX: number, clientY: number) => {
-    const box = bannerBoxRef.current;
-    if (!box) return;
-    const rect = box.getBoundingClientRect();
-    const x = Math.min(100, Math.max(0, ((clientX - rect.left) / rect.width) * 100));
-    const y = Math.min(100, Math.max(0, ((clientY - rect.top) / rect.height) * 100));
-    setBannerFocusX(Math.round(x));
-    setBannerFocusY(Math.round(y));
+  const panStart = useRef<{ x: number; y: number; fx: number; fy: number } | null>(null);
+  const curFocus = bannerDevice === 'mobile' ? { x: bannerFocusMX, y: bannerFocusMY } : { x: bannerFocusX, y: bannerFocusY };
+  const setCurFocus = (x: number, y: number) => {
+    if (bannerDevice === 'mobile') { setBannerFocusMX(x); setBannerFocusMY(y); }
+    else { setBannerFocusX(x); setBannerFocusY(y); }
     setSaved(false);
   };
+  const startPan = (clientX: number, clientY: number) => { panStart.current = { x: clientX, y: clientY, fx: curFocus.x, fy: curFocus.y }; };
+  const movePan = (clientX: number, clientY: number) => {
+    const box = bannerBoxRef.current; const s = panStart.current;
+    if (!box || !s) return;
+    const rect = box.getBoundingClientRect();
+    const nx = Math.min(100, Math.max(0, s.fx - ((clientX - s.x) / rect.width) * 100));
+    const ny = Math.min(100, Math.max(0, s.fy - ((clientY - s.y) / rect.height) * 100));
+    setCurFocus(Math.round(nx), Math.round(ny));
+  };
+  const endPan = () => { panStart.current = null; };
 
   const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -338,6 +348,8 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         ...(bannerUrl ? { banner_url: bannerUrl } : {}),
         banner_focus_x: bannerFocusX,
         banner_focus_y: bannerFocusY,
+        banner_focus_mobile_x: bannerFocusMX,
+        banner_focus_mobile_y: bannerFocusMY,
         updated_at: new Date().toISOString(),
       };
 
@@ -475,70 +487,69 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
 
         {/* Banner upload */}
         <input ref={bannerInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleBannerChange} />
-        <div
-          ref={bannerBoxRef}
-          onClick={() => { if (!bannerSrc && !bannerUploading) bannerInputRef.current?.click(); }}
-          onMouseEnter={() => setBannerHover(true)}
-          onMouseLeave={() => { setBannerHover(false); draggingFocus.current = false; }}
-          onPointerDown={(e) => { if (bannerSrc && !bannerUploading) { draggingFocus.current = true; updateFocusFromPointer(e.clientX, e.clientY); } }}
-          onPointerMove={(e) => { if (draggingFocus.current) updateFocusFromPointer(e.clientX, e.clientY); }}
-          onPointerUp={() => { draggingFocus.current = false; }}
-          style={{
-            position: 'relative', width: '100%', paddingBottom: '38%',
-            borderRadius: '14px', overflow: 'hidden',
-            cursor: bannerUploading ? 'wait' : (bannerSrc ? 'crosshair' : 'pointer'),
-            marginBottom: bannerSrc ? '8px' : '20px',
-            border: `2px dashed ${bannerSrc ? 'transparent' : '#C8CDD7'}`,
-            background: bannerSrc ? 'none' : 'linear-gradient(135deg, #0E1017, #0F6F73)',
-            touchAction: 'none', userSelect: 'none',
-          }}
-        >
-          {bannerSrc && (
-            <img src={bannerSrc} alt="Banner" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${bannerFocusX}% ${bannerFocusY}%`, userSelect: 'none' }} />
-          )}
-
-          {/* Prompt / uploading overlay — non-interactive so drag passes through */}
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', pointerEvents: 'none' }}>
-            {!bannerSrc && !bannerUploading && (
-              <>
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-                </svg>
-                <div style={{ fontSize: '15px', fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>
-                  {lang === 'th' ? 'อัพโหลดแบนเนอร์ของคุณ' : 'Upload your banner'}
-                </div>
-                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
-                  {lang === 'th' ? 'ขนาดปกเฟซบุ๊ก (820×312px) หรือกว้างกว่า' : 'Facebook cover size (820×312px) or wider'}
-                </div>
-              </>
-            )}
-            {bannerUploading && (
-              <div style={{ fontSize: '14px', fontWeight: 600, color: 'white', background: 'rgba(0,0,0,0.5)', padding: '8px 20px', borderRadius: '999px' }}>
-                {lang === 'th' ? 'กำลังอัพโหลด…' : 'Uploading…'}
-              </div>
-            )}
+        {!bannerSrc ? (
+          /* Empty state — click to upload */
+          <div
+            onClick={() => !bannerUploading && bannerInputRef.current?.click()}
+            style={{ position: 'relative', width: '100%', paddingBottom: '38%', borderRadius: '14px', overflow: 'hidden', cursor: bannerUploading ? 'wait' : 'pointer', marginBottom: '20px', border: '2px dashed #C8CDD7', background: 'linear-gradient(135deg, #0E1017, #0F6F73)' }}
+          >
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              {bannerUploading ? (
+                <div style={{ fontSize: '14px', fontWeight: 600, color: 'white', background: 'rgba(0,0,0,0.5)', padding: '8px 20px', borderRadius: '999px' }}>{lang === 'th' ? 'กำลังอัพโหลด…' : 'Uploading…'}</div>
+              ) : (
+                <>
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <div style={{ fontSize: '15px', fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{lang === 'th' ? 'อัพโหลดแบนเนอร์ของคุณ' : 'Upload your banner'}</div>
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>{lang === 'th' ? 'ขนาดปกเฟซบุ๊ก (820×312px) หรือกว้างกว่า' : 'Facebook cover size (820×312px) or wider'}</div>
+                </>
+              )}
+            </div>
           </div>
-
-          {/* Focal-point dot + Change button (only with a banner) */}
-          {bannerSrc && !bannerUploading && (
-            <>
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); bannerInputRef.current?.click(); }}
-                onPointerDown={(e) => e.stopPropagation()}
-                style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.55)', color: 'white', border: 'none', borderRadius: '999px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px', zIndex: 4 }}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                {lang === 'th' ? 'เปลี่ยน' : 'Change'}
+        ) : (
+          /* Editor — Desktop / Mobile tabs + draggable crop frame */
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              {(['desktop', 'mobile'] as const).map((d) => (
+                <button key={d} type="button" onClick={() => setBannerDevice(d)}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '999px', border: `1.5px solid ${bannerDevice === d ? '#0F6F73' : '#E4E7ED'}`, background: bannerDevice === d ? '#F0F9F9' : 'white', color: bannerDevice === d ? '#0F6F73' : '#6B7385', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  {d === 'desktop'
+                    ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/></svg>}
+                  {d === 'desktop' ? (lang === 'th' ? 'เดสก์ท็อป' : 'Desktop') : (lang === 'th' ? 'มือถือ' : 'Mobile')}
+                </button>
+              ))}
+              <button type="button" onClick={() => bannerInputRef.current?.click()}
+                style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#0F6F73', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                {lang === 'th' ? 'เปลี่ยนรูป' : 'Change image'}
               </button>
-              <div style={{ position: 'absolute', left: `${bannerFocusX}%`, top: `${bannerFocusY}%`, transform: 'translate(-50%, -50%)', width: '28px', height: '28px', borderRadius: '50%', border: '3px solid white', boxShadow: '0 0 0 2px rgba(0,0,0,0.35), 0 2px 10px rgba(0,0,0,0.45)', background: 'rgba(15,111,115,0.35)', pointerEvents: 'none', zIndex: 3 }} />
-            </>
-          )}
-        </div>
-        {bannerSrc && (
-          <div style={{ fontSize: '12px', color: '#6B7385', marginBottom: '16px', display: 'flex', alignItems: 'flex-start', gap: '6px', lineHeight: 1.5 }}>
-            <span>🎯</span>
-            <span>{lang === 'th' ? 'ลากจุดเพื่อเลือกส่วนสำคัญที่จะแสดงเสมอเมื่อแบนเนอร์ถูกครอบตัด (เช่น บนมือถือ)' : 'Drag the dot to choose the key area that stays in view when the banner is cropped (e.g. on mobile).'}</span>
+            </div>
+
+            <div
+              ref={bannerBoxRef}
+              onPointerDown={(e) => { if (!bannerUploading) { startPan(e.clientX, e.clientY); (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); } }}
+              onPointerMove={(e) => { if (panStart.current) movePan(e.clientX, e.clientY); }}
+              onPointerUp={endPan}
+              onPointerCancel={endPan}
+              style={{ position: 'relative', width: '100%', maxWidth: bannerDevice === 'mobile' ? '420px' : '100%', margin: bannerDevice === 'mobile' ? '0 auto' : undefined, paddingBottom: bannerDevice === 'mobile' ? '62%' : '30%', borderRadius: '14px', overflow: 'hidden', cursor: panStart.current ? 'grabbing' : 'grab', background: '#0E1017', touchAction: 'none', userSelect: 'none' }}
+            >
+              <img src={bannerSrc} alt="Banner" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${curFocus.x}% ${curFocus.y}%`, userSelect: 'none' }} />
+              <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '999px', pointerEvents: 'none' }}>
+                {bannerDevice === 'desktop' ? (lang === 'th' ? 'มุมมองเดสก์ท็อป' : 'Desktop view') : (lang === 'th' ? 'มุมมองมือถือ' : 'Mobile view')}
+              </div>
+              {bannerUploading && (
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: 'white', background: 'rgba(0,0,0,0.5)', padding: '8px 20px', borderRadius: '999px' }}>{lang === 'th' ? 'กำลังอัพโหลด…' : 'Uploading…'}</div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ fontSize: '12px', color: '#6B7385', marginTop: '8px', display: 'flex', alignItems: 'flex-start', gap: '6px', lineHeight: 1.5 }}>
+              <span>🖐️</span>
+              <span>{lang === 'th'
+                ? `ลากรูปเพื่อจัดตำแหน่ง — นี่คือลักษณะที่แบนเนอร์จะแสดงบน${bannerDevice === 'mobile' ? 'มือถือ' : 'เดสก์ท็อป'} (ตั้งค่าแยกกันได้ทั้งสองมุมมอง)`
+                : `Drag the image to reposition — this is exactly how your banner shows on ${bannerDevice}. Desktop and mobile are set separately.`}</span>
+            </div>
           </div>
         )}
         {bannerError && <div style={{ fontSize: '12px', color: '#FF5A5F', marginBottom: '12px' }}>{bannerError}</div>}

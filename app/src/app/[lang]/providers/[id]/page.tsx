@@ -84,24 +84,32 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
   const displayDesc = isTh && company.description_th ? company.description_th : company.description;
   const initial = company.logo_initial ?? company.name.slice(0, 2).toUpperCase();
   const projects = portfolio;
+  const bdx = (company as any).banner_focus_x ?? 50;
+  const bdy = (company as any).banner_focus_y ?? 50;
+  const bmx = (company as any).banner_focus_mobile_x ?? 50;
+  const bmy = (company as any).banner_focus_mobile_y ?? 50;
 
   return (
     <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif", minHeight: '100vh', background: '#F4F5F7' }}>
       <style>{`
         .pp-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
         .pp-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .pp-banner { background-position: ${bdx}% ${bdy}%; }
         @media (max-width: 820px) {
           .pp-grid { grid-template-columns: 1fr; }
           .pp-stats { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+          .pp-banner { background-position: ${bmx}% ${bmy}% !important; }
         }
       `}</style>
       <PublicNav locale={lang} dict={dict} dark={false} />
 
       {/* Header */}
-      <div style={{
+      <div className={company.banner_url ? 'pp-banner' : undefined} style={{
         background: company.banner_url ? undefined : 'linear-gradient(135deg, #0E1017 0%, #0F6F73 100%)',
         backgroundImage: company.banner_url ? `url(${company.banner_url})` : undefined,
-        backgroundSize: 'cover', backgroundPosition: `${(company as any).banner_focus_x ?? 50}% ${(company as any).banner_focus_y ?? 50}%`,
+        backgroundSize: 'cover',
         padding: '40px 24px 64px', position: 'relative', overflow: 'hidden',
       }}>
         {company.banner_url && (
