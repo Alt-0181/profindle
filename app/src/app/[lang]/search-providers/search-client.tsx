@@ -289,24 +289,22 @@ function PortfolioSection({ projects, isTh, onSelectProject }: {
           {isTh ? `ไม่มีผลงานในหมวด ${activeFilter}` : `No projects in ${activeFilter}`}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: '12px' }}>
           {filtered.map(p => (
             <button key={p.id} onClick={() => onSelectProject(p)}
               style={{ background: 'white', border: '1px solid #E4E7ED', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', padding: 0, textAlign: 'left', fontFamily: 'inherit', transition: 'transform 180ms, box-shadow 180ms, border-color 180ms', display: 'flex', flexDirection: 'column' }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 22px rgba(15,111,115,0.14)'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#0F6F73'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = ''; (e.currentTarget as HTMLButtonElement).style.boxShadow = ''; (e.currentTarget as HTMLButtonElement).style.borderColor = '#E4E7ED'; }}
             >
-              {/* 4:3 thumbnail */}
-              <div style={{ width: '100%', aspectRatio: '4/3', background: coverGradient(p.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end' }}>
+              {/* 4:3 image — no overlaid text so the photo stays clean */}
+              <div style={{ width: '100%', aspectRatio: '4/3', background: coverGradient(p.cover_color), position: 'relative', overflow: 'hidden' }}>
                 {p.images && p.images.length > 0 && (
                   <img src={toProxyUrl(p.images[0])} alt={p.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
                 )}
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.6) 100%)' }} />
-                <div style={{ position: 'relative', padding: '10px 12px', color: 'white' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 700, lineHeight: 1.3 }}>{p.title}</div>
-                </div>
               </div>
-              <div style={{ padding: '8px 12px 10px' }}>
+              {/* Title + meta below the image, dark on white for readability */}
+              <div style={{ padding: '10px 12px 12px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#171A21', lineHeight: 1.35, marginBottom: '4px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.title}</div>
                 <div style={{ fontSize: '11px', color: '#9AA0AE' }}>
                   {p.confidential ? (isTh ? 'ลูกค้าลับ' : 'Confidential') : p.client}
                   {p.year ? ` · ${p.year}` : ''}
@@ -378,7 +376,7 @@ function ProfileDrawer({ provider, lang, isTh, dict, onClose }: {
           {/* Hero */}
           <div style={{
             position: 'relative',
-            height: provider.banner_url ? 'clamp(150px, 38vw, 420px)' : 'auto',
+            height: provider.banner_url ? 'clamp(230px, 46vw, 420px)' : 'auto',
             background: provider.banner_url ? undefined : 'linear-gradient(135deg, #0E1017, #0F6F73)',
             backgroundImage: provider.banner_url ? `url(${provider.banner_url})` : undefined,
             backgroundSize: 'cover',
@@ -655,7 +653,7 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
       <PublicNav locale={lang} dict={dict} dark={false} />
 
       {/* Hero */}
-      <div style={{ background: 'linear-gradient(140deg, #0E1017 0%, #0F6F73 100%)', padding: '32px 24px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ background: 'linear-gradient(140deg, #0E1017 0%, #0F6F73 100%)', padding: 'clamp(20px, 5vw, 32px) 20px clamp(16px, 4vw, 24px)', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 55% 80% at 80% 50%, rgba(43,190,197,0.12) 0%, transparent 60%)', pointerEvents: 'none' }} />
         <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '540px', textAlign: 'center' }}>
           <h1 style={{ fontSize: 'clamp(22px, 4vw, 26px)', fontWeight: 700, color: 'white', marginBottom: '4px', letterSpacing: '-0.03em' }}>
@@ -669,7 +667,7 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
       </div>
 
       {/* Results area */}
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 24px 60px' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: 'clamp(16px, 4vw, 24px) 20px 60px' }}>
 
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
