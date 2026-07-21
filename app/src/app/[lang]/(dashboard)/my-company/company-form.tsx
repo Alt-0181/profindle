@@ -158,7 +158,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const [bannerZoom, setBannerZoom] = useState<number>(initialData?.bannerZoom ?? 100);
   const [bannerZoomM, setBannerZoomM] = useState<number>(initialData?.bannerZoomMobile ?? 100);
   const bannerBoxRef = useRef<HTMLDivElement>(null);
-  const bannerNat = useRef<{ w: number; h: number }>({ w: 0, h: 0 });
+  const [bannerNat, setBannerNat] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
   const panStart = useRef<{ x: number; y: number; fx: number; fy: number } | null>(null);
   const curFocus = bannerDevice === 'mobile' ? { x: bannerFocusMX, y: bannerFocusMY } : { x: bannerFocusX, y: bannerFocusY };
   const curZoom = bannerDevice === 'mobile' ? bannerZoomM : bannerZoom;
@@ -171,25 +171,53 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
     if (bannerDevice === 'mobile') setBannerZoomM(z); else setBannerZoom(z);
     setSaved(false);
   };
+  // Measured pixel width of the staging box, so the Facebook-style cropper can
+  // lay the full image out precisely (the crop rectangle is an inset of this).
+  const [bannerBoxW, setBannerBoxW] = useState<number>(0);
+  useEffect(() => {
+    const el = bannerBoxRef.current;
+    if (!el) return;
+    const update = () => setBannerBoxW(el.getBoundingClientRect().width);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [bannerDevice]);
+
+  // Geometry: the stage matches the display frame aspect; the bright crop
+  // rectangle is inset CROP_INSET on every side so the dimmed surround shows
+  // exactly what falls outside the crop (what visitors will NOT see).
+  const CROP_INSET = 0.08; // 8% margin around the crop = context area
+  const stageW = bannerBoxW;
+  const stageAspect = bannerDevice === 'mobile' ? 0.62 : 0.38; // height / width
+  const stageH = stageW * stageAspect;
+  const cropW = stageW * (1 - CROP_INSET * 2);
+  const cropH = stageH * (1 - CROP_INSET * 2);
+  const cropLeft = stageW * CROP_INSET;
+  const cropTop = stageH * CROP_INSET;
+  const geo = (() => {
+    const nat = bannerNat;
+    if (!stageW || !nat.w || !nat.h) return null;
+    const z = curZoom / 100;
+    const coverScale = Math.max(cropW / nat.w, cropH / nat.h);
+    const dispW = nat.w * coverScale * z;
+    const dispH = nat.h * coverScale * z;
+    const overflowX = dispW - cropW;
+    const overflowY = dispH - cropH;
+    const imgLeft = cropLeft - overflowX * (curFocus.x / 100);
+    const imgTop = cropTop - overflowY * (curFocus.y / 100);
+    return { dispW, dispH, imgLeft, imgTop, overflowX, overflowY };
+  })();
+
   const startPan = (clientX: number, clientY: number) => { panStart.current = { x: clientX, y: clientY, fx: curFocus.x, fy: curFocus.y }; };
   const movePan = (clientX: number, clientY: number) => {
-    const box = bannerBoxRef.current; const s = panStart.current;
-    if (!box || !s) return;
-    const rect = box.getBoundingClientRect();
-    const nat = bannerNat.current;
-    const z = curZoom / 100;
-    // Size the image the way the browser does (object-fit: cover) then apply
-    // zoom, so a finger drag moves the image 1:1 — exactly like Facebook.
-    let overflowX = rect.width, overflowY = rect.height;
-    if (nat.w > 0 && nat.h > 0) {
-      const coverScale = Math.max(rect.width / nat.w, rect.height / nat.h);
-      const dispW = nat.w * coverScale * z;
-      const dispH = nat.h * coverScale * z;
-      overflowX = Math.max(dispW - rect.width, 1);
-      overflowY = Math.max(dispH - rect.height, 1);
-    }
-    const nx = Math.min(100, Math.max(0, s.fx - ((clientX - s.x) / overflowX) * 100));
-    const ny = Math.min(100, Math.max(0, s.fy - ((clientY - s.y) / overflowY) * 100));
+    const s = panStart.current;
+    if (!s || !geo) return;
+    // Drag moves the image 1:1 against its overflow beyond the crop rectangle.
+    const ox = Math.max(geo.overflowX, 1);
+    const oy = Math.max(geo.overflowY, 1);
+    const nx = Math.min(100, Math.max(0, s.fx - ((clientX - s.x) / ox) * 100));
+    const ny = Math.min(100, Math.max(0, s.fy - ((clientY - s.y) / oy) * 100));
     setCurFocus(Math.round(nx), Math.round(ny));
   };
   const endPan = () => { panStart.current = null; };
@@ -556,7 +584,14 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
               onPointerCancel={endPan}
               style={{ position: 'relative', width: '100%', maxWidth: bannerDevice === 'mobile' ? '420px' : '100%', margin: bannerDevice === 'mobile' ? '0 auto' : undefined, paddingBottom: bannerDevice === 'mobile' ? '62%' : '38%', borderRadius: '14px', overflow: 'hidden', cursor: panStart.current ? 'grabbing' : 'grab', background: '#0E1017', touchAction: 'none', userSelect: 'none' }}
             >
-              <img src={bannerSrc} alt="Banner" draggable={false} onLoad={(e) => { const img = e.currentTarget; bannerNat.current = { w: img.naturalWidth, h: img.naturalHeight }; }} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${curFocus.x}% ${curFocus.y}%`, transform: `scale(${curZoom / 100})`, transformOrigin: `${curFocus.x}% ${curFocus.y}%`, userSelect: 'none' }} />
+              {/* Full image — drag to move it under the crop */}
+              <img src={bannerSrc} alt="Banner" draggable={false}
+                onLoad={(e) => { const img = e.currentTarget; setBannerNat({ w: img.naturalWidth, h: img.naturalHeight }); }}
+                style={geo
+                  ? { position: 'absolute', left: `${geo.imgLeft}px`, top: `${geo.imgTop}px`, width: `${geo.dispW}px`, height: `${geo.dispH}px`, maxWidth: 'none', display: 'block', userSelect: 'none' }
+                  : { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', userSelect: 'none' }} />
+              {/* Crop rectangle: bright inside, everything outside dimmed */}
+              <div style={{ position: 'absolute', left: `${CROP_INSET * 100}%`, top: `${CROP_INSET * 100}%`, right: `${CROP_INSET * 100}%`, bottom: `${CROP_INSET * 100}%`, boxShadow: '0 0 0 9999px rgba(14,16,23,0.60)', border: '2px solid rgba(255,255,255,0.92)', borderRadius: '4px', pointerEvents: 'none' }} />
               <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '999px', pointerEvents: 'none' }}>
                 {bannerDevice === 'desktop' ? (lang === 'th' ? 'มุมมองเดสก์ท็อป' : 'Desktop view') : (lang === 'th' ? 'มุมมองมือถือ' : 'Mobile view')}
               </div>
