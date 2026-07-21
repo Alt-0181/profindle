@@ -96,7 +96,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
       <style>{`
         .pp-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
         .pp-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-        .pp-banner-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: ${bdx}% ${bdy}%; transform: scale(${bz / 100}); transform-origin: ${bdx}% ${bdy}%; }
+        .pp-banner-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: ${bdx}% ${bdy}%; transform: scale(${bz / 100}); transform-origin: ${bdx}% ${bdy}%; }
         @media (max-width: 820px) {
           .pp-grid { grid-template-columns: 1fr; }
           .pp-stats { grid-template-columns: repeat(2, 1fr); }
