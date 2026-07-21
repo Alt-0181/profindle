@@ -87,6 +87,14 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
 
   return (
     <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif", minHeight: '100vh', background: '#F4F5F7' }}>
+      <style>{`
+        .pp-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
+        .pp-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        @media (max-width: 820px) {
+          .pp-grid { grid-template-columns: 1fr; }
+          .pp-stats { grid-template-columns: repeat(2, 1fr); }
+        }
+      `}</style>
       <PublicNav locale={lang} dict={dict} dark={false} />
 
       {/* Header */}
@@ -130,13 +138,13 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
 
       {/* Main content */}
       <div style={{ maxWidth: '960px', margin: '-32px auto 48px', padding: '0 24px', position: 'relative', zIndex: 2 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px', alignItems: 'start' }}>
+        <div className="pp-grid">
 
           {/* Left column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0 }}>
 
             {/* Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+            <div className="pp-stats">
               {[
                 { val: company.views ?? 0, label: isTh ? 'การเข้าชม' : 'Views' },
                 { val: company.services?.length ?? 0, label: isTh ? 'บริการ' : 'Services' },

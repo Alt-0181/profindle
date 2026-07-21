@@ -26,11 +26,10 @@ export function PublicNav({ locale, dict, dark = false }: PublicNavProps) {
 
   return (
     <nav
-      className="px-4 sm:px-12"
       style={{
         position: dark ? 'absolute' : 'sticky',
         top: 0, left: 0, right: 0, zIndex: 50,
-        height: '64px',
+        height: '64px', padding: '0 clamp(20px, 5vw, 48px)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         background: dark ? 'transparent' : 'rgba(255,255,255,0.95)',
         backdropFilter: dark ? 'none' : 'blur(8px)',
