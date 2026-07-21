@@ -99,8 +99,8 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
         .pp-cover { position: relative; width: 100%; max-width: 1200px; margin: 0 auto; padding-bottom: 38%; background: #0E1017; overflow: hidden; }
         .pp-banner-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: ${bdx}% ${bdy}%; transform: scale(${bz / 100}); transform-origin: ${bdx}% ${bdy}%; }
         .pp-identity { max-width: 960px; margin: 0 auto; padding: 0 24px; }
-        .pp-idrow { display: flex; align-items: flex-end; gap: 20px; padding-top: 14px; position: relative; z-index: 2; flex-wrap: wrap; }
-        .pp-idlogo { margin-top: -56px; }
+        .pp-idrow { display: flex; align-items: flex-start; gap: 20px; padding-top: 12px; position: relative; z-index: 2; flex-wrap: wrap; }
+        .pp-idlogo { margin-top: -68px; }
         @media (max-width: 820px) {
           .pp-grid { grid-template-columns: 1fr; }
           .pp-stats { grid-template-columns: repeat(2, 1fr); }
@@ -108,8 +108,8 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
         @media (max-width: 768px) {
           .pp-cover { padding-bottom: 62%; }
           .pp-banner-img { object-position: ${bmx}% ${bmy}%; transform: scale(${bmz / 100}); transform-origin: ${bmx}% ${bmy}%; }
-          .pp-idrow { gap: 14px; padding-top: 10px; }
-          .pp-idlogo { margin-top: -40px; }
+          .pp-idrow { gap: 14px; padding-top: 8px; }
+          .pp-idlogo { margin-top: -48px; }
         }
       `}</style>
       <PublicNav locale={lang} dict={dict} dark={false} />
