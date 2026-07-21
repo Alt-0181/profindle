@@ -159,6 +159,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const [bannerZoomM, setBannerZoomM] = useState<number>(Math.max(100, initialData?.bannerZoomMobile ?? 100));
   const bannerBoxRef = useRef<HTMLDivElement>(null);
   const [bannerNat, setBannerNat] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
+  const bannerImgRef = useRef<HTMLImageElement>(null);
   const panStart = useRef<{ x: number; y: number; fx: number; fy: number } | null>(null);
   const curFocus = bannerDevice === 'mobile' ? { x: bannerFocusMX, y: bannerFocusMY } : { x: bannerFocusX, y: bannerFocusY };
   const curZoom = bannerDevice === 'mobile' ? bannerZoomM : bannerZoom;
@@ -450,6 +451,16 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const bannerSrc = bannerDisplayUrl ?? bannerUrl;
   const logoInitial = (form.nameEn || form.nameTh || 'A').slice(0, 2).toUpperCase();
 
+  // Measure the banner's natural size for the crop geometry. onLoad alone is
+  // unreliable — a blob/cached image is often already complete before React
+  // attaches the handler, so read naturalWidth directly whenever the src changes.
+  useEffect(() => {
+    const img = bannerImgRef.current;
+    if (img && img.complete && img.naturalWidth) {
+      setBannerNat({ w: img.naturalWidth, h: img.naturalHeight });
+    }
+  }, [bannerSrc]);
+
   return (
     <form onSubmit={handleSave}>
       <style>{`
@@ -585,7 +596,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
               style={{ position: 'relative', width: '100%', maxWidth: bannerDevice === 'mobile' ? '420px' : '100%', margin: bannerDevice === 'mobile' ? '0 auto' : undefined, paddingBottom: bannerDevice === 'mobile' ? '62%' : '38%', borderRadius: '14px', overflow: 'hidden', cursor: panStart.current ? 'grabbing' : 'grab', background: '#0E1017', touchAction: 'none', userSelect: 'none' }}
             >
               {/* Full image — drag to move it under the crop */}
-              <img src={bannerSrc} alt="Banner" draggable={false}
+              <img ref={bannerImgRef} src={bannerSrc} alt="Banner" draggable={false}
                 onLoad={(e) => { const img = e.currentTarget; setBannerNat({ w: img.naturalWidth, h: img.naturalHeight }); }}
                 style={geo
                   ? { position: 'absolute', left: `${geo.imgLeft}px`, top: `${geo.imgTop}px`, width: `${geo.dispW}px`, height: `${geo.dispH}px`, maxWidth: 'none', display: 'block', userSelect: 'none' }
