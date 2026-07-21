@@ -796,12 +796,12 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
               const desc = isTh && p.description_th ? p.description_th : p.description;
               const initial = p.logo_initial ?? (p.name ?? '??').slice(0, 2).toUpperCase();
               return (
-                <div
+                <Link
                   key={p.id}
-                  onClick={() => setDrawerProvider(p)}
-                  style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', padding: '20px', cursor: 'pointer', transition: 'transform 200ms, box-shadow 200ms' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 6px 24px rgba(15,111,115,0.12)'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = ''; }}
+                  href={`/${lang}/providers/${p.id}`}
+                  style={{ display: 'block', textDecoration: 'none', color: 'inherit', background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', padding: '20px', cursor: 'pointer', transition: 'transform 200ms, box-shadow 200ms' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 24px rgba(15,111,115,0.12)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = ''; }}
                 >
                   {/* Top row */}
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
@@ -835,11 +835,11 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #F4F5F7', paddingTop: '12px' }}>
                     <span style={{ fontSize: '12px', color: '#9AA0AE' }}>{(p.views ?? 0).toLocaleString()} {isTh ? 'การเข้าชม' : 'profile views'}</span>
-                    <button style={{ padding: '7px 16px', background: p.premium ? 'linear-gradient(135deg, #0F6F73, #1A9DA3)' : 'transparent', color: p.premium ? 'white' : '#0F6F73', border: p.premium ? 'none' : '1.5px solid #0F6F73', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    <span style={{ display: 'inline-block', padding: '7px 16px', background: p.premium ? 'linear-gradient(135deg, #0F6F73, #1A9DA3)' : 'transparent', color: p.premium ? 'white' : '#0F6F73', border: p.premium ? 'none' : '1.5px solid #0F6F73', borderRadius: '8px', fontSize: '12px', fontWeight: 600, fontFamily: 'inherit' }}>
                       {t.viewProfile}
-                    </button>
+                    </span>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
