@@ -68,6 +68,7 @@ function ProjectDetail({ project, isTh, onBack, phone, email, lineId, providerNa
   providerName: string;
 }) {
   const [slideIdx, setSlideIdx] = useState(0);
+  const touchStartX = useRef<number | null>(null);
   const results = project.results
     ? parseResults(isTh && project.results_th ? project.results_th : project.results)
     : [];
@@ -85,8 +86,17 @@ function ProjectDetail({ project, isTh, onBack, phone, email, lineId, providerNa
         {isTh ? `กลับไป ${providerName}` : `Back to ${providerName}`}
       </button>
 
-      {/* Cover carousel */}
-      <div style={{ width: '100%', maxWidth: '760px', margin: '0 auto', aspectRatio: '16/9', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px' }}>
+      {/* Cover carousel — swipeable on touch devices */}
+      <div
+        onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+        onTouchEnd={(e) => {
+          if (touchStartX.current === null) return;
+          const dx = e.changedTouches[0].clientX - touchStartX.current;
+          if (dx < -40 && slideIdx < slides.length - 1) setSlideIdx(i => i + 1);
+          else if (dx > 40 && slideIdx > 0) setSlideIdx(i => i - 1);
+          touchStartX.current = null;
+        }}
+        style={{ width: '100%', maxWidth: '760px', margin: '0 auto', aspectRatio: '16/9', borderRadius: '14px', background: coverGradient(project.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', marginBottom: '18px', touchAction: 'pan-y' }}>
         {/* Gradient overlay */}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.65) 100%)' }} />
 
