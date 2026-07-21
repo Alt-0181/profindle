@@ -150,7 +150,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   // Banner framing — a separate focal point (0-100 %) per device, so the
   // provider can tune the desktop (wide) and mobile (near-square) crop
   // independently. Drag the image inside the device frame to reposition.
-  const [bannerDevice, setBannerDevice] = useState<'desktop' | 'mobile'>('mobile');
+  const [bannerDevice, setBannerDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [bannerFocusX, setBannerFocusX] = useState<number>(initialData?.bannerFocusX ?? 50);
   const [bannerFocusY, setBannerFocusY] = useState<number>(initialData?.bannerFocusY ?? 50);
   const [bannerFocusMX, setBannerFocusMX] = useState<number>(initialData?.bannerFocusMobileX ?? 50);
@@ -543,7 +543,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
               onPointerCancel={endPan}
               style={{ position: 'relative', width: '100%', maxWidth: bannerDevice === 'mobile' ? '420px' : '100%', margin: bannerDevice === 'mobile' ? '0 auto' : undefined, paddingBottom: bannerDevice === 'mobile' ? '62%' : '38%', borderRadius: '14px', overflow: 'hidden', cursor: panStart.current ? 'grabbing' : 'grab', background: '#0E1017', touchAction: 'none', userSelect: 'none' }}
             >
-              <img src={bannerSrc} alt="Banner" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', objectPosition: `${curFocus.x}% ${curFocus.y}%`, transform: `scale(${curZoom / 100})`, transformOrigin: `${curFocus.x}% ${curFocus.y}%`, userSelect: 'none' }} />
+              <img src={bannerSrc} alt="Banner" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${curFocus.x}% ${curFocus.y}%`, transform: `scale(${curZoom / 100})`, transformOrigin: `${curFocus.x}% ${curFocus.y}%`, userSelect: 'none' }} />
               <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '999px', pointerEvents: 'none' }}>
                 {bannerDevice === 'desktop' ? (lang === 'th' ? 'มุมมองเดสก์ท็อป' : 'Desktop view') : (lang === 'th' ? 'มุมมองมือถือ' : 'Mobile view')}
               </div>
@@ -568,8 +568,8 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
             <div style={{ fontSize: '12px', color: '#6B7385', marginTop: '8px', display: 'flex', alignItems: 'flex-start', gap: '6px', lineHeight: 1.5 }}>
               <span>🖐️</span>
               <span>{lang === 'th'
-                ? `ลากรูปเพื่อจัดตำแหน่ง และใช้แถบเลื่อนเพื่อซูม — นี่คือลักษณะบน${bannerDevice === 'mobile' ? 'มือถือ' : 'เดสก์ท็อป'} (ตั้งค่าแยกกันได้ทั้งสองมุมมอง)`
-                : `Drag to reposition, slide to zoom — this is exactly how your banner shows on ${bannerDevice}. Desktop and mobile are set separately.`}</span>
+                ? `ลากรูปเพื่อจัดตำแหน่ง เลื่อนเพื่อซูมเข้า หรือซูมออกเพื่อให้เห็นรูปทั้งใบ (พื้นที่ว่างจะเป็นสีเข้ม) — นี่คือลักษณะบน${bannerDevice === 'mobile' ? 'มือถือ' : 'เดสก์ท็อป'} (ตั้งค่าแยกกันได้ทั้งสองมุมมอง)`
+                : `Drag to reposition, zoom in to crop, or zoom out to show the whole image (empty space fills dark) — this is exactly how your banner shows on ${bannerDevice}. Desktop and mobile are set separately.`}</span>
             </div>
           </div>
         )}
