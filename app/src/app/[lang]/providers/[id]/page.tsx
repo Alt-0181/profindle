@@ -88,32 +88,35 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
   const bdy = (company as any).banner_focus_y ?? 50;
   const bmx = (company as any).banner_focus_mobile_x ?? 50;
   const bmy = (company as any).banner_focus_mobile_y ?? 50;
+  const bz = (company as any).banner_zoom ?? 100;
+  const bmz = (company as any).banner_zoom_mobile ?? 100;
 
   return (
     <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif", minHeight: '100vh', background: '#F4F5F7' }}>
       <style>{`
         .pp-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
         .pp-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-        .pp-banner { background-position: ${bdx}% ${bdy}%; }
+        .pp-banner-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: ${bdx}% ${bdy}%; transform: scale(${bz / 100}); transform-origin: ${bdx}% ${bdy}%; }
         @media (max-width: 820px) {
           .pp-grid { grid-template-columns: 1fr; }
           .pp-stats { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 768px) {
-          .pp-banner { background-position: ${bmx}% ${bmy}% !important; }
+          .pp-banner-img { object-position: ${bmx}% ${bmy}%; transform: scale(${bmz / 100}); transform-origin: ${bmx}% ${bmy}%; }
         }
       `}</style>
       <PublicNav locale={lang} dict={dict} dark={false} />
 
       {/* Header */}
-      <div className={company.banner_url ? 'pp-banner' : undefined} style={{
-        background: company.banner_url ? undefined : 'linear-gradient(135deg, #0E1017 0%, #0F6F73 100%)',
-        backgroundImage: company.banner_url ? `url(${company.banner_url})` : undefined,
-        backgroundSize: 'cover',
+      <div style={{
+        background: company.banner_url ? '#0E1017' : 'linear-gradient(135deg, #0E1017 0%, #0F6F73 100%)',
         padding: '40px 24px 64px', position: 'relative', overflow: 'hidden',
       }}>
         {company.banner_url && (
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(14,16,23,0.82) 0%, rgba(15,111,115,0.75) 100%)' }} />
+          <>
+            <img className="pp-banner-img" src={company.banner_url} alt="" />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(14,16,23,0.82) 0%, rgba(15,111,115,0.75) 100%)' }} />
+          </>
         )}
         {!company.banner_url && (
           <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 40% 60% at 80% 50%, rgba(247,127,0,0.1) 0%, transparent 60%)', pointerEvents: 'none' }} />

@@ -63,6 +63,7 @@ interface MyCompanyFormProps {
     logoUrl: string | null; bannerUrl: string | null;
     bannerFocusX?: number; bannerFocusY?: number;
     bannerFocusMobileX?: number; bannerFocusMobileY?: number;
+    bannerZoom?: number; bannerZoomMobile?: number;
     buyerOnly: boolean;
   };
 }
@@ -154,12 +155,19 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const [bannerFocusY, setBannerFocusY] = useState<number>(initialData?.bannerFocusY ?? 50);
   const [bannerFocusMX, setBannerFocusMX] = useState<number>(initialData?.bannerFocusMobileX ?? 50);
   const [bannerFocusMY, setBannerFocusMY] = useState<number>(initialData?.bannerFocusMobileY ?? 50);
+  const [bannerZoom, setBannerZoom] = useState<number>(initialData?.bannerZoom ?? 100);
+  const [bannerZoomM, setBannerZoomM] = useState<number>(initialData?.bannerZoomMobile ?? 100);
   const bannerBoxRef = useRef<HTMLDivElement>(null);
   const panStart = useRef<{ x: number; y: number; fx: number; fy: number } | null>(null);
   const curFocus = bannerDevice === 'mobile' ? { x: bannerFocusMX, y: bannerFocusMY } : { x: bannerFocusX, y: bannerFocusY };
+  const curZoom = bannerDevice === 'mobile' ? bannerZoomM : bannerZoom;
   const setCurFocus = (x: number, y: number) => {
     if (bannerDevice === 'mobile') { setBannerFocusMX(x); setBannerFocusMY(y); }
     else { setBannerFocusX(x); setBannerFocusY(y); }
+    setSaved(false);
+  };
+  const setCurZoom = (z: number) => {
+    if (bannerDevice === 'mobile') setBannerZoomM(z); else setBannerZoom(z);
     setSaved(false);
   };
   const startPan = (clientX: number, clientY: number) => { panStart.current = { x: clientX, y: clientY, fx: curFocus.x, fy: curFocus.y }; };
@@ -350,6 +358,8 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         banner_focus_y: bannerFocusY,
         banner_focus_mobile_x: bannerFocusMX,
         banner_focus_mobile_y: bannerFocusMY,
+        banner_zoom: bannerZoom,
+        banner_zoom_mobile: bannerZoomM,
         updated_at: new Date().toISOString(),
       };
 
@@ -533,7 +543,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
               onPointerCancel={endPan}
               style={{ position: 'relative', width: '100%', maxWidth: bannerDevice === 'mobile' ? '420px' : '100%', margin: bannerDevice === 'mobile' ? '0 auto' : undefined, paddingBottom: bannerDevice === 'mobile' ? '62%' : '30%', borderRadius: '14px', overflow: 'hidden', cursor: panStart.current ? 'grabbing' : 'grab', background: '#0E1017', touchAction: 'none', userSelect: 'none' }}
             >
-              <img src={bannerSrc} alt="Banner" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${curFocus.x}% ${curFocus.y}%`, userSelect: 'none' }} />
+              <img src={bannerSrc} alt="Banner" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${curFocus.x}% ${curFocus.y}%`, transform: `scale(${curZoom / 100})`, transformOrigin: `${curFocus.x}% ${curFocus.y}%`, userSelect: 'none' }} />
               <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '999px', pointerEvents: 'none' }}>
                 {bannerDevice === 'desktop' ? (lang === 'th' ? 'มุมมองเดสก์ท็อป' : 'Desktop view') : (lang === 'th' ? 'มุมมองมือถือ' : 'Mobile view')}
               </div>
@@ -544,11 +554,22 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
               )}
             </div>
 
+            {/* Zoom control */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7385" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+              <input
+                type="range" min={100} max={300} step={1} value={curZoom}
+                onChange={(e) => setCurZoom(Number(e.target.value))}
+                style={{ flex: 1, accentColor: '#0F6F73', cursor: 'pointer' }}
+              />
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7385" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#6B7385', minWidth: '38px', textAlign: 'right' }}>{curZoom}%</span>
+            </div>
             <div style={{ fontSize: '12px', color: '#6B7385', marginTop: '8px', display: 'flex', alignItems: 'flex-start', gap: '6px', lineHeight: 1.5 }}>
               <span>🖐️</span>
               <span>{lang === 'th'
-                ? `ลากรูปเพื่อจัดตำแหน่ง — นี่คือลักษณะที่แบนเนอร์จะแสดงบน${bannerDevice === 'mobile' ? 'มือถือ' : 'เดสก์ท็อป'} (ตั้งค่าแยกกันได้ทั้งสองมุมมอง)`
-                : `Drag the image to reposition — this is exactly how your banner shows on ${bannerDevice}. Desktop and mobile are set separately.`}</span>
+                ? `ลากรูปเพื่อจัดตำแหน่ง และใช้แถบเลื่อนเพื่อซูม — นี่คือลักษณะบน${bannerDevice === 'mobile' ? 'มือถือ' : 'เดสก์ท็อป'} (ตั้งค่าแยกกันได้ทั้งสองมุมมอง)`
+                : `Drag to reposition, slide to zoom — this is exactly how your banner shows on ${bannerDevice}. Desktop and mobile are set separately.`}</span>
             </div>
           </div>
         )}
