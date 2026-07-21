@@ -114,6 +114,13 @@ body {
   line-height: 1.5;
 }
 
+/* Prevent any single wide element from making the whole page scroll
+   sideways on mobile (the grey strip + shifted header symptom). */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 a {
   text-decoration: none;
 }

@@ -684,7 +684,7 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
           <div style={{ fontSize: '13px', color: '#9AA0AE' }}>
             {isTh ? 'แสดง' : 'Showing'} <strong style={{ color: '#171A21' }}>{filtered.length}</strong> {isTh ? 'ผู้ให้บริการ' : `provider${filtered.length !== 1 ? 's' : ''}`}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <button
               onClick={() => setVerifiedOnly(!verifiedOnly)}
               style={{ padding: '6px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', border: `1.5px solid ${verifiedOnly ? '#0F6F73' : '#E4E7ED'}`, background: verifiedOnly ? '#F0F9F9' : 'white', color: verifiedOnly ? '#0F6F73' : '#6B7385' }}
