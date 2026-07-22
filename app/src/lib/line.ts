@@ -145,7 +145,7 @@ export function makeWelcomeMessage(lineUserId: string): object {
 export function makeUidReplyMessage(lineUserId: string): object {
   return {
     type: 'text',
-    text: `LINE UID:\n${lineUserId}\n\nTrigger Message: GET UID`,
+    text: `🔑 LINE User ID ของคุณ / Your LINE User ID\n\n${lineUserId}\n\nคัดลอกรหัสนี้ไปวางใน Profindle → ตั้งค่า → เชื่อมต่อ LINE เพื่อเริ่มรับแจ้งเตือนงานใหม่ที่นี่\n\nCopy this ID into Profindle → Settings → LINE Connect to start receiving job alerts right here.`,
   };
 }
 
@@ -154,14 +154,14 @@ export function makeVipStatusMessage(plan: string | null, planExpiresAt: string 
     const expiry = planExpiresAt
       ? new Date(planExpiresAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
       : null;
-    const expiryLine = expiry ? `Active until ${expiry}` : 'Lifetime membership';
+    const expiryLine = expiry ? `ใช้งานได้ถึง ${expiry} / Active until ${expiry}\n` : '';
     return {
       type: 'text',
-      text: `✨ VIP Member\n${expiryLine}\n\nYou receive priority broadcast notifications when buyers post matching requests.`,
+      text: `✨ สมาชิก Premium / Premium Member\n${expiryLine}\nคุณได้รับสิทธิ์แจ้งเตือนงานก่อนใคร เมื่อมีผู้ซื้อโพสต์ประกาศที่ตรงกับบริการของคุณ\nYou get priority job alerts the moment a buyer posts a matching request.`,
     };
   }
   return {
     type: 'text',
-    text: `📋 Free Plan\n\nUpgrade to VIP for priority matching and more broadcast notifications.\n\nVisit Profindle → Package to upgrade.`,
+    text: `📋 แพ็กเกจฟรี / Free Plan\n\nอัปเกรดเป็น Premium เพื่อ:\n• แสดงก่อนใครในผลการค้นหา (Priority)\n• เพิ่มจำนวนผลงาน\n• ได้รับการแจ้งเตือน Real Time ผ่าน Line\n\n🎁 Early Bird: ใช้ Premium ฟรีถึง 31 ธ.ค. 2026\nอัปเกรดที่ Profindle → แพ็กเกจ\n\nUpgrade to Premium for priority placement, unlimited broadcast alerts, unlimited portfolio showcases and real-time notification via Line\n🎁 Early Bird: Premium free until 31 Dec 2026.\nUpgrade at Profindle → Package.`,
   };
 }
