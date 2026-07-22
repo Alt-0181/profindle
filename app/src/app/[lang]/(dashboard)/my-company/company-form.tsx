@@ -96,10 +96,9 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
 
   useEffect(() => {
     if (!dbdPath || uploadFile) return;
-    const supabase = createClient();
-    supabase.storage.from('company-docs').createSignedUrl(dbdPath, 3600).then(({ data }) => {
-      if (data?.signedUrl) setPreviewUrl(data.signedUrl);
-    });
+    fetch('/api/dbd-url').then(r => r.json()).then((d) => {
+      if (d?.signedUrl) setPreviewUrl(d.signedUrl);
+    }).catch(() => {});
   }, [dbdPath]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,17 +110,14 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
     setPreviewUrl(URL.createObjectURL(file));
     setUploading(true);
     try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-      const ext = file.name.split('.').pop() ?? 'pdf';
-      const path = `${user.id}-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from('company-docs').upload(path, file, { contentType: file.type || 'application/octet-stream' });
-      if (error) throw error;
-      setDbdPath(path);
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/dbd-upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Upload failed');
+      setDbdPath(data.path);
+      if (data.signedUrl) setPreviewUrl(data.signedUrl);
       setUploadDone(true);
-      // Save path + original name to DB if company already exists
-      await supabase.from('companies').update({ dbd_certificate_url: path, dbd_certificate_name: file.name }).eq('user_id', user.id);
     } catch (err: any) {
       setUploadError(err.message ?? 'Upload failed');
     } finally {
@@ -276,10 +272,10 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
     const fileName = getCertFileName() ?? 'DBD_Certificate.pdf';
     setDownloading(true);
     try {
-      const supabase = createClient();
-      const { data, error } = await supabase.storage.from('company-docs').createSignedUrl(dbdPath, 300);
-      if (error || !data?.signedUrl) throw new Error('Could not generate download link');
-      const response = await fetch(data.signedUrl);
+      const urlRes = await fetch('/api/dbd-url');
+      const urlData = await urlRes.json();
+      if (!urlData?.signedUrl) throw new Error('Could not generate download link');
+      const response = await fetch(urlData.signedUrl);
       if (!response.ok) throw new Error('File fetch failed');
       const blob = await response.blob();
       const objectUrl = URL.createObjectURL(blob);
