@@ -47,6 +47,10 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
     logoUrl: (company as any).logo_url ?? null,
     bannerUrl: (company as any).banner_url ?? null,
     bannerMobileUrl: (company as any).banner_url_mobile ?? null,
+    bannerFocusX: (company as any).banner_focus_x ?? 50,
+    bannerFocusY: (company as any).banner_focus_y ?? 50,
+    bannerFocusMobileX: (company as any).banner_focus_mobile_x ?? 50,
+    bannerFocusMobileY: (company as any).banner_focus_mobile_y ?? 50,
     buyerOnly: (company as any).buyer_only ?? false,
   } : undefined;
 

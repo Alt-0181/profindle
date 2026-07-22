@@ -84,6 +84,10 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
   const displayDesc = isTh && company.description_th ? company.description_th : company.description;
   const initial = company.logo_initial ?? company.name.slice(0, 2).toUpperCase();
   const projects = portfolio;
+  const bfx = (company as any).banner_focus_x ?? 50;
+  const bfy = (company as any).banner_focus_y ?? 50;
+  const bfmx = (company as any).banner_focus_mobile_x ?? 50;
+  const bfmy = (company as any).banner_focus_mobile_y ?? 50;
 
   return (
     <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif", minHeight: '100vh', background: '#F4F5F7' }}>
@@ -122,8 +126,8 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
       <div className="pp-cover">
         {company.banner_url ? (
           <>
-            <img className="pp-banner-img pp-banner-desktop" src={company.banner_url} alt="" />
-            <img className="pp-banner-img pp-banner-mobile" src={(company as any).banner_url_mobile || company.banner_url} alt="" />
+            <img className="pp-banner-img pp-banner-desktop" src={company.banner_url} alt="" style={{ objectPosition: `${bfx}% ${bfy}%` }} />
+            <img className="pp-banner-img pp-banner-mobile" src={(company as any).banner_url_mobile || company.banner_url} alt="" style={{ objectPosition: (company as any).banner_url_mobile ? `${bfmx}% ${bfmy}%` : `${bfx}% ${bfy}%` }} />
           </>
         ) : (
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #0E1017 0%, #0F6F73 100%)' }} />

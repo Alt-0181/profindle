@@ -61,6 +61,8 @@ interface MyCompanyFormProps {
     dbdCertPath: string | null; dbdCertName: string | null;
     services: string[];
     logoUrl: string | null; bannerUrl: string | null; bannerMobileUrl?: string | null;
+    bannerFocusX?: number; bannerFocusY?: number;
+    bannerFocusMobileX?: number; bannerFocusMobileY?: number;
     buyerOnly: boolean;
   };
 }
@@ -146,6 +148,44 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const [bannerMobileError, setBannerMobileError] = useState('');
   const [useMobileBanner, setUseMobileBanner] = useState<boolean>(!!initialData?.bannerMobileUrl);
   const bannerMobileInputRef = useRef<HTMLInputElement>(null);
+
+  // Facebook-style Reposition: drag the banner inside its fixed cover frame.
+  const [bannerFocusX, setBannerFocusX] = useState<number>(initialData?.bannerFocusX ?? 50);
+  const [bannerFocusY, setBannerFocusY] = useState<number>(initialData?.bannerFocusY ?? 50);
+  const [bannerFocusMX, setBannerFocusMX] = useState<number>(initialData?.bannerFocusMobileX ?? 50);
+  const [bannerFocusMY, setBannerFocusMY] = useState<number>(initialData?.bannerFocusMobileY ?? 50);
+  const bannerFrameRef = useRef<HTMLDivElement>(null);
+  const bannerImgRef = useRef<HTMLImageElement>(null);
+  const bannerMFrameRef = useRef<HTMLDivElement>(null);
+  const bannerMImgRef = useRef<HTMLImageElement>(null);
+  const repos = useRef<{ sx: number; sy: number; fx: number; fy: number; ovX: number; ovY: number; set: (x: number, y: number) => void } | null>(null);
+  const beginReposition = (
+    e: React.PointerEvent, imgRef: React.RefObject<HTMLImageElement | null>,
+    frameRef: React.RefObject<HTMLDivElement | null>, fx: number, fy: number,
+    set: (x: number, y: number) => void,
+  ) => {
+    const img = imgRef.current, frame = frameRef.current;
+    if (!img || !frame) return;
+    const rect = frame.getBoundingClientRect();
+    const nw = img.naturalWidth || 1, nh = img.naturalHeight || 1;
+    // Size the image the way object-fit: cover does, then the overflow beyond
+    // the frame is exactly how far it can be dragged (1:1, like Facebook).
+    const coverScale = Math.max(rect.width / nw, rect.height / nh);
+    const ovX = Math.max(nw * coverScale - rect.width, 0);
+    const ovY = Math.max(nh * coverScale - rect.height, 0);
+    repos.current = { sx: e.clientX, sy: e.clientY, fx, fy, ovX, ovY, set };
+    frame.setPointerCapture?.(e.pointerId);
+  };
+  const moveReposition = (e: React.PointerEvent) => {
+    const r = repos.current;
+    if (!r) return;
+    const nx = r.ovX > 0 ? Math.min(100, Math.max(0, r.fx - ((e.clientX - r.sx) / r.ovX) * 100)) : r.fx;
+    const ny = r.ovY > 0 ? Math.min(100, Math.max(0, r.fy - ((e.clientY - r.sy) / r.ovY) * 100)) : r.fy;
+    r.set(Math.round(nx), Math.round(ny));
+  };
+  const endReposition = () => { repos.current = null; };
+  const setDeskFocus = (x: number, y: number) => { setBannerFocusX(x); setBannerFocusY(y); setSaved(false); };
+  const setMobFocus = (x: number, y: number) => { setBannerFocusMX(x); setBannerFocusMY(y); setSaved(false); };
   const [bannerError, setBannerError] = useState('');
   const logoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
@@ -351,10 +391,16 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         ...(dbdPath ? { dbd_certificate_url: dbdPath, dbd_certificate_name: uploadFile?.name ?? initialData?.dbdCertName ?? null } : {}),
         ...(logoUrl ? { logo_url: logoUrl } : {}),
         ...(bannerUrl ? { banner_url: bannerUrl } : {}),
-        // A separate mobile banner if the provider chose one, else null so
-        // the public page falls back to the desktop banner.
-        banner_url_mobile: useMobileBanner ? (bannerMobileUrl ?? null) : null,
         updated_at: new Date().toISOString(),
+      };
+
+      // Banner extras (mobile image + reposition focal points). Kept separate
+      // so that if these columns aren't migrated yet we still save everything
+      // else rather than failing the whole form.
+      const bannerExtras = {
+        banner_url_mobile: useMobileBanner ? (bannerMobileUrl ?? null) : null,
+        banner_focus_x: bannerFocusX, banner_focus_y: bannerFocusY,
+        banner_focus_mobile_x: bannerFocusMX, banner_focus_mobile_y: bannerFocusMY,
       };
 
       // Check if company exists for this user
@@ -368,12 +414,9 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         ? supabase.from('companies').update(pl).eq('id', existing.id)
         : supabase.from('companies').insert({ ...pl, user_id: user.id });
 
-      let { error } = await write(payload);
-      // If the banner_url_mobile column hasn't been migrated yet, save the rest
-      // rather than failing the whole form.
-      if (error && /banner_url_mobile/.test(error.message ?? '')) {
-        const { banner_url_mobile, ...rest } = payload;
-        ({ error } = await write(rest));
+      let { error } = await write({ ...payload, ...bannerExtras });
+      if (error && /column|does not exist|schema cache/i.test(error.message ?? '')) {
+        ({ error } = await write(payload));
       }
 
       if (error) throw error;
@@ -517,10 +560,17 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
             </div>
           </div>
         ) : (
-          /* Static Facebook cover-size preview — no drag, no zoom */
+          /* Facebook cover-size preview — drag to reposition */
           <div style={{ marginBottom: '16px' }}>
-            <div style={{ position: 'relative', width: '100%', paddingBottom: '38%', borderRadius: '14px', overflow: 'hidden', background: '#0E1017' }}>
-              <img src={bannerSrc} alt="Banner" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
+            <div ref={bannerFrameRef}
+              onPointerDown={(e) => { if (!bannerUploading) beginReposition(e, bannerImgRef, bannerFrameRef, bannerFocusX, bannerFocusY, setDeskFocus); }}
+              onPointerMove={moveReposition} onPointerUp={endReposition} onPointerCancel={endReposition}
+              style={{ position: 'relative', width: '100%', paddingBottom: '38%', borderRadius: '14px', overflow: 'hidden', background: '#0E1017', cursor: repos.current ? 'grabbing' : 'grab', touchAction: 'none', userSelect: 'none' }}>
+              <img ref={bannerImgRef} src={bannerSrc} alt="Banner" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${bannerFocusX}% ${bannerFocusY}%`, userSelect: 'none', pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', bottom: '10px', right: '10px', background: 'rgba(0,0,0,0.55)', color: 'white', fontSize: '11px', fontWeight: 600, padding: '5px 11px', borderRadius: '999px', pointerEvents: 'none', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg>
+                {lang === 'th' ? 'ลากเพื่อจัดตำแหน่ง' : 'Drag to reposition'}
+              </div>
               {bannerUploading && (
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }}>
                   <div style={{ fontSize: '14px', fontWeight: 600, color: 'white', background: 'rgba(0,0,0,0.5)', padding: '8px 20px', borderRadius: '999px' }}>{lang === 'th' ? 'กำลังอัพโหลด…' : 'Uploading…'}</div>
@@ -568,8 +618,15 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
                   </div>
                 ) : (
                   <>
-                    <div style={{ position: 'relative', width: '100%', paddingBottom: '62%', borderRadius: '14px', overflow: 'hidden', background: '#0E1017' }}>
-                      <img src={bannerMobileSrc} alt="Mobile banner" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
+                    <div ref={bannerMFrameRef}
+                      onPointerDown={(e) => { if (!bannerMobileUploading) beginReposition(e, bannerMImgRef, bannerMFrameRef, bannerFocusMX, bannerFocusMY, setMobFocus); }}
+                      onPointerMove={moveReposition} onPointerUp={endReposition} onPointerCancel={endReposition}
+                      style={{ position: 'relative', width: '100%', paddingBottom: '62%', borderRadius: '14px', overflow: 'hidden', background: '#0E1017', cursor: repos.current ? 'grabbing' : 'grab', touchAction: 'none', userSelect: 'none' }}>
+                      <img ref={bannerMImgRef} src={bannerMobileSrc} alt="Mobile banner" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${bannerFocusMX}% ${bannerFocusMY}%`, userSelect: 'none', pointerEvents: 'none' }} />
+                      <div style={{ position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.55)', color: 'white', fontSize: '10px', fontWeight: 600, padding: '4px 9px', borderRadius: '999px', pointerEvents: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg>
+                        {lang === 'th' ? 'ลากเพื่อจัดตำแหน่ง' : 'Drag to reposition'}
+                      </div>
                       {bannerMobileUploading && (
                         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }}>
                           <div style={{ fontSize: '13px', fontWeight: 600, color: 'white', background: 'rgba(0,0,0,0.5)', padding: '6px 16px', borderRadius: '999px' }}>{lang === 'th' ? 'กำลังอัพโหลด…' : 'Uploading…'}</div>
