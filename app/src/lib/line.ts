@@ -162,6 +162,6 @@ export function makeVipStatusMessage(plan: string | null, planExpiresAt: string 
   }
   return {
     type: 'text',
-    text: `📋 แพ็กเกจฟรี / Free Plan\n\nอัปเกรดเป็น Premium เพื่อ:\n• แสดงก่อนใครในผลการค้นหา (Priority)\n• เพิ่มจำนวนผลงาน\n• ได้รับการแจ้งเตือน Real Time ผ่าน Line\n\n🎁 Early Bird: ใช้ Premium ฟรีถึง 31 ธ.ค. 2026\nอัปเกรดที่ Profindle → แพ็กเกจ\n\nUpgrade to Premium for priority placement, unlimited broadcast alerts, unlimited portfolio showcases and real-time notification via Line\n🎁 Early Bird: Premium free until 31 Dec 2026.\nUpgrade at Profindle → Package.`,
+    text: `📋 แพ็กเกจฟรี / Free Plan\n\nอัปเกรดเป็น Premium เพื่อ:\n• แสดงก่อนใครในผลการค้นหา (Priority)\n• เพิ่มจำนวนผลงาน\n• ได้รับการแจ้งเตือน Real Time ผ่าน Line\n\n🎁 Early Bird: ใช้ Premium ฟรีถึง 31 ธ.ค. 2026\nอัปเกรดที่ Profindle → แพ็กเกจ\n\nUpgrade to Premium for:\n• Priority placement\n• Unlimited broadcast alerts\n• Unlimited portfolio showcases\n• Real-time notification via Line\n\n🎁 Early Bird: Premium free until 31 Dec 2026.\nUpgrade at Profindle → Package.`,
   };
 }
