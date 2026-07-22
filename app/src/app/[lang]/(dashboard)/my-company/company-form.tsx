@@ -96,7 +96,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
 
   useEffect(() => {
     if (!dbdPath || uploadFile) return;
-    fetch('/api/dbd-url').then(r => r.json()).then((d) => {
+    fetch(`/api/dbd-url?path=${encodeURIComponent(dbdPath)}`).then(r => r.json()).then((d) => {
       if (d?.signedUrl) setPreviewUrl(d.signedUrl);
     }).catch(() => {});
   }, [dbdPath]);
@@ -272,10 +272,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
     const fileName = getCertFileName() ?? 'DBD_Certificate.pdf';
     setDownloading(true);
     try {
-      const urlRes = await fetch('/api/dbd-url');
-      const urlData = await urlRes.json();
-      if (!urlData?.signedUrl) throw new Error('Could not generate download link');
-      const response = await fetch(urlData.signedUrl);
+      const response = await fetch(`/api/dbd-download?path=${encodeURIComponent(dbdPath)}`);
       if (!response.ok) throw new Error('File fetch failed');
       const blob = await response.blob();
       const objectUrl = URL.createObjectURL(blob);
