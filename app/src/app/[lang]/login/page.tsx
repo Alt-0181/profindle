@@ -88,7 +88,7 @@ export default function LoginPage({ params }: { params: Promise<{ lang: string }
           .auth-left { display: none; }
           .auth-right { padding: 0; background: white; align-items: stretch; }
           .auth-card { max-width: 440px; margin: 0 auto; border-radius: 0; box-shadow: none; padding: 64px 24px 40px; min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-start; }
-          .auth-mlogo { display: flex; align-items: center; gap: 10px; margin-bottom: 36px; }
+          .auth-mlogo { display: flex; align-items: center; justify-content: center; margin-bottom: 36px; }
         }
       `}</style>
     <div className="auth-grid">
@@ -129,16 +129,7 @@ export default function LoginPage({ params }: { params: Promise<{ lang: string }
       <div className="auth-right">
         <div className="auth-card">
           <Link href={`/${lang}`} className="auth-mlogo" style={{ textDecoration: 'none' }}>
-            <svg width="24" height="31" viewBox="-3 -3 44 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="18.56" cy="18.56" r="16" fill="none" stroke="#171A21" strokeWidth="5.12" />
-              <path d="M18.56 8.96C23.8619 8.96 28.16 13.2581 28.16 18.56" stroke="#F77F00" strokeWidth="5.12" strokeLinecap="round" />
-              <path d="M5.76001 47.36C5.76001 47.36 5.76001 34.56 18.56 34.56" stroke="#171A21" strokeWidth="5.12" strokeLinecap="round" />
-              <path d="M18.56 34.56L31.36 47.36" stroke="#171A21" strokeWidth="5.12" strokeLinecap="round" />
-              <circle cx="18.56" cy="34.56" r="3.84" fill="#F77F00" />
-            </svg>
-            <span style={{ fontSize: '19px', fontWeight: 700, letterSpacing: '-0.02em' }}>
-              <span style={{ color: '#171A21' }}>Pro</span><span style={{ color: '#F77F00' }}>find</span><span style={{ color: '#171A21' }}>le</span>
-            </span>
+            <img src="/assets/logo.svg" alt="Profindle" style={{ height: '32px', width: 'auto' }} />
           </Link>
           <form onSubmit={handleSubmit}>
             <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#171A21', letterSpacing: '-0.02em', marginBottom: '6px' }}>{t.welcomeBack}</h2>
