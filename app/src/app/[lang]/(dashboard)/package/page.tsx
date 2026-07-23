@@ -83,9 +83,17 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
       </div>
 
       {/* Plan cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', maxWidth: '760px', margin: '0 auto' }}>
+      <style>{`
+        .pkg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 760px; margin: 0 auto; }
+        .pkg-card { padding: 32px; }
+        @media (max-width: 720px) {
+          .pkg-grid { grid-template-columns: 1fr; max-width: 440px; }
+          .pkg-card { padding: 24px; }
+        }
+      `}</style>
+      <div className="pkg-grid">
         {/* Free */}
-        <div style={{ background: 'white', borderRadius: '20px', border: '2px solid #E4E7ED', padding: '32px', display: 'flex', flexDirection: 'column' }}>
+        <div className="pkg-card" style={{ background: 'white', borderRadius: '20px', border: '2px solid #E4E7ED', display: 'flex', flexDirection: 'column' }}>
           <div style={{ marginBottom: '24px' }}>
             <div style={{ fontSize: '13px', fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>{t.freeTier}</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
@@ -113,7 +121,7 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
         </div>
 
         {/* Premium */}
-        <div style={{ background: 'linear-gradient(150deg, #0B2B2C 0%, #0F4447 50%, #0F6F73 100%)', borderRadius: '20px', border: '2px solid rgba(247,127,0,0.4)', padding: '32px', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+        <div className="pkg-card" style={{ background: 'linear-gradient(150deg, #0B2B2C 0%, #0F4447 50%, #0F6F73 100%)', borderRadius: '20px', border: '2px solid rgba(247,127,0,0.4)', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '160px', height: '160px', borderRadius: '50%', background: 'rgba(247,127,0,0.12)', filter: 'blur(30px)' }} />
           <div style={{ position: 'relative', zIndex: 1, marginBottom: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>

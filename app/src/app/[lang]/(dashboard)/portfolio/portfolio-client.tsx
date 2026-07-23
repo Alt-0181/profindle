@@ -47,7 +47,6 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
-  const [debugMode, setDebugMode] = useState(false);
   const [form, setForm] = useState({
     title: '', client: '',
     year: new Date().getFullYear().toString(),
@@ -306,12 +305,6 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
           <p style={{ fontSize: '14px', color: '#6B7385' }}>{t.subtitle}</p>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button
-            onClick={() => setDebugMode(d => !d)}
-            style={{ padding: '8px 12px', background: debugMode ? '#FFF3CD' : '#F4F5F7', border: `1px solid ${debugMode ? '#F77F00' : '#E4E7ED'}`, color: debugMode ? '#E06B00' : '#9AA0AE', fontSize: '12px', fontWeight: 600, borderRadius: '8px', cursor: 'pointer', fontFamily: 'monospace' }}
-          >
-            {debugMode ? '🔍 Debug ON' : '🔍 Debug'}
-          </button>
           <button onClick={() => setShowModal(true)} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -322,7 +315,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       </div>
 
       {/* Portfolio grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '20px' }}>
         {projects.map((proj) => (
           <div key={proj.id} onClick={() => openEdit(proj.id)} style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden', cursor: 'pointer', transition: 'all 200ms' }}>
 
@@ -349,17 +342,6 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                 </div>
               ))}
             </div>
-
-            {/* Debug overlay */}
-            {debugMode && (
-              <div style={{ background: '#0E1017', padding: '8px', fontFamily: 'monospace', fontSize: '10px', lineHeight: '1.6' }} onClick={e => e.stopPropagation()}>
-                {[0, 1, 2, 3, 4].map(i => {
-                  const url = proj.images[i];
-                  const color = url ? '#6F6' : '#F66';
-                  return <div key={i} style={{ color }}>[{i}] {url ? `…${url.slice(-40)}` : 'EMPTY'}</div>;
-                })}
-              </div>
-            )}
 
             <div style={{ padding: '16px' }}>
               <div style={{ fontSize: '15px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{proj.title}</div>

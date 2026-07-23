@@ -44,21 +44,31 @@ export default async function ProviderOverviewPage({ params }: { params: Promise
 
   return (
     <div className="page-body">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+      <style>{`
+        .po-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+        .po-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+        @media (max-width: 640px) {
+          .po-head { flex-direction: column; align-items: stretch; }
+          .po-head-btn { text-align: center; }
+          .po-kpis { grid-template-columns: 1fr; }
+        }
+      `}</style>
+      <div className="po-head">
         <div>
           <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{t.title}</h1>
           <p style={{ fontSize: '14px', color: '#6B7385' }}>{t.subtitle}</p>
         </div>
         <Link
           href={`/${lang}/my-company`}
-          style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', borderRadius: '12px', textDecoration: 'none', display: 'inline-block' }}
+          className="po-head-btn"
+          style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', borderRadius: '12px', textDecoration: 'none', display: 'inline-block', whiteSpace: 'nowrap', flexShrink: 0 }}
         >
           {t.manageServices}
         </Link>
       </div>
 
       {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+      <div className="po-kpis">
         {[
           { label: t.views, value: totalViews, sub: isTh ? 'ทั้งหมด' : 'all time' },
           { label: t.inquiries, value: totalInquiries, sub: isTh ? 'ทั้งหมด' : 'all time' },
