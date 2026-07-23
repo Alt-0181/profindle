@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { INDUSTRIES } from '@/lib/mock/industries';
+import { INDUSTRIES } from '@/lib/services';
 
 interface SearchCardProps {
   lang: string;
