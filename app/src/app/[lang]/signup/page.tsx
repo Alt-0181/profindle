@@ -114,9 +114,13 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
       <style>{`
         .auth-grid { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
         .auth-left { display: flex; }
+        .auth-right { display: flex; align-items: center; justify-content: center; background: #F4F5F7; padding: 48px 40px; }
+        .auth-card { background: white; border-radius: 20px; padding: 40px; width: 100%; max-width: 420px; box-shadow: 0 4px 24px rgba(23,26,33,0.10); box-sizing: border-box; }
         @media (max-width: 768px) {
           .auth-grid { grid-template-columns: 1fr; }
           .auth-left { display: none; }
+          .auth-right { padding: 0; background: white; align-items: stretch; }
+          .auth-card { max-width: 100%; border-radius: 0; box-shadow: none; padding: 40px 24px; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
         }
       `}</style>
     <div className="auth-grid">
@@ -145,8 +149,8 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
       </div>
 
       {/* Right */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F4F5F7', padding: '48px 40px' }}>
-        <div style={{ background: 'white', borderRadius: '20px', padding: '40px', width: '100%', maxWidth: '420px', boxShadow: '0 4px 24px rgba(23,26,33,0.10)' }}>
+      <div className="auth-right">
+        <div className="auth-card">
 
           {step === 'register' ? (
             <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
