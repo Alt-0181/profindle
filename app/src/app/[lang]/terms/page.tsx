@@ -38,11 +38,7 @@ export default async function TermsPage({ params }: { params: Promise<{ lang: st
       <div style={{ background: 'white', borderBottom: '1px solid #E4E7ED', padding: '16px 0' }}>
         <div style={{ maxWidth: '860px', margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Link href={`/${lang}`} style={{ textDecoration: 'none' }}>
-            <div style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.04em' }}>
-              <span style={{ color: '#0F6F73' }}>Pro</span>
-              <span style={{ color: '#F77F00' }}>find</span>
-              <span style={{ color: '#0F6F73' }}>le</span>
-            </div>
+            <img src="/assets/logo.svg" alt="Profindle" style={{ height: '26px', width: 'auto' }} />
           </Link>
           <Link href={`/${lang}`} style={{ fontSize: '13px', color: '#0F6F73', fontWeight: 600, textDecoration: 'none' }}>
             ← {t.backHome}

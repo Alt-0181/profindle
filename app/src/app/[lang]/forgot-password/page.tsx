@@ -50,11 +50,7 @@ export default function ForgotPasswordPage() {
 
         <div style={{ position: 'relative', zIndex: 1 }}>
           <Link href={`/${lang}`} style={{ textDecoration: 'none' }}>
-            <div style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.04em', marginBottom: '48px' }}>
-              <span style={{ color: '#0F6F73' }}>Pro</span>
-              <span style={{ color: '#F77F00' }}>find</span>
-              <span style={{ color: '#0F6F73' }}>le</span>
-            </div>
+            <img src="/assets/logo-white.svg" alt="Profindle" style={{ height: '32px', width: 'auto', marginBottom: '48px' }} />
           </Link>
 
           <h2 style={{ fontSize: '30px', fontWeight: 700, color: 'white', lineHeight: 1.3, marginBottom: '16px' }}>{t.leftQuote}</h2>

@@ -40,18 +40,7 @@ export default function NotFound() {
 
       {/* Logo */}
       <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', marginBottom: '48px' }}>
-        <svg width="32" height="42" viewBox="-3 -3 44 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="18.56" cy="18.56" r="16" fill="none" stroke="white" strokeWidth="5.12" />
-          <path d="M18.56 8.96C23.8619 8.96 28.16 13.2581 28.16 18.56" stroke="#F77F00" strokeWidth="5.12" strokeLinecap="round" />
-          <path d="M5.76001 47.36C5.76001 47.36 5.76001 34.56 18.56 34.56" stroke="white" strokeWidth="5.12" strokeLinecap="round" />
-          <path d="M18.56 34.56L31.36 47.36" stroke="white" strokeWidth="5.12" strokeLinecap="round" />
-          <circle cx="18.56" cy="34.56" r="3.84" fill="#F77F00" />
-        </svg>
-        <span style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.01em' }}>
-          <span style={{ color: 'white' }}>Pro</span>
-          <span style={{ color: '#F77F00' }}>find</span>
-          <span style={{ color: 'white' }}>le</span>
-        </span>
+        <img src="/assets/logo-white.svg" alt="Profindle" style={{ height: '34px', width: 'auto' }} />
       </Link>
 
       {/* 404 number */}

@@ -138,19 +138,8 @@ export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, use
     <aside className="sidebar">
       {/* Header / Logo */}
       <div className="sidebar-header">
-        <Link href={`/${locale}`} className="flex items-center gap-2.5 no-underline">
-          <svg width="26" height="34" viewBox="-3 -3 44 56" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-            <circle cx="18.56" cy="18.56" r="16" fill="none" stroke="white" strokeWidth="5.12" />
-            <path d="M18.56 8.96C23.8619 8.96 28.16 13.2581 28.16 18.56" stroke="#F77F00" strokeWidth="5.12" strokeLinecap="round" />
-            <path d="M5.76001 47.36C5.76001 47.36 5.76001 34.56 18.56 34.56" stroke="white" strokeWidth="5.12" strokeLinecap="round" />
-            <path d="M18.56 34.56L31.36 47.36" stroke="white" strokeWidth="5.12" strokeLinecap="round" />
-            <circle cx="18.56" cy="34.56" r="3.84" fill="#F77F00" />
-          </svg>
-          <span className="text-[20px] font-bold tracking-tight">
-            <span style={{ color: 'white' }}>Pro</span>
-            <span style={{ color: '#F77F00' }}>find</span>
-            <span style={{ color: 'white' }}>le</span>
-          </span>
+        <Link href={`/${locale}`} className="flex items-center no-underline">
+          <img src="/assets/logo-white.svg" alt="Profindle" className="flex-shrink-0" style={{ height: '28px', width: 'auto' }} />
         </Link>
       </div>
 

@@ -37,19 +37,8 @@ export function PublicNav({ locale, dict, dark = false }: PublicNavProps) {
       }}
     >
       {/* Logo */}
-      <Link href={`/${locale}`} className="flex items-center gap-2.5 no-underline">
-        <svg width="28" height="37" viewBox="-3 -3 44 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="18.56" cy="18.56" r="16" fill="none" stroke={dark ? 'white' : '#0F6F73'} strokeWidth="5.12" />
-          <path d="M18.56 8.96C23.8619 8.96 28.16 13.2581 28.16 18.56" stroke="#F77F00" strokeWidth="5.12" strokeLinecap="round" />
-          <path d="M5.76001 47.36C5.76001 47.36 5.76001 34.56 18.56 34.56" stroke={dark ? 'white' : '#0F6F73'} strokeWidth="5.12" strokeLinecap="round" />
-          <path d="M18.56 34.56L31.36 47.36" stroke={dark ? 'white' : '#0F6F73'} strokeWidth="5.12" strokeLinecap="round" />
-          <circle cx="18.56" cy="34.56" r="3.84" fill="#F77F00" />
-        </svg>
-        <span style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em' }}>
-          <span style={{ color: dark ? 'white' : '#0F6F73' }}>Pro</span>
-          <span style={{ color: '#F77F00' }}>find</span>
-          <span style={{ color: dark ? 'white' : '#0F6F73' }}>le</span>
-        </span>
+      <Link href={`/${locale}`} className="flex items-center no-underline">
+        <img src={dark ? '/assets/logo-white.svg' : '/assets/logo.svg'} alt="Profindle" style={{ height: '30px', width: 'auto' }} />
       </Link>
 
       {/* Right nav */}
