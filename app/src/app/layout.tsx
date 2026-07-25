@@ -11,10 +11,11 @@ export const metadata: Metadata = {
   keywords: ['B2B', 'Thailand', 'service providers', 'marketplace', 'ผู้ให้บริการ', 'ไทย'],
   icons: {
     icon: [
-      { url: '/assets/logo-mark.svg', type: 'image/svg+xml' },
-      { url: '/assets/logo-mark.png', sizes: '32x32', type: 'image/png' },
+      { url: '/assets/logo-mark.svg?v=2', type: 'image/svg+xml' },
+      { url: '/assets/logo-mark.png?v=2', sizes: '32x32', type: 'image/png' },
     ],
-    apple: '/assets/logo-square.png',
+    shortcut: '/assets/logo-mark.png?v=2',
+    apple: '/assets/logo-square.png?v=2',
   },
   openGraph: {
     siteName: 'Profindle',
