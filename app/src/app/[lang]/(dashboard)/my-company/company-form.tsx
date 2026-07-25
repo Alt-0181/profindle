@@ -450,7 +450,8 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
     <form onSubmit={handleSave}>
       <style>{`
         .mc-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        @media (max-width: 640px) { .mc-row-2 { grid-template-columns: 1fr; } }
+        .mc-line { display: grid; grid-template-columns: 180px 1fr; gap: 8px; }
+        @media (max-width: 640px) { .mc-row-2 { grid-template-columns: 1fr; } .mc-line { grid-template-columns: 1fr; } }
       `}</style>
       {/* ✨ AI Auto-fill from website */}
       <div style={{ ...sectionStyle, background: 'linear-gradient(135deg,#F0F9F9,#EAF6F6)', border: '1.5px solid rgba(15,111,115,0.25)' }}>
@@ -833,7 +834,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
       {/* Contact Information */}
       <div style={sectionStyle}>
         <div style={{ fontSize: '16px', fontWeight: 700, color: '#171A21', marginBottom: '20px' }}>{t.contactInfo}</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+        <div className="mc-row-2" style={{ marginBottom: '12px' }}>
           <div>
             <label style={labelStyle}>{t.phone}</label>
             <input type="tel" value={form.phone} onChange={(e) => set('phone', e.target.value)} style={inputStyle} placeholder={t.phonePh} />
@@ -847,7 +848,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
           <label style={labelStyle}>
             LINE <span style={{ fontWeight: 400, color: '#9AA0AE', fontSize: '12px' }}>({lang === 'th' ? 'ไม่บังคับ' : 'optional'})</span>
           </label>
-          <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: '8px' }}>
+          <div className="mc-line">
             <select
               value={form.lineIdType}
               onChange={(e) => setForm(f => ({ ...f, lineIdType: e.target.value as 'oa' | 'id' | 'phone' }))}

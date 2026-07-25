@@ -73,8 +73,9 @@ export default function ResetPasswordPage() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', fontFamily: 'Inter, "Noto Sans Thai", sans-serif' }}>
+      <style>{`@media (max-width:768px){ .auth-side{display:none!important} }`}</style>
       {/* Left panel */}
-      <div style={{ width: '45%', background: 'linear-gradient(140deg, #0E1017 0%, #0F6F73 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px 56px', position: 'relative', overflow: 'hidden' }}>
+      <div className="auth-side" style={{ width: '45%', background: 'linear-gradient(140deg, #0E1017 0%, #0F6F73 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px 56px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '-80px', right: '-80px', width: '320px', height: '320px', borderRadius: '50%', background: 'rgba(15,111,115,0.15)', filter: 'blur(60px)' }} />
         <div style={{ position: 'absolute', bottom: '-60px', left: '-60px', width: '240px', height: '240px', borderRadius: '50%', background: 'rgba(247,127,0,0.10)', filter: 'blur(48px)' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
