@@ -73,7 +73,14 @@ export default function ResetPasswordPage() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', fontFamily: 'Inter, "Noto Sans Thai", sans-serif' }}>
-      <style>{`@media (max-width:768px){ .auth-side{display:none!important} }`}</style>
+      <style>{`
+        .auth-mlogo{display:none}
+        @media (max-width:768px){
+          .auth-side{display:none!important}
+          .auth-right{align-items:flex-start!important;padding-top:60px!important}
+          .auth-mlogo{display:flex;justify-content:center;margin-bottom:34px}
+        }
+      `}</style>
       {/* Left panel */}
       <div className="auth-side" style={{ width: '45%', background: 'linear-gradient(140deg, #0E1017 0%, #0F6F73 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px 56px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '-80px', right: '-80px', width: '320px', height: '320px', borderRadius: '50%', background: 'rgba(15,111,115,0.15)', filter: 'blur(60px)' }} />
@@ -92,8 +99,11 @@ export default function ResetPasswordPage() {
       </div>
 
       {/* Right panel */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', padding: '40px' }}>
+      <div className="auth-right" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', padding: '40px' }}>
         <div style={{ width: '100%', maxWidth: '400px' }}>
+          <Link href={`/${lang}`} className="auth-mlogo" style={{ textDecoration: 'none' }}>
+            <img src="/assets/logo.svg" alt="Profindle" style={{ height: '32px', width: 'auto' }} />
+          </Link>
           {done ? (
             <div style={{ textAlign: 'center' }}>
               <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
