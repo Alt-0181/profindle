@@ -139,7 +139,7 @@ export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, use
       {/* Header / Logo */}
       <div className="sidebar-header">
         <Link href={`/${locale}`} className="flex items-center no-underline">
-          <img src="/assets/logo-white.svg" alt="Profindle" className="flex-shrink-0" style={{ height: '28px', width: 'auto' }} />
+          <img src="/assets/logo-white.svg" alt="Profindle" className="flex-shrink-0" style={{ height: '32px', width: 'auto' }} />
         </Link>
       </div>
 

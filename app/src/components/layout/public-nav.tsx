@@ -38,7 +38,7 @@ export function PublicNav({ locale, dict, dark = false }: PublicNavProps) {
     >
       {/* Logo */}
       <Link href={`/${locale}`} className="flex items-center no-underline">
-        <img src={dark ? '/assets/logo-white.svg' : '/assets/logo.svg'} alt="Profindle" style={{ height: '30px', width: 'auto' }} />
+        <img src={dark ? '/assets/logo-white.svg' : '/assets/logo.svg'} alt="Profindle" style={{ height: '38px', width: 'auto' }} />
       </Link>
 
       {/* Right nav */}
