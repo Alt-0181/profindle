@@ -299,6 +299,9 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const [autofillUrl, setAutofillUrl] = useState(initialData?.website ?? '');
   const [autofilling, setAutofilling] = useState(false);
   const [autofillMsg, setAutofillMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  // Remembers what the last autofill put in each field, so re-running with a different URL
+  // replaces the previous autofill's values but never clobbers anything the user typed by hand.
+  const lastAutofillRef = useRef<{ fields: Record<string, string>; services: string[] }>({ fields: {}, services: [] });
 
   const handleAutofill = async () => {
     const url = autofillUrl.trim();
@@ -320,24 +323,39 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         return;
       }
       const d = json.data;
-      // Only fill fields the user has left blank — never overwrite their input.
-      setForm((prev) => ({
-        ...prev,
-        nameEn: prev.nameEn || d.nameEn,
-        nameTh: prev.nameTh || d.nameTh,
-        descEn: prev.descEn || d.descEn,
-        descTh: prev.descTh || d.descTh,
-        province: prev.province || d.province,
-        address: prev.address || d.address,
-        teamSize: prev.teamSize || d.teamSize,
-        foundedYear: prev.foundedYear || d.foundedYear,
-        phone: prev.phone || d.phone,
-        emailPublic: prev.emailPublic || d.emailPublic,
-        website: prev.website || url,
-      }));
-      if (Array.isArray(d.services) && d.services.length) {
-        setSelectedServices((prev) => Array.from(new Set([...prev, ...d.services])));
-      }
+
+      // Fill a field when it's empty OR still holds what the previous autofill wrote
+      // (i.e. the user hasn't edited it) — this lets a fresh URL replace stale data,
+      // including clearing a value the new site doesn't have, while preserving manual edits.
+      const snap = lastAutofillRef.current.fields;
+      const incoming: Record<string, string> = {
+        nameEn: d.nameEn ?? '', nameTh: d.nameTh ?? '', descEn: d.descEn ?? '', descTh: d.descTh ?? '',
+        province: d.province ?? '', address: d.address ?? '', teamSize: d.teamSize ?? '',
+        foundedYear: d.foundedYear ?? '', phone: d.phone ?? '', emailPublic: d.emailPublic ?? '',
+        website: url,
+      };
+      const nextForm = { ...form } as Record<string, unknown>;
+      const nextSnap: Record<string, string> = { ...snap };
+      Object.keys(incoming).forEach((k) => {
+        const cur = String(nextForm[k] ?? '');
+        const canReplace = !cur || cur === (snap[k] ?? '');
+        if (canReplace) {
+          nextForm[k] = incoming[k];
+          nextSnap[k] = incoming[k];
+        }
+      });
+      setForm(nextForm as typeof form);
+      lastAutofillRef.current.fields = nextSnap;
+
+      // Services: keep the user's own picks, but swap out the ones the previous autofill added.
+      const prevAutoServices = lastAutofillRef.current.services;
+      const incomingServices: string[] = Array.isArray(d.services) ? d.services : [];
+      setSelectedServices((prev) => {
+        const userOwned = prev.filter((s) => !prevAutoServices.includes(s));
+        return Array.from(new Set([...userOwned, ...incomingServices]));
+      });
+      lastAutofillRef.current.services = incomingServices;
+
       setSaved(false);
       setAutofillMsg({
         type: 'ok',
