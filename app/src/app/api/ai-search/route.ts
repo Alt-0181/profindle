@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@/lib/supabase/server';
-import { INDUSTRIES } from '@/lib/services';
+import { INDUSTRIES, SERVICES } from '@/lib/services';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 type PortfolioRow = {
@@ -16,7 +17,6 @@ type PortfolioRow = {
   images: string[] | null;
   sort_order: number | null;
 };
-
 type CompanyRow = {
   id: string;
   name: string;
@@ -40,8 +40,7 @@ function proxyImage(url: string): string | null {
   return `/api/portfolio-image?path=${encodeURIComponent(match[1])}${vMatch ? `&v=${vMatch[1]}` : ''}`;
 }
 
-// Fisher–Yates shuffle. Randomness is the point: among equally-relevant
-// providers, no one gets a permanent top spot — money never buys rank.
+// Fisher–Yates: random within a relevance bucket so no one gets a permanent top spot.
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -51,51 +50,83 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-export async function POST(request: NextRequest) {
-  let service = '';
-  let keyword = '';
-  let lang = 'en';
-  try {
-    const body = await request.json();
-    service = typeof body.service === 'string' ? body.service.trim() : '';
-    keyword = typeof body.keyword === 'string' ? body.keyword.trim() : '';
-    lang = body.lang === 'th' ? 'th' : 'en';
-  } catch {
-    return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
-  }
-  if (!service) return NextResponse.json({ error: 'A service is required.' }, { status: 400 });
+const SERVICE_LABELS = SERVICES.map((s) => s.label);
 
+// Use Claude to turn free text (Thai or English) into one catalog service + an
+// English keyword. Falls back to a naive local match if the model is unavailable.
+async function interpretQuery(query: string): Promise<{ service: string; keyword: string }> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (apiKey) {
+    try {
+      const anthropic = new Anthropic({ apiKey });
+      const schema = {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          service: { type: 'string', enum: [...SERVICE_LABELS, ''], description: 'The single closest service label, or "" if none fits.' },
+          keyword: { type: 'string', description: 'Extra specifics (industry, client type, tech, use-case) in ENGLISH for matching. "" if none.' },
+        },
+        required: ['service', 'keyword'],
+      };
+      const prompt = `A user is searching a Thai B2B provider marketplace. Map their request (which may be Thai or English) to ONE service from the catalog and extract any extra keyword.
+
+Rules:
+- "service" MUST be exactly one label from the allowed enum, or "" if nothing reasonably fits.
+- "keyword" = extra specifics beyond the service (industry, client type, technology, use-case), translated to ENGLISH for matching English portfolio text. Empty if none.
+- Example: "อยากได้คนออกแบบโลโก้ให้ร้านกาแฟ" -> service "Logo Design", keyword "coffee shop cafe".
+- Example: "need a team that built loyalty apps for retail" -> service "Mobile App Development", keyword "loyalty retail".
+
+User request: """${query}"""`;
+
+      const msg = await anthropic.messages.create({
+        model: 'claude-haiku-4-5',
+        max_tokens: 300,
+        output_config: { format: { type: 'json_schema', schema } },
+        messages: [{ role: 'user', content: prompt }],
+      });
+      const block = msg.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
+      if (block) {
+        const raw = JSON.parse(block.text) as { service?: unknown; keyword?: unknown };
+        const service = typeof raw.service === 'string' && SERVICE_LABELS.includes(raw.service) ? raw.service : '';
+        const keyword = typeof raw.keyword === 'string' ? raw.keyword.trim() : '';
+        if (service) return { service, keyword };
+      }
+    } catch {
+      /* fall through to local matching */
+    }
+  }
+
+  // Fallback: naive local match against English service labels and Thai industry names.
+  const q = query.toLowerCase();
+  const direct = SERVICE_LABELS.find((l) => q.includes(l.toLowerCase()) || l.toLowerCase().includes(q));
+  if (direct) return { service: direct, keyword: '' };
+  const ind = INDUSTRIES.find((i) => query.includes(i.th) || q.includes(i.name.toLowerCase()));
+  if (ind && ind.services[0]) return { service: ind.services[0], keyword: '' };
+  return { service: '', keyword: '' };
+}
+
+async function runSearch(service: string, keyword: string, lang: string) {
   const supabase = await createClient();
 
-  // Same-industry sibling services — used to fall back gracefully when nobody
-  // offers the exact service yet (common while the marketplace is filling up).
   const industry = INDUSTRIES.find((i) => i.services.includes(service));
   const siblings = industry ? industry.services : [service];
   const industryName = industry ? (lang === 'th' ? industry.th : industry.name) : '';
 
-  // Relevance gate: providers offering the exact service OR any sibling in the
-  // same industry. `overlaps` => Postgres array `&&` (shares any element).
   const { data: companyData, error: cErr } = await supabase
     .from('companies')
     .select('id, name, name_th, description, description_th, province, services, verified, premium, views, logo_initial, logo_url')
     .overlaps('services', siblings);
+  if (cErr) throw new Error('db');
 
-  if (cErr) {
-    return NextResponse.json({ error: 'Search failed. Please try again.' }, { status: 502 });
-  }
   const all = (companyData ?? []).filter((c): c is CompanyRow => !!c.name);
   const exact = all.filter((c) => (c.services ?? []).includes(service));
-
-  // Prefer exact-service providers; only fall back to the wider industry pool
-  // when nobody offers the exact service. Headline count reflects EXACT only.
   const industryFallback = exact.length === 0 && all.length > 0;
   const basePool = exact.length > 0 ? exact : all;
 
   if (basePool.length === 0) {
-    return NextResponse.json({ service, industry: industryName, count: 0, exactCount: 0, industryFallback: false, top: [], more: [], keywordRelaxed: false });
+    return { service, industry: industryName, count: 0, exactCount: 0, industryFallback: false, top: [], more: [], keywordRelaxed: false };
   }
 
-  // Portfolios for the pool in one query.
   const ids = basePool.map((c) => c.id);
   const { data: pfData } = await supabase
     .from('portfolio_projects')
@@ -110,29 +141,19 @@ export async function POST(request: NextRequest) {
   }
 
   const kw = keyword.toLowerCase();
-
-  type Scored = {
-    company: CompanyRow;
-    exactMatch: boolean;
-    bestProject: PortfolioRow | null;
-    score: number;
-    hasPortfolio: boolean;
-  };
+  type Scored = { company: CompanyRow; exactMatch: boolean; bestProject: PortfolioRow | null; score: number; hasPortfolio: boolean };
 
   const scored: Scored[] = basePool.map((company) => {
     const projects = (pfByCompany.get(company.id) ?? []).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
     const exactMatch = (company.services ?? []).includes(service);
     let score = 0;
     let bestProject: PortfolioRow | null = projects[0] ?? null;
-
     if (!kw) {
       score = 1;
     } else {
-      const companyBlob = [company.name, company.name_th, company.description, company.description_th, ...(company.services ?? [])]
-        .filter(Boolean).join(' ').toLowerCase();
+      const companyBlob = [company.name, company.name_th, company.description, company.description_th, ...(company.services ?? [])].filter(Boolean).join(' ').toLowerCase();
       const matching = projects.filter((p) => {
-        const blob = [p.title, p.description, p.description_th, p.results, p.results_th, p.category, p.confidential ? '' : p.client]
-          .filter(Boolean).join(' ').toLowerCase();
+        const blob = [p.title, p.description, p.description_th, p.results, p.results_th, p.category, p.confidential ? '' : p.client].filter(Boolean).join(' ').toLowerCase();
         return blob.includes(kw);
       });
       if (matching.length > 0) { score = 2; bestProject = matching[0]; }
@@ -142,7 +163,6 @@ export async function POST(request: NextRequest) {
     return { company, exactMatch, bestProject, score, hasPortfolio: projects.length > 0 };
   });
 
-  // Keyword given but nothing matched → relax (never dead-end) and flag it.
   let pool = scored;
   let keywordRelaxed = false;
   if (kw) {
@@ -151,8 +171,6 @@ export async function POST(request: NextRequest) {
     else { keywordRelaxed = true; pool = scored.map((s) => ({ ...s, score: 1 })); }
   }
 
-  // Rank: keyword relevance → exact service → merit (portfolio, verified) →
-  // random within the bucket. Merit is effort, never payment.
   const ranked = shuffle(pool).sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
     if (a.exactMatch !== b.exactMatch) return a.exactMatch ? -1 : 1;
@@ -184,22 +202,43 @@ export async function POST(request: NextRequest) {
       } : null,
     };
   });
+  const more = ranked.slice(3).map((s) => ({ id: s.company.id, name: localize(s.company.name, s.company.name_th) || s.company.name, verified: s.company.verified, province: s.company.province }));
 
-  const more = ranked.slice(3).map((s) => ({
-    id: s.company.id,
-    name: localize(s.company.name, s.company.name_th) || s.company.name,
-    verified: s.company.verified,
-    province: s.company.province,
-  }));
+  return { service, industry: industryName, count: exact.length, exactCount: exact.length, industryFallback, top, more, keywordRelaxed };
+}
 
-  return NextResponse.json({
-    service,
-    industry: industryName,
-    count: exact.length,
-    exactCount: exact.length,
-    industryFallback,
-    top,
-    more,
-    keywordRelaxed,
-  });
+export async function POST(request: NextRequest) {
+  let query = '';
+  let service = '';
+  let keyword = '';
+  let lang = 'en';
+  try {
+    const body = await request.json();
+    query = typeof body.query === 'string' ? body.query.trim() : '';
+    service = typeof body.service === 'string' ? body.service.trim() : '';
+    keyword = typeof body.keyword === 'string' ? body.keyword.trim() : '';
+    lang = body.lang === 'th' ? 'th' : 'en';
+  } catch {
+    return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
+  }
+
+  // Free-text path: let Claude interpret the natural-language query first.
+  let interpreted: { service: string; keyword: string } | null = null;
+  if (query) {
+    interpreted = await interpretQuery(query);
+    service = interpreted.service;
+    if (!keyword) keyword = interpreted.keyword;
+    if (!service) {
+      return NextResponse.json({ understood: false, interpreted, service: '', industry: '', count: 0, exactCount: 0, industryFallback: false, top: [], more: [], keywordRelaxed: false });
+    }
+  }
+
+  if (!service) return NextResponse.json({ error: 'A service or query is required.' }, { status: 400 });
+
+  try {
+    const result = await runSearch(service, keyword, lang);
+    return NextResponse.json({ understood: true, interpreted: interpreted ?? { service, keyword }, ...result });
+  } catch {
+    return NextResponse.json({ error: 'Search failed. Please try again.' }, { status: 502 });
+  }
 }
