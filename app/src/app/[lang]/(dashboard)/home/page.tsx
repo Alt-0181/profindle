@@ -106,7 +106,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
       title: isTh ? 'รับสิทธิ์ Early Bird' : 'Claim Early Bird offer',
       desc: isTh ? `รับฟีเจอร์ Premium ทั้งหมดฟรี — เหลือ ${earlyBirdLeft} จาก ${earlyBirdTotal} สิทธิ์` : `Get all Premium features FREE — ${earlyBirdLeft} of ${earlyBirdTotal} spots left.`,
       done: companyPremium,
-      status: companyPremium ? (companyPlan === 'vip' ? 'VIP' : (isTh ? 'พรีเมียม' : 'Premium')) : (isTh ? 'จำกัด' : 'Limited'),
+      status: companyPremium ? (isTh ? 'พรีเมียม' : 'Premium') : (isTh ? 'จำกัด' : 'Limited'),
       bodyText: isTh ? '100 บริษัทแรกบน Profindle จะได้รับฟีเจอร์ Premium ทั้งหมดฟรีตลอดชีพ (รวมถึงการเชื่อม LINE ในขั้นตอนที่ 4) เมื่อสิทธิ์หมด จะไม่มีอีก' : 'First 100 companies on Profindle get all Premium features free for life — including LINE alerts in step 4. Once spots are gone, they\'re gone.',
       ctaLabel: companyPremium ? (isTh ? 'ดูแพ็กเกจ' : 'View plan') : (isTh ? 'รับสิทธิ์ →' : 'Claim now →'),
       ctaHref: `/${lang}/package`,
@@ -173,7 +173,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
           {[
             { val: String(profileViews), label: isTh ? 'การเข้าชม' : 'Profile views' },
             { val: String(broadcastCount ?? 0), label: isTh ? 'กระจายข่าว' : 'Broadcasts' },
-            { val: companyPlan === 'vip' ? 'VIP' : companyPremium ? (isTh ? 'พรีเมียม' : 'Premium') : (isTh ? 'ฟรี' : 'Free'), label: isTh ? 'แพ็กเกจปัจจุบัน' : 'Current plan', orange: companyPremium },
+            { val: companyPremium ? (isTh ? 'พรีเมียม' : 'Premium') : (isTh ? 'ฟรี' : 'Free'), label: isTh ? 'แพ็กเกจปัจจุบัน' : 'Current plan', orange: companyPremium },
           ].map((stat) => (
             <div key={stat.label} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '14px 18px', textAlign: 'center', minWidth: '80px' }}>
               <div style={{ fontSize: '22px', fontWeight: 700, color: stat.orange ? '#F77F00' : 'white', lineHeight: 1 }}>{stat.val}</div>

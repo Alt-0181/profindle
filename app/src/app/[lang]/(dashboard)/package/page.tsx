@@ -62,8 +62,8 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
         <span style={{ fontSize: '13px', color: isPremium ? '#1B5E20' : '#6B7385' }}>
           {isPremium
             ? (isTh
-                ? `⭐ คุณอยู่ใน แผน ${companyPlan === 'vip' ? 'VIP' : 'Premium'} — ฟีเจอร์ทั้งหมดพร้อมใช้งาน`
-                : `⭐ You're on the ${companyPlan === 'vip' ? 'VIP' : 'Premium'} plan — all features unlocked`)
+                ? `⭐ คุณอยู่ใน แผน Premium — ฟีเจอร์ทั้งหมดพร้อมใช้งาน`
+                : `⭐ You're on the Premium plan — all features unlocked`)
             : (isTh
                 ? '📋 คุณอยู่ใน แผนฟรี — ฟีเจอร์บางส่วนถูกจำกัดสำหรับสมาชิก Premium เท่านั้น'
                 : '📋 You\'re on the Free plan — some features are limited to Premium members only')}
