@@ -149,6 +149,7 @@ The text may contain several pages (homepage, About, Contact) separated by "--- 
 
 Extract the fields below from the website text. Rules:
 - Only use information actually present in the text. Never invent facts. If a field is unknown, return an empty string (or [] for services).
+- IGNORE website-template / demo placeholder content. Many sites are built from templates that leave dummy contact data in the page (e.g. addresses like "8901 Elgin St, Celina, Delaware", US-state addresses on a Thai company, phone numbers starting "+001", emails ending in "@my.com" / "@example.com" / "@yourdomain", "Lorem ipsum", "John Doe", "Acme"). Treat any such value as unknown and return an empty string. A real Thai provider's address should be in Thailand.
 - Write descTh and nameTh in natural Thai. If the site is English-only, translate for descTh and transliterate/translate the name for nameTh.
 - For "services", pick ONLY exact strings from this allowed list (up to 8, most relevant first):
 ${serviceLabels.join(', ')}
@@ -187,6 +188,36 @@ ${pageText}
     const foundedYear = /^\d{4}$/.test(yearStr) && yearNum >= 1900 && yearNum <= 2026 ? yearStr : '';
     const str = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
 
+    // ── Drop obvious website-template / demo placeholder values ──────────────
+    // Site builders ship dummy contact blocks (e.g. "Saalyn" agency template:
+    // 8901 Elgin St, Celina Delaware; +001 …; name@my.com) that owners forget to
+    // remove. They live in the page source, so the model extracts them faithfully.
+    // These deterministic filters strip the common ones before they reach the form.
+    const PLACEHOLDER_EMAIL_DOMAINS = /@(my\.com|example\.(com|org|net)|domain\.com|yourdomain\.\w+|test\.com|sample\.com|email\.com|company\.com|acme\.\w+|placeholder\.\w+)$/i;
+    const PLACEHOLDER_TEXT = /(lorem ipsum|celina|delaware|elgin st|8901 elgin|123 main|main street\b|street name|your (street|address|company)|anytown|123 street|example\.com|@my\.com|jane doe|john doe|acme|placeholder|dummy)/i;
+
+    const cleanEmail = (() => {
+      const e = str(raw.emailPublic);
+      if (!e) return '';
+      if (PLACEHOLDER_EMAIL_DOMAINS.test(e) || PLACEHOLDER_TEXT.test(e)) return '';
+      return e;
+    })();
+    const cleanPhone = (() => {
+      const p = str(raw.phone);
+      if (!p) return '';
+      // "+001" is not a real country code; template demos love it. Also strip obvious dummies.
+      if (/^\+?0*01[\s-]/.test(p) || /(123[\s-]?456|555[\s-]?5555|000[\s-]?000|1234567890)/.test(p)) return '';
+      return p;
+    })();
+    const cleanAddress = (() => {
+      const a = str(raw.address);
+      if (!a) return '';
+      if (PLACEHOLDER_TEXT.test(a)) return '';
+      // A US state name on a Thai provider's address is almost always template junk.
+      if (/\b(delaware|celina|texas|california|new york|florida|ohio|nevada|arizona)\b/i.test(a)) return '';
+      return a;
+    })();
+
     return NextResponse.json({
       data: {
         nameEn: str(raw.nameEn),
@@ -195,11 +226,11 @@ ${pageText}
         descTh: str(raw.descTh),
         services,
         province,
-        address: str(raw.address),
+        address: cleanAddress,
         teamSize,
         foundedYear,
-        phone: str(raw.phone),
-        emailPublic: str(raw.emailPublic),
+        phone: cleanPhone,
+        emailPublic: cleanEmail,
       },
     });
   } catch (err) {
