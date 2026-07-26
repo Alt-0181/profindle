@@ -328,6 +328,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         descEn: prev.descEn || d.descEn,
         descTh: prev.descTh || d.descTh,
         province: prev.province || d.province,
+        address: prev.address || d.address,
         teamSize: prev.teamSize || d.teamSize,
         foundedYear: prev.foundedYear || d.foundedYear,
         phone: prev.phone || d.phone,

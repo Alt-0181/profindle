@@ -64,24 +64,60 @@ export async function POST(request: NextRequest) {
   url = url.trim();
   if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
 
-  // Fetch the website server-side.
-  let pageText = '';
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 12000);
-    const res = await fetch(url, {
-      signal: controller.signal,
-      redirect: 'follow',
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ProfindleBot/1.0; +https://profindle.com)' },
-    });
-    clearTimeout(timer);
-    if (!res.ok) {
-      return NextResponse.json({ error: `Could not reach that website (status ${res.status}).` }, { status: 422 });
+  const UA = 'Mozilla/5.0 (compatible; ProfindleBot/1.0; +https://profindle.com)';
+
+  /** Fetch one page and return its raw HTML (empty string on any failure). */
+  async function fetchHtml(target: string, timeoutMs: number): Promise<string> {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      const res = await fetch(target, {
+        signal: controller.signal,
+        redirect: 'follow',
+        headers: { 'User-Agent': UA },
+      });
+      clearTimeout(timer);
+      if (!res.ok) return '';
+      return await res.text();
+    } catch {
+      return '';
     }
-    pageText = htmlToText(await res.text()).slice(0, 15000);
-  } catch {
+  }
+
+  // Fetch the homepage first.
+  const homeHtml = await fetchHtml(url, 12000);
+  if (!homeHtml) {
     return NextResponse.json({ error: 'Could not load that website. Check the URL and try again.' }, { status: 422 });
   }
+
+  // Find likely About / Contact pages — that's where province, address, founded year and team size usually live.
+  const origin = (() => { try { return new URL(url).origin; } catch { return url.replace(/\/+$/, ''); } })();
+  const subLinks: string[] = [];
+  const linkRe = /href\s*=\s*["']([^"']+)["']/gi;
+  let m: RegExpExecArray | null;
+  while ((m = linkRe.exec(homeHtml)) !== null && subLinks.length < 12) {
+    const href = m[1];
+    if (/(about|contact|company|team|เกี่ยวกับ|ติดต่อ|บริษัท)/i.test(href) && !/^(mailto:|tel:|javascript:|#)/i.test(href)) {
+      try {
+        const abs = new URL(href, url).href;
+        if (abs.startsWith(origin) && !subLinks.includes(abs) && abs !== url) subLinks.push(abs);
+      } catch { /* ignore malformed href */ }
+    }
+  }
+  // Prioritise contact/about, fetch at most 2 extra pages in parallel.
+  const ranked = subLinks.sort((a, b) => {
+    const score = (u: string) => (/contact|ติดต่อ/i.test(u) ? 0 : /about|เกี่ยวกับ/i.test(u) ? 1 : 2);
+    return score(a) - score(b);
+  }).slice(0, 2);
+  const extraHtml = ranked.length ? await Promise.all(ranked.map((u) => fetchHtml(u, 8000))) : [];
+
+  // Combine homepage + subpages into one text blob for the model (homepage weighted first).
+  const pageText = [homeHtml, ...extraHtml]
+    .filter(Boolean)
+    .map((h) => htmlToText(h))
+    .join('\n\n--- PAGE BREAK ---\n\n')
+    .slice(0, 18000);
+
   if (pageText.length < 40) {
     return NextResponse.json({ error: 'That website did not return enough readable content to analyze.' }, { status: 422 });
   }
@@ -98,23 +134,28 @@ export async function POST(request: NextRequest) {
       descTh: { type: 'string', description: 'The same description in Thai. Empty string if unknown.' },
       services: { type: 'array', items: { type: 'string' }, description: 'Up to 8 services, chosen ONLY from the provided allowed list — exact strings.' },
       province: { type: 'string', description: 'Thai province in English, chosen ONLY from the allowed list. Empty string if unknown.' },
+      address: { type: 'string', description: 'Street address / district line (excluding the province name), e.g. "128 Sukhumvit Rd, Khlong Toei". Empty string if unknown.' },
       teamSize: { type: 'string', description: 'One of the allowed team-size buckets. Empty string if unknown.' },
       foundedYear: { type: 'string', description: 'Four-digit founding year, e.g. "2018". Empty string if unknown.' },
       phone: { type: 'string', description: 'Public contact phone. Empty string if unknown.' },
       emailPublic: { type: 'string', description: 'Public contact email. Empty string if unknown.' },
     },
-    required: ['nameEn', 'nameTh', 'descEn', 'descTh', 'services', 'province', 'teamSize', 'foundedYear', 'phone', 'emailPublic'],
+    required: ['nameEn', 'nameTh', 'descEn', 'descTh', 'services', 'province', 'address', 'teamSize', 'foundedYear', 'phone', 'emailPublic'],
   };
 
   const prompt = `You are helping a Thai B2B service provider fill in their company profile from their website.
+
+The text may contain several pages (homepage, About, Contact) separated by "--- PAGE BREAK ---". Use all of them.
 
 Extract the fields below from the website text. Rules:
 - Only use information actually present in the text. Never invent facts. If a field is unknown, return an empty string (or [] for services).
 - Write descTh and nameTh in natural Thai. If the site is English-only, translate for descTh and transliterate/translate the name for nameTh.
 - For "services", pick ONLY exact strings from this allowed list (up to 8, most relevant first):
 ${serviceLabels.join(', ')}
-- For "province", pick ONLY from: ${PROVINCES.join(', ')}
-- For "teamSize", pick ONLY from: ${TEAM_SIZES.join(', ')}
+- For "province": infer it from any address, contact block, or "located in / office in" text, then pick ONLY from: ${PROVINCES.join(', ')}. Map Thai names (e.g. กรุงเทพ / กรุงเทพมหานคร → Bangkok, เชียงใหม่ → Chiang Mai). Empty string only if truly not stated.
+- For "address": the street/building/district portion of the office address, WITHOUT the province and postal code. Look especially in the Contact page.
+- For "teamSize": pick ONLY from ${TEAM_SIZES.join(', ')}. Infer from cues like "team of 20", "we are a small studio", staff/team listings.
+- For "foundedYear": look for "established/founded/since/est. YYYY", a copyright range like "© 2015–2024", or company history. Return only a plausible four-digit year.
 
 WEBSITE TEXT:
 """
@@ -154,6 +195,7 @@ ${pageText}
         descTh: str(raw.descTh),
         services,
         province,
+        address: str(raw.address),
         teamSize,
         foundedYear,
         phone: str(raw.phone),
