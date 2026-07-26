@@ -80,6 +80,21 @@ export default async function LandingPage({ params }: { params: Promise<{ lang: 
           {/* Search Card */}
           <SearchCard lang={lang} />
 
+          {/* AI Search entry */}
+          <div style={{ marginTop: '18px' }}>
+            <Link href={`/${lang}/ai-search`} style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              padding: '10px 20px', borderRadius: '999px',
+              background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(43,190,197,0.35)',
+              color: 'white', fontSize: '14px', fontWeight: 600, textDecoration: 'none',
+              backdropFilter: 'blur(8px)',
+            }}>
+              <span style={{ color: '#F77F00', fontSize: '15px' }}>✦</span>
+              {lang === 'th' ? 'ลองค้นหาด้วย AI' : 'Try AI Search'}
+              <span style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.08em', color: '#2BBEC5', border: '1px solid rgba(43,190,197,0.5)', borderRadius: '999px', padding: '1px 6px' }}>BETA</span>
+            </Link>
+          </div>
+
           {/* How it works toggle */}
           <div style={{ marginTop: '24px' }}>
             <details style={{ textAlign: 'center' }}>
