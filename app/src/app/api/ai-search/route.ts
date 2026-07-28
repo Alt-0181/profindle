@@ -204,7 +204,9 @@ async function runSearch(service: string, keyword: string, lang: string) {
   });
   const more = ranked.slice(3).map((s) => ({ id: s.company.id, name: localize(s.company.name, s.company.name_th) || s.company.name, verified: s.company.verified, province: s.company.province }));
 
-  return { service, industry: industryName, count: exact.length, exactCount: exact.length, industryFallback, top, more, keywordRelaxed };
+  // count = providers actually matched & shown (after any keyword narrowing),
+  // so the headline never says "2" when only 1 card appears.
+  return { service, industry: industryName, count: ranked.length, exactCount: exact.length, industryFallback, top, more, keywordRelaxed };
 }
 
 export async function POST(request: NextRequest) {

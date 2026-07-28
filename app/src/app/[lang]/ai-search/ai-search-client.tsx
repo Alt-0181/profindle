@@ -156,11 +156,11 @@ export function AiSearchClient({ lang }: { lang: string }) {
   function botLine(res: SearchResponse) {
     if (!res.understood) return t.notUnderstood;
     const svc = res.interpreted?.service || res.service;
-    if (res.exactCount > 0) {
-      return (<><span>🔎 {t.lookingFor}: <strong style={{ color: '#0F6F73' }}>{svc}</strong></span> — <strong>{t.found} {res.exactCount} {t.providers}</strong>{res.keywordRelaxed && <div style={{ fontSize: '13px', color: '#8AA3A2', marginTop: '4px' }}>{t.relaxed}</div>}</>);
+    if (res.count > 0 && !res.industryFallback) {
+      return (<><span>🔎 {t.lookingFor}: <strong style={{ color: '#0F6F73' }}>{svc}</strong></span> — <strong>{t.found} {res.count} {t.providers}</strong>{res.keywordRelaxed && <div style={{ fontSize: '13px', color: '#8AA3A2', marginTop: '4px' }}>{t.relaxed}</div>}</>);
     }
-    if (res.industryFallback && res.top.length > 0) {
-      return (<>🔎 {t.lookingFor}: <strong style={{ color: '#0F6F73' }}>{svc}</strong>. {t.noExact} <strong style={{ color: '#0F6F73' }}>{res.industry}</strong>.</>);
+    if (res.industryFallback && res.count > 0) {
+      return (<>🔎 {t.lookingFor}: <strong style={{ color: '#0F6F73' }}>{svc}</strong>. {t.noExact} <strong style={{ color: '#0F6F73' }}>{res.industry}</strong> ({res.count}).</>);
     }
     return <>🔎 {t.lookingFor}: <strong style={{ color: '#0F6F73' }}>{svc}</strong>. {t.noneAtAll}</>;
   }
