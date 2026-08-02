@@ -14,6 +14,8 @@ function toProxyUrl(url: string | null | undefined): string | null {
   return `/api/portfolio-image?path=${encodeURIComponent(match[1])}${vParam}`;
 }
 
+const KNOWN_CLIENTS = ['Kasikorn Bank', 'SCB', 'PTT', 'CP Group', 'Siam Cement', 'True Corporation', 'AIS', 'Dtac', 'Central Group', 'The Mall Group', 'Big C', "Lotus's", 'Robinson', 'Bangkok Bank', 'Krungthai Bank'];
+
 interface Project {
   id: string;
   title: string;
@@ -57,21 +59,40 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
   const [clientSearch, setClientSearch] = useState('');
   const [clientOpen, setClientOpen] = useState(false);
   const clientBoxRef = useRef<HTMLDivElement>(null);
+  // Once shown as a confirmation under the field: which client was chosen and
+  // whether it was a brand-new name (vs. picked from the suggestion list).
+  const [clientConfirmed, setClientConfirmed] = useState<{ name: string; isNew: boolean } | null>(null);
+  // Clients that aren't in KNOWN_CLIENTS but the provider has already used on a
+  // saved project — plus any added this session — so they're selectable again.
+  const [customClients, setCustomClients] = useState<string[]>(() => {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const p of initialProjects) {
+      const name = (p.client || '').trim();
+      if (!name || p.confidential) continue;
+      const key = name.toLowerCase();
+      if (KNOWN_CLIENTS.some((k) => k.toLowerCase() === key) || seen.has(key)) continue;
+      seen.add(key);
+      out.push(name);
+    }
+    return out;
+  });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const activeSlotRef = useRef<number | null>(null);
   const [imageFiles, setImageFiles] = useState<(File | null)[]>(Array(5).fill(null));
   const [imagePreviews, setImagePreviews] = useState<(string | null)[]>(Array(5).fill(null));
 
-  const KNOWN_CLIENTS = ['Kasikorn Bank', 'SCB', 'PTT', 'CP Group', 'Siam Cement', 'True Corporation', 'AIS', 'Dtac', 'Central Group', 'The Mall Group', 'Big C', "Lotus's", 'Robinson', 'Bangkok Bank', 'Krungthai Bank'];
+  // Known brands + clients the provider has already used, deduped.
+  const allClients = [...KNOWN_CLIENTS, ...customClients];
   const clientSuggestions = clientSearch.length >= 2
-    ? KNOWN_CLIENTS.filter((c) => c.toLowerCase().includes(clientSearch.toLowerCase())).slice(0, 6)
+    ? allClients.filter((c) => c.toLowerCase().includes(clientSearch.toLowerCase())).slice(0, 6)
     : [];
 
   // Offer "add as a new client" whenever the typed name is >=2 chars and isn't
-  // already an exact known client — even when NO known client matches.
+  // already a known/previously-used client — even when NO suggestion matches.
   const showAddNewClient = clientSearch.trim().length >= 2
-    && !KNOWN_CLIENTS.find((c) => c.toLowerCase() === clientSearch.trim().toLowerCase());
+    && !allClients.find((c) => c.toLowerCase() === clientSearch.trim().toLowerCase());
 
   // Close the client dropdown when clicking outside the input+dropdown box.
   useEffect(() => {
@@ -121,6 +142,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       budget: '', confidential: false,
     });
     setClientSearch('');
+    setClientConfirmed(null);
+    setClientOpen(false);
     setImageFiles(Array(5).fill(null));
     setImagePreviews(Array(5).fill(null));
     setSaveError('');
@@ -145,6 +168,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       confidential: proj.confidential,
     });
     setClientSearch(proj.confidential ? '' : proj.client);
+    setClientConfirmed(null);
+    setClientOpen(false);
     setImagePreviews([
       toProxyUrl(proj.images[0]) ?? null,
       toProxyUrl(proj.images[1]) ?? null,
@@ -424,7 +449,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                   type="text"
                   value={form.confidential ? (lang === 'th' ? 'ไม่เปิดเผย' : 'Confidential') : clientSearch}
                   onFocus={() => setClientOpen(true)}
-                  onChange={e => { setClientSearch(e.target.value); set('client', e.target.value); setClientOpen(true); }}
+                  onChange={e => { setClientSearch(e.target.value); set('client', e.target.value); setClientOpen(true); setClientConfirmed(null); }}
                   disabled={form.confidential}
                   placeholder={t.clientPh}
                   style={{ ...inputStyle, opacity: form.confidential ? 0.5 : 1 }}
@@ -432,20 +457,30 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                 {clientOpen && (clientSuggestions.length > 0 || showAddNewClient) && (
                   <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: '1px solid #E4E7ED', borderRadius: '12px', boxShadow: '0 8px 24px rgba(23,26,33,0.12)', zIndex: 50, maxHeight: '260px', overflowY: 'auto' }}>
                     {clientSuggestions.map(c => (
-                      <div key={c} onPointerDown={(e) => { e.preventDefault(); set('client', c); setClientSearch(c); setClientOpen(false); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#171A21', borderBottom: '1px solid #F4F5F7' }}>{c}</div>
+                      <div key={c} onPointerDown={(e) => { e.preventDefault(); set('client', c); setClientSearch(c); setClientOpen(false); setClientConfirmed({ name: c, isNew: false }); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#171A21', borderBottom: '1px solid #F4F5F7' }}>{c}</div>
                     ))}
                     {showAddNewClient && (
-                      <div onPointerDown={(e) => { e.preventDefault(); set('client', clientSearch); setClientSearch(clientSearch); setClientOpen(false); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#0F6F73', fontWeight: 600 }}>
+                      <div onPointerDown={(e) => { e.preventDefault(); const name = clientSearch.trim(); set('client', name); setClientSearch(name); setClientOpen(false); setCustomClients((prev) => prev.some((x) => x.toLowerCase() === name.toLowerCase()) ? prev : [...prev, name]); setClientConfirmed({ name, isNew: true }); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#0F6F73', fontWeight: 600 }}>
                         + {t.addClient.replace('{name}', clientSearch)}
                       </div>
                     )}
+                  </div>
+                )}
+                {clientConfirmed && !form.confidential && (
+                  <div style={{ marginTop: '6px', fontSize: '12px', fontWeight: 600, color: '#0F6F73', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <span aria-hidden>✓</span>
+                    <span>
+                      {clientConfirmed.isNew
+                        ? (lang === 'th' ? `เพิ่ม “${clientConfirmed.name}” เป็นลูกค้าใหม่แล้ว` : `Added “${clientConfirmed.name}” as a new client`)
+                        : (lang === 'th' ? `เลือกลูกค้า: ${clientConfirmed.name}` : `Client selected: ${clientConfirmed.name}`)}
+                    </span>
                   </div>
                 )}
               </div>
 
               {/* Confidential toggle */}
               <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '12px 14px', border: `1.5px solid ${form.confidential ? '#F77F00' : '#E4E7ED'}`, borderRadius: '12px', background: form.confidential ? '#FFF8F0' : 'transparent', transition: 'all 150ms' }}>
-                <input type="checkbox" checked={form.confidential} onChange={e => { set('confidential', e.target.checked); if (e.target.checked) setClientSearch(''); }} style={{ width: '20px', height: '20px', accentColor: '#F77F00', borderRadius: '4px', flexShrink: 0 }} />
+                <input type="checkbox" checked={form.confidential} onChange={e => { set('confidential', e.target.checked); if (e.target.checked) { setClientSearch(''); setClientConfirmed(null); setClientOpen(false); } }} style={{ width: '20px', height: '20px', accentColor: '#F77F00', borderRadius: '4px', flexShrink: 0 }} />
                 <span style={{ fontSize: '13px', fontWeight: 600, color: form.confidential ? '#E06B00' : '#444B5A' }}>{t.confidential}</span>
               </label>
 
