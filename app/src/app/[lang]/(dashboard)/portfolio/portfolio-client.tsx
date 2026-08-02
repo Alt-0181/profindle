@@ -49,6 +49,9 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const [form, setForm] = useState({
     title: '', client: '',
     year: new Date().getFullYear().toString(),
@@ -339,6 +342,33 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
     }
   };
 
+  const handleDelete = async (projId: string) => {
+    if (deleting) return;
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      const supabase = createClient();
+      const proj = projects.find(p => p.id === projId);
+      // Best-effort: remove this project's image files from storage first.
+      const paths = (proj?.images ?? [])
+        .map((u) => u?.match(/\/portfolio-images\/(.+?)(?:\?|$)/)?.[1] ?? null)
+        .filter((p): p is string => Boolean(p));
+      if (paths.length) {
+        await supabase.storage.from('portfolio-images').remove(paths);
+      }
+      const { error } = await supabase.from('portfolio_projects').delete().eq('id', projId);
+      if (error) throw error;
+      setProjects(prev => prev.filter(p => p.id !== projId));
+      setConfirmDeleteId(null);
+      router.refresh();
+    } catch (err: any) {
+      setDeleteError(err.message ?? 'Delete failed — please try again');
+      setConfirmDeleteId(null);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div>
       <input
@@ -356,10 +386,41 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         </div>
       </div>
 
+      {deleteError && (
+        <p style={{ fontSize: '13px', color: '#D32F2F', background: '#FFF5F5', border: '1px solid #FFCDD2', borderRadius: '8px', padding: '10px 14px', marginBottom: '16px' }}>
+          {deleteError}
+        </p>
+      )}
+
       {/* Portfolio grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '20px' }}>
         {projects.map((proj) => (
-          <div key={proj.id} onClick={() => openEdit(proj.id)} style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden', cursor: 'pointer', transition: 'all 200ms' }}>
+          <div key={proj.id} onClick={() => openEdit(proj.id)} style={{ position: 'relative', background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden', cursor: 'pointer', transition: 'all 200ms' }}>
+
+            {/* Delete button */}
+            <button
+              onClick={(e) => { e.stopPropagation(); setDeleteError(''); setConfirmDeleteId(proj.id); }}
+              title={lang === 'th' ? 'ลบ' : 'Delete'}
+              style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 3, width: '30px', height: '30px', borderRadius: '8px', border: 'none', background: 'rgba(23,26,33,0.55)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(4px)' }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </button>
+
+            {/* Delete confirmation overlay */}
+            {confirmDeleteId === proj.id && (
+              <div onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', inset: 0, zIndex: 4, background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(2px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '20px', textAlign: 'center' }}>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21' }}>{lang === 'th' ? 'ลบโปรเจกต์นี้?' : 'Delete this project?'}</div>
+                <div style={{ fontSize: '12px', color: '#6B7385', lineHeight: 1.5 }}>{lang === 'th' ? 'การลบไม่สามารถย้อนกลับได้' : 'This cannot be undone.'}</div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(null); }} disabled={deleting} style={{ padding: '8px 16px', background: 'transparent', border: '1.5px solid #E4E7ED', color: '#444B5A', fontWeight: 600, fontSize: '13px', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                    {dict.common.cancel}
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); handleDelete(proj.id); }} disabled={deleting} style={{ padding: '8px 16px', background: '#D32F2F', border: 'none', color: 'white', fontWeight: 600, fontSize: '13px', borderRadius: '10px', cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.6 : 1, fontFamily: 'inherit' }}>
+                    {deleting ? (lang === 'th' ? 'กำลังลบ…' : 'Deleting…') : (lang === 'th' ? 'ลบ' : 'Delete')}
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Cover — slot 0, always from DB URL */}
             <div style={{ aspectRatio: '4/3', background: 'linear-gradient(135deg, #F0F9F9, #D4EEEF)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
