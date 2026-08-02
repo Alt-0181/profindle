@@ -84,6 +84,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const [showServiceSuggestions, setShowServiceSuggestions] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   // Only treat as "done" if we have both a path AND a name (i.e. new-format uploads)
@@ -373,6 +374,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    setSaveError('');
     try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
@@ -438,6 +440,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
       setTimeout(() => router.push(`/${lang}/home`), 900);
     } catch (err: any) {
       console.error('Save failed:', err.message);
+      setSaveError(err?.message ?? (lang === 'th' ? 'บันทึกไม่สำเร็จ กรุณาลองใหม่' : 'Save failed. Please try again.'));
     } finally {
       setSaving(false);
     }
@@ -978,6 +981,9 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
       }}>
         {saved && (
           <span style={{ fontSize: '13px', color: '#0F6F73', fontWeight: 600 }}>✓ {t.savedSuccess}</span>
+        )}
+        {saveError && (
+          <span style={{ fontSize: '13px', color: '#FF5A5F', fontWeight: 600 }}>⚠ {saveError}</span>
         )}
         <button
           type="submit"
