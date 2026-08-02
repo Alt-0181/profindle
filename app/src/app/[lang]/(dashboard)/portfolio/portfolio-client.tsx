@@ -572,7 +572,7 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
               {/* Services delivered (multi-select) — a project can span several */}
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>
-                  {lang === 'th' ? 'บริการที่ให้ในโปรเจกต์นี้' : 'Services delivered'}
+                  {lang === 'th' ? 'บริการที่เกี่ยวข้องกับโปรเจกต์นี้' : 'Services delivered'}
                 </label>
                 {selectedServices.length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
