@@ -683,7 +683,7 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
             {isTh ? 'ค้นหาผู้ให้บริการ B2B ที่ผ่านการตรวจสอบทั่วไทย — ไม่ต้องสมัครสมาชิก' : 'Browse verified Thai B2B service providers — no account needed'}
           </p>
           <div style={{ maxWidth: '640px', margin: '0 auto', textAlign: 'left' }}>
-            <SearchCard lang={lang} />
+            <SearchCard lang={lang} initialService={initialQuery} initialInfo={initialWhere} />
           </div>
         </div>
       </div>

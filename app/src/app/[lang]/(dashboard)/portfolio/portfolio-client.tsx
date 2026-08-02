@@ -283,26 +283,33 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
       });
       if (insertErr) throw insertErr;
 
-      // Upload images by index so slot positions are preserved
+      // The row now exists. If image upload/update fails, delete it so a failed
+      // save never leaves an orphan project behind (which would still show on
+      // the public profile) — otherwise retries accumulate duplicate rows.
       const imageUrls: string[] = Array(5).fill('');
-      for (let i = 0; i < imageFiles.length; i++) {
-        const file = imageFiles[i];
-        if (!file) continue;
-        const fd = new FormData();
-        fd.append('file', file);
-        fd.append('projectId', projectId);
-        fd.append('slotIndex', String(i));
-        const res = await fetch('/api/portfolio-upload', { method: 'POST', body: fd });
-        if (!res.ok) {
-          const { error } = await res.json();
-          throw new Error(`Slot ${i} upload failed: ${error}`);
+      try {
+        for (let i = 0; i < imageFiles.length; i++) {
+          const file = imageFiles[i];
+          if (!file) continue;
+          const fd = new FormData();
+          fd.append('file', file);
+          fd.append('projectId', projectId);
+          fd.append('slotIndex', String(i));
+          const res = await fetch('/api/portfolio-upload', { method: 'POST', body: fd });
+          if (!res.ok) {
+            const { error } = await res.json();
+            throw new Error(`Slot ${i} upload failed: ${error}`);
+          }
+          const { url } = await res.json();
+          imageUrls[i] = url;
         }
-        const { url } = await res.json();
-        imageUrls[i] = url;
-      }
 
-      if (imageUrls.some(Boolean)) {
-        await supabase.from('portfolio_projects').update({ images: imageUrls }).eq('id', projectId);
+        if (imageUrls.some(Boolean)) {
+          await supabase.from('portfolio_projects').update({ images: imageUrls }).eq('id', projectId);
+        }
+      } catch (uploadErr) {
+        await supabase.from('portfolio_projects').delete().eq('id', projectId);
+        throw uploadErr;
       }
 
       setProjects(prev => [...prev, {

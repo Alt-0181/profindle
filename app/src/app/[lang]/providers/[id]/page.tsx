@@ -7,6 +7,10 @@ import { PublicNav } from '@/components/layout/public-nav';
 import { PortfolioGrid } from './portfolio-grid';
 import { LineContactRow } from './line-contact-row';
 
+// Always render against live data so a provider's public profile reflects the
+// current portfolio (no stale cache showing removed/duplicate projects).
+export const dynamic = 'force-dynamic';
+
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://profindle.com';
 
 function getAdmin() {

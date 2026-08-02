@@ -6,12 +6,14 @@ import { INDUSTRIES } from '@/lib/services';
 
 interface SearchCardProps {
   lang: string;
+  initialService?: string;
+  initialInfo?: string;
 }
 
-export function SearchCard({ lang }: SearchCardProps) {
+export function SearchCard({ lang, initialService = '', initialInfo = '' }: SearchCardProps) {
   const router = useRouter();
-  const [service, setService] = useState('');
-  const [info, setInfo] = useState('');
+  const [service, setService] = useState(initialService);
+  const [info, setInfo] = useState(initialInfo);
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
