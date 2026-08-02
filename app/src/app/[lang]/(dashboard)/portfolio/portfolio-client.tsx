@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Dictionary } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/client';
+import { SERVICES } from '@/lib/services';
 
 function toProxyUrl(url: string | null | undefined): string | null {
   if (!url) return null;
@@ -31,6 +32,7 @@ interface Project {
   challengeEn: string;
   challengeTh: string;
   images: string[];
+  services: string[];
 }
 
 interface PortfolioClientProps {
@@ -62,6 +64,11 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
   const [clientSearch, setClientSearch] = useState('');
   const [clientOpen, setClientOpen] = useState(false);
   const clientBoxRef = useRef<HTMLDivElement>(null);
+  // Services this project delivered (a project can span several). Powers the
+  // "Services Delivered" chips and the filter on the public profile.
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [serviceSearch, setServiceSearch] = useState('');
+  const [serviceOpen, setServiceOpen] = useState(false);
   // Once shown as a confirmation under the field: which client was chosen and
   // whether it was a brand-new name (vs. picked from the suggestion list).
   const [clientConfirmed, setClientConfirmed] = useState<{ name: string; isNew: boolean } | null>(null);
@@ -147,6 +154,9 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
     setClientSearch('');
     setClientConfirmed(null);
     setClientOpen(false);
+    setSelectedServices([]);
+    setServiceSearch('');
+    setServiceOpen(false);
     setImageFiles(Array(5).fill(null));
     setImagePreviews(Array(5).fill(null));
     setSaveError('');
@@ -173,6 +183,9 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
     setClientSearch(proj.confidential ? '' : proj.client);
     setClientConfirmed(null);
     setClientOpen(false);
+    setSelectedServices(proj.services ?? []);
+    setServiceSearch('');
+    setServiceOpen(false);
     setImagePreviews([
       toProxyUrl(proj.images[0]) ?? null,
       toProxyUrl(proj.images[1]) ?? null,
@@ -225,6 +238,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         challenge: form.challengeEn || null,
         challenge_th: form.challengeTh || null,
         images: imageUrls,
+        services: selectedServices,
       }).eq('id', editingId);
       if (error) throw error;
 
@@ -243,6 +257,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         challengeEn: form.challengeEn,
         challengeTh: form.challengeTh,
         images: imageUrls,
+        services: selectedServices,
       } : p));
 
       setShowModal(false);
@@ -283,6 +298,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         challenge: form.challengeEn || null,
         challenge_th: form.challengeTh || null,
         images: [],
+        services: selectedServices,
       });
       if (insertErr) throw insertErr;
 
@@ -330,6 +346,7 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
         challengeEn: form.challengeEn,
         challengeTh: form.challengeTh,
         images: imageUrls,
+        services: selectedServices,
       }]);
 
       setShowModal(false);
@@ -551,6 +568,51 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                 <input type="checkbox" checked={form.confidential} onChange={e => { set('confidential', e.target.checked); if (e.target.checked) { setClientSearch(''); setClientConfirmed(null); setClientOpen(false); } }} style={{ width: '20px', height: '20px', accentColor: '#F77F00', borderRadius: '4px', flexShrink: 0 }} />
                 <span style={{ fontSize: '13px', fontWeight: 600, color: form.confidential ? '#E06B00' : '#444B5A' }}>{t.confidential}</span>
               </label>
+
+              {/* Services delivered (multi-select) — a project can span several */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>
+                  {lang === 'th' ? 'บริการที่ให้ในโปรเจกต์นี้' : 'Services delivered'}
+                </label>
+                {selectedServices.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+                    {selectedServices.map(s => (
+                      <span key={s} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#F0F9F9', color: '#0F6F73', fontSize: '12px', fontWeight: 600, padding: '4px 8px 4px 12px', borderRadius: '999px', border: '1px solid rgba(15,111,115,0.2)' }}>
+                        {s}
+                        <button type="button" onClick={() => setSelectedServices(prev => prev.filter(x => x !== s))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9AA0AE', padding: '0 0 0 2px', fontSize: '16px', lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    value={serviceSearch}
+                    onChange={e => { setServiceSearch(e.target.value); setServiceOpen(true); }}
+                    onFocus={() => setServiceOpen(true)}
+                    onBlur={() => setTimeout(() => setServiceOpen(false), 150)}
+                    placeholder={lang === 'th' ? 'พิมพ์เพื่อค้นหาบริการ เช่น "CRM", "Marketing"…' : 'Type to search, e.g. "CRM", "Marketing", "Design"…'}
+                    style={inputStyle}
+                  />
+                  {serviceOpen && serviceSearch.trim().length >= 1 && (
+                    <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: '1px solid #E4E7ED', borderRadius: '12px', boxShadow: '0 8px 24px rgba(23,26,33,0.12)', zIndex: 50, maxHeight: '260px', overflowY: 'auto' }}>
+                      {(() => {
+                        const q = serviceSearch.trim().toLowerCase();
+                        const matches = SERVICES.filter(s => !selectedServices.includes(s.label) && s.label.toLowerCase().includes(q)).slice(0, 8);
+                        if (matches.length === 0) {
+                          return <div style={{ padding: '12px 14px', fontSize: '13px', color: '#9AA0AE' }}>{lang === 'th' ? 'ไม่พบบริการที่ตรงกัน' : 'No matching services'}</div>;
+                        }
+                        return matches.map(s => (
+                          <div key={s.label} onMouseDown={(e) => { e.preventDefault(); setSelectedServices(prev => [...prev, s.label]); setServiceSearch(''); setServiceOpen(false); }} style={{ padding: '10px 14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #F4F5F7' }}>
+                            <span style={{ fontSize: '13px', color: '#171A21' }}>{s.label}</span>
+                            <span style={{ fontSize: '11px', color: '#9AA0AE' }}>{s.industry.split(' / ')[0]}</span>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>

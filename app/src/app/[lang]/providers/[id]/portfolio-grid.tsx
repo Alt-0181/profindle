@@ -17,6 +17,7 @@ type Project = {
   challenge_th: string | null;
   cover_color: string | null;
   images: string[] | null;
+  services: string[] | null;
 };
 
 type Contact = { phone: string | null; email: string | null; companyName: string };
@@ -124,13 +125,15 @@ function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; c
         </div>
 
         {/* Services Delivered */}
-        {(project.category || project.budget) && (
+        {((project.services && project.services.length > 0) || project.budget) && (
           <div style={{ padding: '20px 0', borderBottom: '1px solid #E4E7ED' }}>
             <div style={{ fontSize: '10px', fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
               {isTh ? 'บริการที่ให้' : 'Services Delivered'}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {project.category && <span style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '13px', fontWeight: 600, padding: '6px 16px', borderRadius: '999px' }}>{project.category}</span>}
+              {(project.services ?? []).map(svc => (
+                <span key={svc} style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '13px', fontWeight: 600, padding: '6px 16px', borderRadius: '999px' }}>{svc}</span>
+              ))}
               {project.budget && <span style={{ background: '#FFF6EC', color: '#F77F00', fontSize: '13px', fontWeight: 600, padding: '6px 16px', borderRadius: '999px' }}>{project.budget}</span>}
             </div>
           </div>
@@ -226,11 +229,13 @@ export function PortfolioGrid({ projects, contact, isTh }: { projects: Project[]
 
   const categoryMap = new Map<string, number>();
   for (const p of projects) {
-    if (p.category) categoryMap.set(p.category, (categoryMap.get(p.category) ?? 0) + 1);
+    for (const svc of p.services ?? []) {
+      categoryMap.set(svc, (categoryMap.get(svc) ?? 0) + 1);
+    }
   }
   const categories = ['All', ...Array.from(categoryMap.keys())];
   const countFor = (cat: string) => cat === 'All' ? projects.length : (categoryMap.get(cat) ?? 0);
-  const filtered = activeCategory === 'All' ? projects : projects.filter(p => p.category === activeCategory);
+  const filtered = activeCategory === 'All' ? projects : projects.filter(p => (p.services ?? []).includes(activeCategory));
 
   if (selected) {
     return (

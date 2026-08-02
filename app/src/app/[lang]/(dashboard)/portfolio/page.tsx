@@ -22,7 +22,7 @@ export default async function PortfolioPage({ params }: { params: Promise<{ lang
   const { data: projectRows } = companyId
     ? await supabase
         .from('portfolio_projects')
-        .select('id, title, client, confidential, year, budget, category, description, description_th, results, results_th, challenge, challenge_th, images')
+        .select('id, title, client, confidential, year, budget, category, description, description_th, results, results_th, challenge, challenge_th, images, services')
         .eq('company_id', companyId)
         .order('sort_order', { ascending: true })
     : { data: [] };
@@ -42,6 +42,7 @@ export default async function PortfolioPage({ params }: { params: Promise<{ lang
     challengeEn: p.challenge ?? '',
     challengeTh: p.challenge_th ?? '',
     images: p.images ?? [],
+    services: p.services ?? [],
   }));
 
   return (
