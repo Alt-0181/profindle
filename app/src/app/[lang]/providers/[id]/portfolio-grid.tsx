@@ -36,8 +36,11 @@ function parseResults(text: string): string[] {
 
 function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; contact: Contact; isTh: boolean; onBack: () => void }) {
   const [slideIdx, setSlideIdx] = useState(0);
-  const hasImages = project.images && project.images.length > 0;
-  const slides = hasImages ? project.images! : [project.cover_color];
+  // Only the slots the provider actually filled — unfilled slots are stored as
+  // '' and must not render as blank/broken slides or inflate the counter.
+  const realImages = (project.images ?? []).filter((s): s is string => Boolean(s));
+  const hasImages = realImages.length > 0;
+  const slides = hasImages ? realImages : [project.cover_color];
 
   return (
     <div>
@@ -264,7 +267,9 @@ export function PortfolioGrid({ projects, contact, isTh }: { projects: Project[]
 
       {/* Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-        {filtered.map(p => (
+        {filtered.map(p => {
+          const cover = (p.images ?? []).find(Boolean) ?? null;
+          return (
           <div
             key={p.id}
             onClick={() => setSelected(p)}
@@ -273,8 +278,8 @@ export function PortfolioGrid({ projects, contact, isTh }: { projects: Project[]
             onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = ''; }}
           >
             <div style={{ aspectRatio: '4/3', background: coverGradient(p.cover_color), position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end' }}>
-              {p.images && p.images.length > 0 && (
-                <img src={p.images[0]} alt={p.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+              {cover && (
+                <img src={cover} alt={p.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
               )}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.6) 100%)' }} />
               <div style={{ position: 'relative', padding: '10px 12px', color: 'white' }}>
@@ -288,7 +293,8 @@ export function PortfolioGrid({ projects, contact, isTh }: { projects: Project[]
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </>
   );
