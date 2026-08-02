@@ -7,6 +7,11 @@ import { SearchCard } from './search-card';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://profindle.com';
 
+// Hidden 2026-08 until we have enough provider data. "AI" branding set a chatbot
+// expectation the card-search doesn't meet. The /ai-search route is kept intact;
+// set this to `true` to bring the landing-page entry point back.
+const SHOW_AI_SEARCH_ENTRY = false;
+
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params;
   const isTh = lang === 'th';
@@ -80,7 +85,8 @@ export default async function LandingPage({ params }: { params: Promise<{ lang: 
           {/* Search Card */}
           <SearchCard lang={lang} />
 
-          {/* AI Search entry */}
+          {/* AI Search entry — gated by SHOW_AI_SEARCH_ENTRY (see flag near top of file). */}
+          {SHOW_AI_SEARCH_ENTRY && (
           <div style={{ marginTop: '18px' }}>
             <Link href={`/${lang}/ai-search`} style={{
               display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -94,6 +100,7 @@ export default async function LandingPage({ params }: { params: Promise<{ lang: 
               <span style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.08em', color: '#2BBEC5', border: '1px solid rgba(43,190,197,0.5)', borderRadius: '999px', padding: '1px 6px' }}>BETA</span>
             </Link>
           </div>
+          )}
 
           {/* How it works toggle */}
           <div style={{ marginTop: '24px' }}>
