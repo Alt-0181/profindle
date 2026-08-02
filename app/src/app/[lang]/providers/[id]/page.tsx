@@ -6,6 +6,7 @@ import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { PublicNav } from '@/components/layout/public-nav';
 import { PortfolioGrid } from './portfolio-grid';
 import { LineContactRow } from './line-contact-row';
+import { LocationMap } from './location-map';
 
 // Always render against live data so a provider's public profile reflects the
 // current portfolio (no stale cache showing removed/duplicate projects).
@@ -67,9 +68,10 @@ function proxyPortfolioImages(projects: any[]): any[] {
   });
 }
 
-// Turn a pasted Google Maps URL into an embeddable (no-API-key) map src.
-// Resolves short links, then pulls coordinates or a place query out of the URL.
-async function mapEmbedSrc(raw: string | null | undefined): Promise<string | null> {
+// Pull an embeddable map query (coordinates or a place) out of a pasted Google
+// Maps URL. Resolves short links first. The client map component turns this into
+// a no-API-key embed and rebuilds it at different zoom levels.
+async function mapQueryFromUrl(raw: string | null | undefined): Promise<string | null> {
   if (!raw || !/^https?:\/\//i.test(raw)) return null;
   let url = raw.trim();
   try {
@@ -84,11 +86,11 @@ async function mapEmbedSrc(raw: string | null | undefined): Promise<string | nul
     url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) ||
     url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) ||
     url.match(/[?&](?:q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
-  if (coord) return `https://maps.google.com/maps?q=${coord[1]},${coord[2]}&z=16&output=embed`;
+  if (coord) return `${coord[1]},${coord[2]}`;
   const q = url.match(/[?&](?:q|query)=([^&]+)/);
-  if (q) return `https://maps.google.com/maps?q=${q[1]}&output=embed`;
+  if (q) return q[1];
   const place = url.match(/\/maps\/place\/([^/@?]+)/);
-  if (place) return `https://maps.google.com/maps?q=${place[1]}&output=embed`;
+  if (place) return place[1];
   return null;
 }
 
@@ -122,7 +124,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
   // plain text — show a map for URLs, fall back to text for anything else.
   const mapLink: string | null = company.address && /^https?:\/\//i.test(company.address) ? company.address : null;
   const legacyAddress: string | null = company.address && !mapLink ? company.address : null;
-  const mapEmbed = await mapEmbedSrc(mapLink);
+  const mapQuery = await mapQueryFromUrl(mapLink);
 
   return (
     <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif", minHeight: '100vh', background: '#F4F5F7' }}>
@@ -310,30 +312,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
             </div>
 
             {/* Location map */}
-            {(mapEmbed || mapLink) && (
-              <div style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', padding: '20px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>{isTh ? 'ที่ตั้ง' : 'Location'}</div>
-                {mapEmbed && (
-                  <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #E4E7ED', marginBottom: '12px' }}>
-                    <iframe
-                      src={mapEmbed}
-                      width="100%"
-                      height={180}
-                      style={{ border: 0, display: 'block' }}
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      title={isTh ? 'แผนที่บริษัท' : 'Company location map'}
-                    />
-                  </div>
-                )}
-                {mapLink && (
-                  <a href={mapLink} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, color: '#0F6F73', textDecoration: 'none' }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                    {isTh ? 'ดูใน Google Maps' : 'View on Google Maps'}
-                  </a>
-                )}
-              </div>
-            )}
+            <LocationMap query={mapQuery} link={mapLink} isTh={isTh} />
 
             {/* Broadcast CTA */}
             <div style={{ background: 'linear-gradient(135deg, #0B2B2C 0%, #0F6F73 100%)', borderRadius: '16px', padding: '20px' }}>
