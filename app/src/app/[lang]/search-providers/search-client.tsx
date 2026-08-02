@@ -665,14 +665,14 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
       {/* Hero — shares the 1200px content container with the results below */}
       <div style={{ background: 'linear-gradient(140deg, #0E1017 0%, #0F6F73 100%)', padding: 'clamp(28px, 5vw, 44px) 0 clamp(22px, 4vw, 34px)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 55% 80% at 80% 50%, rgba(43,190,197,0.12) 0%, transparent 60%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: '1200px', margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
           <h1 style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: 700, color: 'white', marginBottom: '4px', letterSpacing: '-0.03em' }}>
             {isTh ? 'ค้นหาผู้ให้บริการ' : 'Find Service Providers'}
           </h1>
           <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '18px' }}>
             {isTh ? 'ค้นหาผู้ให้บริการ B2B ที่ผ่านการตรวจสอบทั่วไทย — ไม่ต้องสมัครสมาชิก' : 'Browse verified Thai B2B service providers — no account needed'}
           </p>
-          <div style={{ maxWidth: '640px' }}>
+          <div style={{ maxWidth: '640px', margin: '0 auto', textAlign: 'left' }}>
             <SearchCard lang={lang} />
           </div>
         </div>
