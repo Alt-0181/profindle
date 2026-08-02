@@ -13,11 +13,12 @@ export default async function PortfolioPage({ params }: { params: Promise<{ lang
 
   const { data: company } = await supabase
     .from('companies')
-    .select('id')
+    .select('id, services')
     .eq('user_id', user?.id ?? '')
     .maybeSingle();
 
   const companyId = company?.id ?? null;
+  const companyServices: string[] = company?.services ?? [];
 
   const { data: projectRows } = companyId
     ? await supabase
@@ -47,7 +48,7 @@ export default async function PortfolioPage({ params }: { params: Promise<{ lang
 
   return (
     <div className="page-body">
-      <PortfolioClient lang={lang} dict={dict} companyId={companyId} initialProjects={initialProjects} />
+      <PortfolioClient lang={lang} dict={dict} companyId={companyId} companyServices={companyServices} initialProjects={initialProjects} />
     </div>
   );
 }

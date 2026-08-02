@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Dictionary } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/client';
-import { SERVICES } from '@/lib/services';
 
 function toProxyUrl(url: string | null | undefined): string | null {
   if (!url) return null;
@@ -39,10 +38,11 @@ interface PortfolioClientProps {
   lang: string;
   dict: Dictionary;
   companyId: string | null;
+  companyServices: string[];
   initialProjects: Project[];
 }
 
-export function PortfolioClient({ lang, dict, companyId, initialProjects }: PortfolioClientProps) {
+export function PortfolioClient({ lang, dict, companyId, companyServices, initialProjects }: PortfolioClientProps) {
   const t = dict.portfolio;
   const router = useRouter();
 
@@ -584,34 +584,37 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                     ))}
                   </div>
                 )}
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type="text"
-                    value={serviceSearch}
-                    onChange={e => { setServiceSearch(e.target.value); setServiceOpen(true); }}
-                    onFocus={() => setServiceOpen(true)}
-                    onBlur={() => setTimeout(() => setServiceOpen(false), 150)}
-                    placeholder={lang === 'th' ? 'พิมพ์เพื่อค้นหาบริการ เช่น "CRM", "Marketing"…' : 'Type to search, e.g. "CRM", "Marketing", "Design"…'}
-                    style={inputStyle}
-                  />
-                  {serviceOpen && serviceSearch.trim().length >= 1 && (
-                    <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: '1px solid #E4E7ED', borderRadius: '12px', boxShadow: '0 8px 24px rgba(23,26,33,0.12)', zIndex: 50, maxHeight: '260px', overflowY: 'auto' }}>
-                      {(() => {
-                        const q = serviceSearch.trim().toLowerCase();
-                        const matches = SERVICES.filter(s => !selectedServices.includes(s.label) && s.label.toLowerCase().includes(q)).slice(0, 8);
-                        if (matches.length === 0) {
-                          return <div style={{ padding: '12px 14px', fontSize: '13px', color: '#9AA0AE' }}>{lang === 'th' ? 'ไม่พบบริการที่ตรงกัน' : 'No matching services'}</div>;
-                        }
-                        return matches.map(s => (
-                          <div key={s.label} onMouseDown={(e) => { e.preventDefault(); setSelectedServices(prev => [...prev, s.label]); setServiceSearch(''); setServiceOpen(false); }} style={{ padding: '10px 14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #F4F5F7' }}>
-                            <span style={{ fontSize: '13px', color: '#171A21' }}>{s.label}</span>
-                            <span style={{ fontSize: '11px', color: '#9AA0AE' }}>{s.industry.split(' / ')[0]}</span>
-                          </div>
-                        ));
-                      })()}
-                    </div>
-                  )}
-                </div>
+                {companyServices.length === 0 ? (
+                  <div style={{ fontSize: '12px', color: '#9AA0AE', lineHeight: 1.6, padding: '10px 12px', background: '#F8FAFB', borderRadius: '10px', border: '1px solid #E4E7ED' }}>
+                    {lang === 'th'
+                      ? 'เพิ่มบริการในหน้า “บริษัทของฉัน” ก่อน จึงจะเลือกบริการสำหรับโปรเจกต์นี้ได้'
+                      : 'Add services on your “My Company” page first — then you can tag them on this project.'}
+                  </div>
+                ) : (
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="text"
+                      value={serviceSearch}
+                      onChange={e => { setServiceSearch(e.target.value); setServiceOpen(true); }}
+                      onFocus={() => setServiceOpen(true)}
+                      onBlur={() => setTimeout(() => setServiceOpen(false), 150)}
+                      placeholder={lang === 'th' ? 'เลือกจากบริการที่บริษัทของคุณเสนอ…' : 'Pick from the services your company offers…'}
+                      style={inputStyle}
+                    />
+                    {serviceOpen && (() => {
+                      const q = serviceSearch.trim().toLowerCase();
+                      const matches = companyServices.filter(s => !selectedServices.includes(s) && s.toLowerCase().includes(q));
+                      if (matches.length === 0) return null;
+                      return (
+                        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: '1px solid #E4E7ED', borderRadius: '12px', boxShadow: '0 8px 24px rgba(23,26,33,0.12)', zIndex: 50, maxHeight: '260px', overflowY: 'auto' }}>
+                          {matches.map(s => (
+                            <div key={s} onMouseDown={(e) => { e.preventDefault(); setSelectedServices(prev => [...prev, s]); setServiceSearch(''); setServiceOpen(false); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#171A21', borderBottom: '1px solid #F4F5F7' }}>{s}</div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
