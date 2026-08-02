@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Dictionary } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/client';
@@ -55,6 +55,8 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
     budget: '', confidential: false,
   });
   const [clientSearch, setClientSearch] = useState('');
+  const [clientOpen, setClientOpen] = useState(false);
+  const clientBoxRef = useRef<HTMLDivElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const activeSlotRef = useRef<number | null>(null);
@@ -70,6 +72,17 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
   // already an exact known client — even when NO known client matches.
   const showAddNewClient = clientSearch.trim().length >= 2
     && !KNOWN_CLIENTS.find((c) => c.toLowerCase() === clientSearch.trim().toLowerCase());
+
+  // Close the client dropdown when clicking outside the input+dropdown box.
+  useEffect(() => {
+    const onMouseDown = (e: MouseEvent) => {
+      if (clientBoxRef.current && !clientBoxRef.current.contains(e.target as Node)) {
+        setClientOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, []);
 
   const inputStyle: React.CSSProperties = {
     width: '100%', fontSize: '14px', padding: '10px 14px',
@@ -405,23 +418,24 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
               </div>
 
               {/* Client autocomplete */}
-              <div style={{ position: 'relative' }}>
+              <div ref={clientBoxRef} style={{ position: 'relative' }}>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>{t.client}</label>
                 <input
                   type="text"
                   value={form.confidential ? (lang === 'th' ? 'ไม่เปิดเผย' : 'Confidential') : clientSearch}
-                  onChange={e => { setClientSearch(e.target.value); set('client', e.target.value); }}
+                  onFocus={() => setClientOpen(true)}
+                  onChange={e => { setClientSearch(e.target.value); set('client', e.target.value); setClientOpen(true); }}
                   disabled={form.confidential}
                   placeholder={t.clientPh}
                   style={{ ...inputStyle, opacity: form.confidential ? 0.5 : 1 }}
                 />
-                {(clientSuggestions.length > 0 || showAddNewClient) && (
+                {clientOpen && (clientSuggestions.length > 0 || showAddNewClient) && (
                   <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: '1px solid #E4E7ED', borderRadius: '12px', boxShadow: '0 8px 24px rgba(23,26,33,0.12)', zIndex: 50, maxHeight: '260px', overflowY: 'auto' }}>
                     {clientSuggestions.map(c => (
-                      <div key={c} onClick={() => { set('client', c); setClientSearch(c); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#171A21', borderBottom: '1px solid #F4F5F7' }}>{c}</div>
+                      <div key={c} onClick={() => { set('client', c); setClientSearch(c); setClientOpen(false); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#171A21', borderBottom: '1px solid #F4F5F7' }}>{c}</div>
                     ))}
                     {showAddNewClient && (
-                      <div onClick={() => { set('client', clientSearch); setClientSearch(clientSearch); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#0F6F73', fontWeight: 600 }}>
+                      <div onClick={() => { set('client', clientSearch); setClientSearch(clientSearch); setClientOpen(false); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#0F6F73', fontWeight: 600 }}>
                         + {t.addClient.replace('{name}', clientSearch)}
                       </div>
                     )}
