@@ -14,6 +14,7 @@ interface SearchProvidersClientProps {
   companies: Company[];
   provinces: string[];
   initialQuery: string;
+  initialWhere: string;
 }
 
 type SortKey = 'relevance' | 'views' | 'az';
@@ -596,7 +597,7 @@ function ProfileDrawer({ provider, lang, isTh, dict, onClose }: {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-export function SearchProvidersClient({ lang, dict, companies, provinces, initialQuery }: SearchProvidersClientProps) {
+export function SearchProvidersClient({ lang, dict, companies, provinces, initialQuery, initialWhere }: SearchProvidersClientProps) {
   const t = dict.search;
   const isTh = lang === 'th';
   const [verifiedOnly, setVerifiedOnly] = useState(false);
@@ -647,6 +648,15 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
         const matchesName = p.name?.toLowerCase().includes(q) || p.name_th?.toLowerCase().includes(q);
         const matchesDesc = p.description?.toLowerCase().includes(q) || p.description_th?.toLowerCase().includes(q);
         if (!matchesService && !matchesName && !matchesDesc) return false;
+      }
+      // "Additional info" field — narrows by WHO/WHERE: a portfolio client/title
+      // (e.g. "POP MART"), the province, or the address.
+      if (initialWhere) {
+        const w = initialWhere.toLowerCase();
+        const matchesPortfolio = p.portfolioText?.some(t => t.includes(w));
+        const matchesProvince = p.province?.toLowerCase().includes(w);
+        const matchesAddress = p.address?.toLowerCase().includes(w);
+        if (!matchesPortfolio && !matchesProvince && !matchesAddress) return false;
       }
       return true;
     })

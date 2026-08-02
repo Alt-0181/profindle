@@ -46,6 +46,9 @@ export type Company = {
   social_facebook: string | null;
   social_instagram: string | null;
   portfolioBudgets: string[];
+  // Lowercased client names + project titles from this company's portfolio,
+  // used by the "additional info" (where) filter — e.g. find who did work for POP MART.
+  portfolioText: string[];
 };
 
 export default async function SearchProvidersPage({
@@ -53,9 +56,9 @@ export default async function SearchProvidersPage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; where?: string }>;
 }) {
-  const [{ lang }, { q }] = await Promise.all([params, searchParams]);
+  const [{ lang }, { q, where }] = await Promise.all([params, searchParams]);
   if (!hasLocale(lang)) notFound();
 
   const [dict, supabase] = await Promise.all([
@@ -63,7 +66,7 @@ export default async function SearchProvidersPage({
     createClient(),
   ]);
 
-  const [{ data: companies }, { data: portfolioBudgetRows }] = await Promise.all([
+  const [{ data: companies }, { data: portfolioRows }] = await Promise.all([
     supabase
       .from('companies')
       .select('id, name, name_th, description, description_th, province, services, industry, verified, premium, views, logo_initial, logo_url, banner_url, banner_focus_x, banner_focus_y, email, phone, website, founded_year, team_size, address, line_id, social_facebook, social_instagram')
@@ -71,15 +74,23 @@ export default async function SearchProvidersPage({
       .order('views', { ascending: false }),
     supabase
       .from('portfolio_projects')
-      .select('company_id, budget')
-      .not('budget', 'is', null),
+      .select('company_id, budget, client, title'),
   ]);
 
   const budgetMap: Record<string, string[]> = {};
-  for (const row of portfolioBudgetRows ?? []) {
-    if (!row.budget) continue;
-    if (!budgetMap[row.company_id]) budgetMap[row.company_id] = [];
-    if (!budgetMap[row.company_id].includes(row.budget)) budgetMap[row.company_id].push(row.budget);
+  const portfolioTextMap: Record<string, string[]> = {};
+  for (const row of portfolioRows ?? []) {
+    if (row.budget) {
+      if (!budgetMap[row.company_id]) budgetMap[row.company_id] = [];
+      if (!budgetMap[row.company_id].includes(row.budget)) budgetMap[row.company_id].push(row.budget);
+    }
+    // client is null for confidential projects, so those are never exposed here.
+    for (const part of [row.client, row.title]) {
+      const norm = part?.trim().toLowerCase();
+      if (!norm) continue;
+      if (!portfolioTextMap[row.company_id]) portfolioTextMap[row.company_id] = [];
+      if (!portfolioTextMap[row.company_id].includes(norm)) portfolioTextMap[row.company_id].push(norm);
+    }
   }
 
   const companiesWithBudgets = (companies ?? [])
@@ -87,9 +98,10 @@ export default async function SearchProvidersPage({
     .map((c) => ({
       ...c,
       portfolioBudgets: budgetMap[c.id] ?? [],
+      portfolioText: portfolioTextMap[c.id] ?? [],
     }));
 
   const provinces = [...new Set(companiesWithBudgets.map((c) => c.province).filter(Boolean))] as string[];
 
-  return <SearchProvidersClient lang={lang} dict={dict} companies={companiesWithBudgets} provinces={provinces} initialQuery={q ?? ''} />;
+  return <SearchProvidersClient lang={lang} dict={dict} companies={companiesWithBudgets} provinces={provinces} initialQuery={q ?? ''} initialWhere={where ?? ''} />;
 }

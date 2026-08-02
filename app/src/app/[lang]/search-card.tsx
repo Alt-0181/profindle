@@ -141,7 +141,13 @@ export function SearchCard({ lang }: SearchCardProps) {
 
         {/* Search button */}
         <button
-          onClick={() => router.push(`/${lang}/search-providers${service ? `?q=${encodeURIComponent(service)}` : ''}`)}
+          onClick={() => {
+            const params = new URLSearchParams();
+            if (service.trim()) params.set('q', service.trim());
+            if (info.trim()) params.set('where', info.trim());
+            const qs = params.toString();
+            router.push(`/${lang}/search-providers${qs ? `?${qs}` : ''}`);
+          }}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             width: '100%', padding: '13px', background: 'linear-gradient(135deg, #0F6F73 0%, #1A9DA3 100%)',
