@@ -31,7 +31,12 @@ function coverGradient(color: string | null): string {
 }
 
 function parseResults(text: string): string[] {
-  return text.split(/\.\s+/).map(s => s.replace(/\.$/, '').trim()).filter(Boolean);
+  // Accept either newline-separated lines or period-separated sentences, and
+  // drop any leading bullet marker the provider typed ("- ", "• ", "* ").
+  return text
+    .split(/\r?\n|\.\s+/)
+    .map(s => s.replace(/^[-–—•*]\s*/, '').replace(/\.$/, '').trim())
+    .filter(Boolean);
 }
 
 function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; contact: Contact; isTh: boolean; onBack: () => void }) {
@@ -137,7 +142,7 @@ function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; c
             <div style={{ fontSize: '10px', fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
               {isTh ? 'รายละเอียดโครงการ' : 'Project Summary'}
             </div>
-            <p style={{ fontSize: '15px', color: '#444B5A', lineHeight: 1.75, margin: 0 }}>
+            <p style={{ fontSize: '15px', color: '#444B5A', lineHeight: 1.75, margin: 0, whiteSpace: 'pre-wrap' }}>
               {isTh && project.description_th ? project.description_th : project.description}
             </p>
           </div>
@@ -149,7 +154,7 @@ function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; c
             <div style={{ fontSize: '10px', fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
               {isTh ? 'ความท้าทายของโปรเจคนี้คือ' : 'What Made It Difficult'}
             </div>
-            <p style={{ fontSize: '15px', color: '#444B5A', lineHeight: 1.75, margin: 0 }}>
+            <p style={{ fontSize: '15px', color: '#444B5A', lineHeight: 1.75, margin: 0, whiteSpace: 'pre-wrap' }}>
               {isTh && project.challenge_th ? project.challenge_th : project.challenge}
             </p>
           </div>

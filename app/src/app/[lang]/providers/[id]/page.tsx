@@ -186,7 +186,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
             {displayDesc && (
               <div style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', padding: '24px' }}>
                 <div style={{ fontSize: '11px', fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>{isTh ? 'เกี่ยวกับ' : 'About'}</div>
-                <p style={{ fontSize: '14px', color: '#444B5A', lineHeight: 1.75 }}>{displayDesc}</p>
+                <p style={{ fontSize: '14px', color: '#444B5A', lineHeight: 1.75, whiteSpace: 'pre-wrap' }}>{displayDesc}</p>
               </div>
             )}
 
