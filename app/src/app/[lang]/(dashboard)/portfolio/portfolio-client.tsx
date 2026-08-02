@@ -608,7 +608,7 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
                       return (
                         <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: '1px solid #E4E7ED', borderRadius: '12px', boxShadow: '0 8px 24px rgba(23,26,33,0.12)', zIndex: 50, maxHeight: '260px', overflowY: 'auto' }}>
                           {matches.map(s => (
-                            <div key={s} onMouseDown={(e) => { e.preventDefault(); setSelectedServices(prev => [...prev, s]); setServiceSearch(''); setServiceOpen(false); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#171A21', borderBottom: '1px solid #F4F5F7' }}>{s}</div>
+                            <div key={s} onMouseDown={(e) => { e.preventDefault(); setSelectedServices(prev => [...prev, s]); setServiceSearch(''); setServiceOpen(true); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#171A21', borderBottom: '1px solid #F4F5F7' }}>{s}</div>
                           ))}
                         </div>
                       );
