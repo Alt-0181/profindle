@@ -67,6 +67,31 @@ function proxyPortfolioImages(projects: any[]): any[] {
   });
 }
 
+// Turn a pasted Google Maps URL into an embeddable (no-API-key) map src.
+// Resolves short links, then pulls coordinates or a place query out of the URL.
+async function mapEmbedSrc(raw: string | null | undefined): Promise<string | null> {
+  if (!raw || !/^https?:\/\//i.test(raw)) return null;
+  let url = raw.trim();
+  try {
+    if (/(?:goo\.gl|maps\.app\.goo\.gl)/i.test(url)) {
+      const res = await fetch(url, { redirect: 'follow' });
+      if (res?.url) url = res.url;
+    }
+  } catch {
+    /* keep the original URL if resolving the short link fails */
+  }
+  const coord =
+    url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) ||
+    url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) ||
+    url.match(/[?&](?:q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (coord) return `https://maps.google.com/maps?q=${coord[1]},${coord[2]}&z=16&output=embed`;
+  const q = url.match(/[?&](?:q|query)=([^&]+)/);
+  if (q) return `https://maps.google.com/maps?q=${q[1]}&output=embed`;
+  const place = url.match(/\/maps\/place\/([^/@?]+)/);
+  if (place) return `https://maps.google.com/maps?q=${place[1]}&output=embed`;
+  return null;
+}
+
 export default async function ProviderProfilePage({ params }: { params: Promise<{ lang: string; id: string }> }) {
   const { lang, id } = await params;
   if (!hasLocale(lang)) notFound();
@@ -92,6 +117,12 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
   const bfy = (company as any).banner_focus_y ?? 50;
   const bfmx = (company as any).banner_focus_mobile_x ?? 50;
   const bfmy = (company as any).banner_focus_mobile_y ?? 50;
+
+  // The address field now holds a Google Maps URL. Older records may still hold
+  // plain text — show a map for URLs, fall back to text for anything else.
+  const mapLink: string | null = company.address && /^https?:\/\//i.test(company.address) ? company.address : null;
+  const legacyAddress: string | null = company.address && !mapLink ? company.address : null;
+  const mapEmbed = await mapEmbedSrc(mapLink);
 
   return (
     <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif", minHeight: '100vh', background: '#F4F5F7' }}>
@@ -268,15 +299,41 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
                     <span style={{ color: '#171A21', fontWeight: 500 }}>{String(row.val)}</span>
                   </div>
                 ))}
-                {company.address && (
+                {legacyAddress && (
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '13px' }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" style={{ marginTop: '2px', flexShrink: 0 }}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                     <span style={{ color: '#9AA0AE', minWidth: '70px' }}>{isTh ? 'ที่อยู่' : 'Address'}</span>
-                    <span style={{ color: '#171A21', fontWeight: 500 }}>{company.address}</span>
+                    <span style={{ color: '#171A21', fontWeight: 500 }}>{legacyAddress}</span>
                   </div>
                 )}
               </div>
             </div>
+
+            {/* Location map */}
+            {(mapEmbed || mapLink) && (
+              <div style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', padding: '20px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>{isTh ? 'ที่ตั้ง' : 'Location'}</div>
+                {mapEmbed && (
+                  <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #E4E7ED', marginBottom: '12px' }}>
+                    <iframe
+                      src={mapEmbed}
+                      width="100%"
+                      height={180}
+                      style={{ border: 0, display: 'block' }}
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      title={isTh ? 'แผนที่บริษัท' : 'Company location map'}
+                    />
+                  </div>
+                )}
+                {mapLink && (
+                  <a href={mapLink} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, color: '#0F6F73', textDecoration: 'none' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    {isTh ? 'ดูใน Google Maps' : 'View on Google Maps'}
+                  </a>
+                )}
+              </div>
+            )}
 
             {/* Broadcast CTA */}
             <div style={{ background: 'linear-gradient(135deg, #0B2B2C 0%, #0F6F73 100%)', borderRadius: '16px', padding: '20px' }}>

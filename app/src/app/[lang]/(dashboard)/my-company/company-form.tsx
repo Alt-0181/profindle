@@ -843,8 +843,13 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         {/* Address + Website */}
         <div className="mc-row-2">
           <div>
-            <label style={labelStyle}>{t.address}</label>
-            <input type="text" value={form.address} onChange={(e) => set('address', e.target.value)} style={inputStyle} placeholder={t.addressPh} />
+            <label style={labelStyle}>{lang === 'th' ? 'ลิงก์ Google Maps' : 'Google Maps link'}</label>
+            <input type="url" inputMode="url" value={form.address} onChange={(e) => set('address', e.target.value)} style={inputStyle} placeholder="https://maps.app.goo.gl/…" />
+            <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '6px', lineHeight: 1.6 }}>
+              {lang === 'th'
+                ? 'เปิด Google Maps → ค้นหาธุรกิจของคุณ → กด “แชร์” → คัดลอกลิงก์ แล้วนำมาวางที่นี่ เพื่อให้แผนที่แสดงบนหน้าโปรไฟล์'
+                : 'Open Google Maps → find your business → tap “Share” → copy the link and paste it here to show a map on your profile.'}
+            </div>
           </div>
           <div>
             <label style={labelStyle}>{t.website}</label>
