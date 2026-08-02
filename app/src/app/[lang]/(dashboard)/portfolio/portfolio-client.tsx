@@ -432,10 +432,10 @@ export function PortfolioClient({ lang, dict, companyId, initialProjects }: Port
                 {clientOpen && (clientSuggestions.length > 0 || showAddNewClient) && (
                   <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: '1px solid #E4E7ED', borderRadius: '12px', boxShadow: '0 8px 24px rgba(23,26,33,0.12)', zIndex: 50, maxHeight: '260px', overflowY: 'auto' }}>
                     {clientSuggestions.map(c => (
-                      <div key={c} onClick={() => { set('client', c); setClientSearch(c); setClientOpen(false); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#171A21', borderBottom: '1px solid #F4F5F7' }}>{c}</div>
+                      <div key={c} onPointerDown={(e) => { e.preventDefault(); set('client', c); setClientSearch(c); setClientOpen(false); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#171A21', borderBottom: '1px solid #F4F5F7' }}>{c}</div>
                     ))}
                     {showAddNewClient && (
-                      <div onClick={() => { set('client', clientSearch); setClientSearch(clientSearch); setClientOpen(false); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#0F6F73', fontWeight: 600 }}>
+                      <div onPointerDown={(e) => { e.preventDefault(); set('client', clientSearch); setClientSearch(clientSearch); setClientOpen(false); }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '13px', color: '#0F6F73', fontWeight: 600 }}>
                         + {t.addClient.replace('{name}', clientSearch)}
                       </div>
                     )}
