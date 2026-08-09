@@ -301,9 +301,18 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
                     </div>
                   </>
                 )}
-                <Link href={`/${lang}/signup?claim=${id}`} style={{ display: 'block', width: '100%', padding: '11px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '13px', borderRadius: '12px', textAlign: 'center', textDecoration: 'none' }}>
-                  {isTh ? 'นี่ธุรกิจของคุณ? ยืนยันโปรไฟล์ฟรี' : 'Is this your business? Claim it free'}
-                </Link>
+                <div style={{ borderTop: '1px solid #F0F0F0', paddingTop: '14px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{isTh ? 'นี่ธุรกิจของคุณ?' : 'Is this your business?'}</div>
+                  <p style={{ fontSize: '12px', color: '#6B7385', lineHeight: 1.6, marginBottom: '10px' }}>{isTh ? 'ติดต่อ Profindle เพื่อยืนยันและจัดการโปรไฟล์ของคุณ — ฟรี' : 'Contact Profindle to claim and manage your profile — free.'}</p>
+                  <a href="mailto:support@profindle.com" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', border: '1px solid #E4E7ED', borderRadius: '10px', textDecoration: 'none', color: '#444B5A', fontSize: '13px', marginBottom: '8px' }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    support@profindle.com
+                  </a>
+                  <a href="https://line.me/R/ti/p/@profindle" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', border: '1px solid #E4E7ED', borderRadius: '10px', textDecoration: 'none', color: '#444B5A', fontSize: '13px' }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.13c0 4.02 3.55 7.39 8.35 8.03.33.07.77.22.88.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1.01.88.55 1.09-.46 5.86-3.45 8-5.91 1.47-1.62 2.17-3.26 2.17-5.4C22 5.64 17.52 2 12 2z"/></svg>
+                    LINE OA: @profindle
+                  </a>
+                </div>
               </div>
             )}
 

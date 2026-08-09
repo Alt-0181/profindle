@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const CHANNELS = new Set(['line', 'phone', 'email', 'website']);
+// 'reveal' = buyer tapped "View contact" (interest signal). The rest = which
+// channel they then used.
+const CHANNELS = new Set(['reveal', 'line', 'phone', 'email', 'website']);
 
 // Logs an anonymous contact-click. No buyer identity is captured — buyers browse
 // without accounts, so this only records that *someone* tapped a contact channel
