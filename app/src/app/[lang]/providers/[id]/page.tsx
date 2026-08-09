@@ -7,6 +7,7 @@ import { PublicNav } from '@/components/layout/public-nav';
 import { PortfolioGrid } from './portfolio-grid';
 import { LocationMap } from './location-map';
 import { ContactCard } from './contact-card';
+import { ViewTracker } from './view-tracker';
 
 // Always render against live data so a provider's public profile reflects the
 // current portfolio (no stale cache showing removed/duplicate projects).
@@ -148,6 +149,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
 
   return (
     <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif", minHeight: '100vh', background: '#F4F5F7' }}>
+      <ViewTracker companyId={id} />
       <style>{`
         .pp-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
         .pp-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
