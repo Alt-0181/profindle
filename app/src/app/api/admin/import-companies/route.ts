@@ -76,8 +76,10 @@ export async function POST(request: NextRequest) {
       phone: c?.phone ?? null,
       email: c?.email ?? null,
       line_id: c?.line_id ?? null,
-      address: c?.address ?? null,          // a Google Maps URL, if available
+      address: c?.address ?? null,          // Google Maps URL or a street address (shown as text)
       industry: c?.industry ?? null,
+      founded_year: Number.isFinite(Number(c?.founded_year)) && c?.founded_year ? Number(c.founded_year) : null,
+      team_size: c?.team_size ?? null,
       logo_initial: (c?.logo_initial ?? name.slice(0, 2)).toUpperCase(),
       claimed: false,
       source: 'seeded',

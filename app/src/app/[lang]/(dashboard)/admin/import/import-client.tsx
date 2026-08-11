@@ -24,6 +24,33 @@ export function ImportClient({ lang }: { lang: string }) {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
+  const [urls, setUrls] = useState('');
+  const [enriching, setEnriching] = useState(false);
+  const [enrichInfo, setEnrichInfo] = useState<any>(null);
+
+  const enrich = async () => {
+    setError(''); setEnrichInfo(null);
+    const list = urls.split(/[\s,]+/).map((u) => u.trim()).filter(Boolean);
+    if (list.length === 0) { setError('Paste at least one URL.'); return; }
+    if (list.length > 12) { setError('Max 12 URLs per batch — fetching is slow. Split into batches.'); return; }
+    setEnriching(true);
+    try {
+      const res = await fetch('/api/admin/enrich-urls', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ urls: list }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data?.error ?? 'Enrich failed'); }
+      else {
+        setText(JSON.stringify(data.companies ?? [], null, 2));
+        setEnrichInfo(data);
+      }
+    } catch (e: any) {
+      setError(e?.message ?? 'Enrich failed');
+    } finally {
+      setEnriching(false);
+    }
+  };
 
   const run = async () => {
     setError(''); setResult(null);
@@ -64,7 +91,35 @@ export function ImportClient({ lang }: { lang: string }) {
           : 'Paste a JSON array of companies to create unclaimed (claimed=false) profiles. Services must match the catalog or they’re dropped. Duplicates (same name/website) are skipped.'}
       </p>
 
-      <label style={label}>{isTh ? 'JSON' : 'Companies JSON'}</label>
+      {/* Enrich from URLs — the app fetches each site and drafts the JSON below */}
+      <div style={{ background: 'white', border: '1px solid rgba(15,111,115,0.15)', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
+        <label style={label}>{isTh ? '① เติมข้อมูลจากลิงก์เว็บไซต์ (อัตโนมัติ)' : '① Enrich from website URLs (optional)'}</label>
+        <p style={{ fontSize: '12px', color: '#6B7385', marginBottom: '8px' }}>
+          {isTh
+            ? 'วางลิงก์เว็บไซต์ (สูงสุด 12 ต่อครั้ง) ระบบจะดึงข้อมูลและร่าง JSON ให้ด้านล่างเพื่อตรวจก่อนนำเข้า'
+            : 'Paste website URLs (max 12 per batch). The app fetches each and drafts the JSON below for you to review before importing.'}
+        </p>
+        <textarea
+          value={urls}
+          onChange={(e) => setUrls(e.target.value)}
+          placeholder={"https://acmedigital.co.th\nhttps://another-agency.com"}
+          rows={4}
+          style={{ width: '100%', fontFamily: 'ui-monospace, Menlo, monospace', fontSize: '12px', padding: '10px 12px', border: '1.5px solid #E4E7ED', borderRadius: '10px', background: 'white', color: '#171A21', outline: 'none', resize: 'vertical' }}
+        />
+        <button onClick={enrich} disabled={enriching || !urls.trim()} style={{ marginTop: '10px', padding: '9px 18px', background: '#0F6F73', color: 'white', fontWeight: 600, fontSize: '13px', border: 'none', borderRadius: '10px', cursor: (enriching || !urls.trim()) ? 'not-allowed' : 'pointer', opacity: (enriching || !urls.trim()) ? 0.5 : 1, fontFamily: 'inherit' }}>
+          {enriching ? (isTh ? 'กำลังดึงข้อมูล…' : 'Fetching…') : (isTh ? 'ดึงข้อมูล → สร้าง JSON' : 'Fetch → build JSON')}
+        </button>
+        {enrichInfo && (
+          <div style={{ fontSize: '12px', color: '#0F6F73', marginTop: '8px' }}>
+            ✓ {isTh ? 'ดึงสำเร็จ' : 'Enriched'} {enrichInfo.enriched} · {isTh ? 'ล้มเหลว' : 'failed'} {enrichInfo.failed}
+            {enrichInfo.errors?.length > 0 && (
+              <span style={{ color: '#E06B00' }}> — {enrichInfo.errors.map((e: any) => e.url).join(', ')}</span>
+            )}
+          </div>
+        )}
+      </div>
+
+      <label style={label}>{isTh ? '② JSON (ตรวจแล้วกดนำเข้า)' : '② Companies JSON (review, then import)'}</label>
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
