@@ -661,6 +661,10 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
       return true;
     })
     .sort((a, b) => {
+      // Claimed always outranks unclaimed (in every sort mode), so a seeded
+      // famous name with lots of curious views can't bury real claimed SMEs.
+      const ac = a.claimed !== false, bc = b.claimed !== false;
+      if (ac !== bc) return ac ? -1 : 1;
       if (sort === 'views') return (b.views ?? 0) - (a.views ?? 0);
       if (sort === 'az') return (a.name ?? '').localeCompare(b.name ?? '');
       if (b.premium !== a.premium) return b.premium ? 1 : -1;
