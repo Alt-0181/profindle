@@ -15,6 +15,7 @@ interface SearchProvidersClientProps {
   provinces: string[];
   initialQuery: string;
   initialWhere: string;
+  isLoggedIn: boolean;
 }
 
 type SortKey = 'relevance' | 'views' | 'az';
@@ -600,7 +601,7 @@ function ProfileDrawer({ provider, lang, isTh, dict, onClose }: {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-export function SearchProvidersClient({ lang, dict, companies, provinces, initialQuery, initialWhere }: SearchProvidersClientProps) {
+export function SearchProvidersClient({ lang, dict, companies, provinces, initialQuery, initialWhere, isLoggedIn }: SearchProvidersClientProps) {
   const t = dict.search;
   const isTh = lang === 'th';
   const [verifiedOnly, setVerifiedOnly] = useState(false);
@@ -832,7 +833,7 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
               <strong style={{ color: '#F77F00' }}>{isTh ? 'ฟรี 100%' : '100% free'}</strong>
               {isTh ? ' — ไม่มีค่าคอมมิชชั่น' : ' — no commission, no hidden fees.'}
             </p>
-            <Link href={`/${lang}/signup`} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 22px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', borderRadius: '12px', textDecoration: 'none' }}>
+            <Link href={`/${lang}/${isLoggedIn ? 'broadcast-request' : 'signup'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 22px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '14px', borderRadius: '12px', textDecoration: 'none' }}>
               {isTh ? 'ประกาศคำขอของฉัน — ฟรี' : 'Broadcast my request — Free'}
             </Link>
           </div>
@@ -928,7 +929,8 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
           </div>
         )}
 
-        {/* Signup banner */}
+        {/* Signup banner — only for logged-out visitors */}
+        {!isLoggedIn && (
         <div style={{ background: 'linear-gradient(135deg, #171A21, #0F6F73)', borderRadius: '20px', padding: '28px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px', marginTop: '28px', flexWrap: 'wrap' }}>
           <div>
             <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'white', marginBottom: '5px' }}>
@@ -949,6 +951,7 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
             </Link>
           </div>
         </div>
+        )}
       </div>
 
       {/* Profile Drawer */}
