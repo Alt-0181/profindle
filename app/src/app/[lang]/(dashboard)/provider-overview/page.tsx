@@ -23,9 +23,21 @@ export default async function ProviderOverviewPage({ params }: { params: Promise
         .eq('provider_company_id', company.id)
     : { count: 0 };
 
+  // Buyer contact intent = how many times a buyer tapped "View contact" on this
+  // profile. An anonymous interest signal (buyers browse without accounts), so
+  // it's a count only — never who.
+  const { count: intentCount } = company
+    ? await supabase
+        .from('contact_clicks')
+        .select('id', { count: 'exact', head: true })
+        .eq('company_id', company.id)
+        .eq('channel', 'reveal')
+    : { count: 0 };
+
   const services: string[] = company?.services ?? [];
   const totalViews = company?.views ?? 0;
   const totalInquiries = matchCount ?? 0;
+  const totalIntent = intentCount ?? 0;
 
   const isTh = lang === 'th';
   const t = {
@@ -33,6 +45,7 @@ export default async function ProviderOverviewPage({ params }: { params: Promise
     subtitle: isTh ? 'บริการและผลงานของคุณ' : 'Your services and performance',
     manageServices: isTh ? 'จัดการบริการ' : 'Manage Services',
     views: isTh ? 'การเข้าชม' : 'Profile Views',
+    intent: isTh ? 'สนใจติดต่อ' : 'Contact Intent',
     inquiries: isTh ? 'คำขอที่ได้รับ' : 'Broadcast Matches',
     activeServices: isTh ? 'บริการที่ใช้งาน' : 'Active Services',
     total: isTh ? 'รวม' : 'total',
@@ -46,7 +59,10 @@ export default async function ProviderOverviewPage({ params }: { params: Promise
     <div className="page-body">
       <style>{`
         .po-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
-        .po-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+        .po-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        @media (max-width: 900px) and (min-width: 641px) {
+          .po-kpis { grid-template-columns: repeat(2, 1fr); }
+        }
         @media (max-width: 640px) {
           .po-head { flex-direction: column; align-items: stretch; }
           .po-head-btn { text-align: center; }
@@ -71,6 +87,7 @@ export default async function ProviderOverviewPage({ params }: { params: Promise
       <div className="po-kpis">
         {[
           { label: t.views, value: totalViews, sub: isTh ? 'ทั้งหมด' : 'all time' },
+          { label: t.intent, value: totalIntent, sub: isTh ? 'กดดูข้อมูลติดต่อ' : 'contact taps' },
           { label: t.inquiries, value: totalInquiries, sub: isTh ? 'ทั้งหมด' : 'all time' },
           { label: t.activeServices, value: services.length, sub: t.total },
         ].map((kpi) => (

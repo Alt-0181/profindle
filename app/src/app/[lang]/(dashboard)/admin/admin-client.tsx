@@ -1328,9 +1328,17 @@ export function AdminClient({ companies, users, broadcasts, earlyBirdClaims, lan
   return (
     <div className="page-body">
       {/* Header */}
-      <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>Super Admin Panel</h1>
-        <p style={{ fontSize: '13px', color: '#9AA0AE' }}>Manage all aspects of the Profindle platform</p>
+      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
+        <div>
+          <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>Super Admin Panel</h1>
+          <p style={{ fontSize: '13px', color: '#9AA0AE' }}>Manage all aspects of the Profindle platform</p>
+        </div>
+        <a
+          href={`/${_lang}/admin/reports`}
+          style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '13px', borderRadius: '12px', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}
+        >
+          📊 Reports
+        </a>
       </div>
 
       {/* Tab bar */}
