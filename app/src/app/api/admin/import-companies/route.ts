@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as adminClient } from '@supabase/supabase-js';
 import { SERVICES } from '@/lib/services';
+import { sanitizeSeededContact } from '@/lib/contact-classify';
 
 function getAdmin() {
   return adminClient(
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
   const invalid: string[] = [];
   const skipped: string[] = [];
   const unknownServices = new Set<string>();
+  let personalContactDropped = 0; // count of personal channels stripped on import
 
   for (const c of input) {
     const name = typeof c?.name === 'string' ? c.name.trim() : '';
@@ -65,6 +67,14 @@ export async function POST(request: NextRequest) {
       else unknownServices.add(String(s));
     }
 
+    // PDPA data-minimization: on a seeded/unclaimed profile keep only
+    // organizational contact channels; drop personal mobile / named email /
+    // personal LINE entirely. The owner adds their own contact when they claim.
+    const contact = sanitizeSeededContact({ phone: c?.phone, email: c?.email, line_id: c?.line_id });
+    if (c?.phone && !contact.phone) personalContactDropped++;
+    if (c?.email && !contact.email) personalContactDropped++;
+    if (c?.line_id && !contact.line_id) personalContactDropped++;
+
     rows.push({
       name,
       name_th: c?.name_th ?? null,
@@ -73,9 +83,9 @@ export async function POST(request: NextRequest) {
       province: c?.province ?? null,
       services,
       website: c?.website ?? null,
-      phone: c?.phone ?? null,
-      email: c?.email ?? null,
-      line_id: c?.line_id ?? null,
+      phone: contact.phone,
+      email: contact.email,
+      line_id: contact.line_id,
       address: c?.address ?? null,          // Google Maps URL or a street address (shown as text)
       industry: c?.industry ?? null,
       founded_year: Number.isFinite(Number(c?.founded_year)) && c?.founded_year ? Number(c.founded_year) : null,
@@ -83,6 +93,8 @@ export async function POST(request: NextRequest) {
       logo_initial: (c?.logo_initial ?? name.slice(0, 2)).toUpperCase(),
       claimed: false,
       source: 'seeded',
+      source_url: c?.source_url ?? null,    // provenance: where this listing was found
+      listing_status: 'active',
       verified: false,
       premium: false,
       buyer_only: false,
@@ -100,6 +112,7 @@ export async function POST(request: NextRequest) {
     inserted,
     skipped: skipped.length,
     invalid: invalid.length,
+    personalContactDropped,
     skippedNames: skipped.slice(0, 50),
     unknownServices: Array.from(unknownServices).slice(0, 50),
   });

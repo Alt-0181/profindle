@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { hasLocale } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/server';
+import { ScrubButton } from './scrub-button';
 
 export default async function AdminReportsPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
@@ -28,6 +29,10 @@ export default async function AdminReportsPage({ params }: { params: Promise<{ l
     note: isTh
       ? 'หมายเหตุ: ไม่นับกิจกรรมจาก support@profindle.com, ซูเปอร์แอดมิน และการดูโปรไฟล์ของตัวเอง รายงานนี้ไม่รวมเอกสาร DBD หรือข้อมูลด้านความปลอดภัย'
       : 'Note: activity from support@profindle.com, super-admins, and self-views is excluded. These reports never include DBD documents or security data.',
+    hygieneTitle: isTh ? 'ความเป็นส่วนตัวของข้อมูล (PDPA)' : 'Data hygiene (PDPA)',
+    hygieneDesc: isTh
+      ? 'ลบข้อมูลติดต่อส่วนบุคคล (มือถือ, อีเมลชื่อบุคคล, LINE ส่วนตัว) ออกจากโปรไฟล์ที่ยังไม่ยืนยัน เก็บเฉพาะช่องทางองค์กร (เบอร์สำนักงาน, info@, LINE OA) และเว็บไซต์ ไม่แตะโปรไฟล์ที่ยืนยันแล้ว'
+      : 'Remove personal contact (mobile, named-person email, personal LINE) from unclaimed profiles. Keeps only organizational channels (office line, info@, LINE OA) and the website. Claimed profiles are never touched.',
   };
 
   const cardStyle: React.CSSProperties = {
@@ -59,6 +64,15 @@ export default async function AdminReportsPage({ params }: { params: Promise<{ l
       </div>
 
       <p style={{ fontSize: '12px', color: '#9AA0AE', lineHeight: 1.5, maxWidth: '640px' }}>{t.note}</p>
+
+      {/* Data hygiene / PDPA cleanup */}
+      <div style={{ ...cardStyle, marginTop: '28px', maxWidth: '640px' }}>
+        <div style={{ fontSize: '16px', fontWeight: 700, color: '#171A21' }}>{t.hygieneTitle}</div>
+        <div style={{ fontSize: '13px', color: '#6B7385', lineHeight: 1.5 }}>{t.hygieneDesc}</div>
+        <div style={{ marginTop: '6px' }}>
+          <ScrubButton isTh={isTh} />
+        </div>
+      </div>
     </div>
   );
 }
