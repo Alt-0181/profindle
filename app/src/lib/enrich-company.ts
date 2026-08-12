@@ -29,7 +29,6 @@ export type EnrichedCompany = {
   nameEn: string; nameTh: string; descEn: string; descTh: string;
   services: string[]; province: string; address: string;
   teamSize: string; foundedYear: string; phone: string; emailPublic: string;
-  dbdNo: string;
 };
 
 function htmlToText(html: string): string {
@@ -104,9 +103,8 @@ export async function enrichCompanyFromUrl(
       province: { type: 'string' }, address: { type: 'string' },
       teamSize: { type: 'string' }, foundedYear: { type: 'string' },
       phone: { type: 'string' }, emailPublic: { type: 'string' },
-      dbdNo: { type: 'string' },
     },
-    required: ['nameEn', 'nameTh', 'descEn', 'descTh', 'services', 'province', 'address', 'teamSize', 'foundedYear', 'phone', 'emailPublic', 'dbdNo'],
+    required: ['nameEn', 'nameTh', 'descEn', 'descTh', 'services', 'province', 'address', 'teamSize', 'foundedYear', 'phone', 'emailPublic'],
   };
 
   const prompt = `You are helping catalog a Thai B2B service provider from their website.
@@ -122,7 +120,6 @@ Extract the fields below. Rules:
 - "address": street/building/district portion WITHOUT province/postal code.
 - "teamSize": ONLY from ${TEAM_SIZES.join(', ')}.
 - "foundedYear": a plausible four-digit year, else empty.
-- "dbdNo": the company's 13-digit DBD juristic-person registration number (เลขทะเบียนนิติบุคคล / เลขประจำตัวผู้เสียภาษี / Tax ID), often in the footer or About/Contact page. Digits only, exactly 13. Empty if not clearly present.
 
 WEBSITE TEXT:
 """
@@ -156,8 +153,6 @@ ${pageText}
     const cleanEmail = (() => { const e = str(raw.emailPublic); if (!e) return ''; return (PLACEHOLDER_EMAIL_DOMAINS.test(e) || PLACEHOLDER_TEXT.test(e)) ? '' : e; })();
     const cleanPhone = (() => { const p = str(raw.phone); if (!p) return ''; return (/^\+?0*01[\s-]/.test(p) || /(123[\s-]?456|555[\s-]?5555|000[\s-]?000|1234567890)/.test(p)) ? '' : p; })();
     const cleanAddress = (() => { const a = str(raw.address); if (!a) return ''; if (PLACEHOLDER_TEXT.test(a)) return ''; if (/\b(delaware|celina|texas|california|new york|florida|ohio|nevada|arizona)\b/i.test(a)) return ''; return a; })();
-    // DBD juristic-person number is exactly 13 digits; keep only if it validates.
-    const cleanDbdNo = (() => { const d = str(raw.dbdNo).replace(/\D/g, ''); return /^\d{13}$/.test(d) ? d : ''; })();
 
     return {
       ok: true,
@@ -165,7 +160,7 @@ ${pageText}
         nameEn: str(raw.nameEn), nameTh: str(raw.nameTh),
         descEn: str(raw.descEn), descTh: str(raw.descTh),
         services, province, address: cleanAddress, teamSize, foundedYear,
-        phone: cleanPhone, emailPublic: cleanEmail, dbdNo: cleanDbdNo,
+        phone: cleanPhone, emailPublic: cleanEmail,
       },
     };
   } catch (err) {

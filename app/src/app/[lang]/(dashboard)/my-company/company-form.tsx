@@ -333,7 +333,6 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         nameEn: d.nameEn ?? '', nameTh: d.nameTh ?? '', descEn: d.descEn ?? '', descTh: d.descTh ?? '',
         province: d.province ?? '', address: d.address ?? '', teamSize: d.teamSize ?? '',
         foundedYear: d.foundedYear ?? '', phone: d.phone ?? '', emailPublic: d.emailPublic ?? '',
-        dbdNo: d.dbdNo ?? '',
         website: url,
       };
       const nextForm = { ...form } as Record<string, unknown>;
@@ -842,27 +841,6 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
           </div>
         </div>
 
-        {/* DBD registration number — optional, usually auto-filled from the website */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={labelStyle}>
-            {lang === 'th' ? 'เลขทะเบียนนิติบุคคล (DBD)' : 'DBD registration number'}
-            <span style={{ color: '#9AA0AE', fontWeight: 400 }}> · {lang === 'th' ? 'ไม่บังคับ' : 'optional'}</span>
-          </label>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={form.dbdNo}
-            onChange={(e) => set('dbdNo', e.target.value.replace(/[^\d]/g, '').slice(0, 13))}
-            style={inputStyle}
-            placeholder={lang === 'th' ? 'เลข 13 หลัก' : '13-digit number'}
-          />
-          <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '6px', lineHeight: 1.6 }}>
-            {lang === 'th'
-              ? 'เลข 13 หลักของบริษัท มักเติมให้อัตโนมัติเมื่อกรอกจากเว็บไซต์ ไม่ต้องจำ ปล่อยว่างได้ถ้าไม่ทราบ'
-              : 'Your 13-digit company number. Usually filled automatically from your website — no need to memorize it. Leave blank if unknown.'}
-          </div>
-        </div>
-
         {/* Address + Website */}
         <div className="mc-row-2">
           <div>
@@ -998,6 +976,28 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         {downloadError && (
           <div style={{ marginTop: '6px', fontSize: '12px', color: '#FF5A5F', paddingLeft: '4px' }}>{downloadError}</div>
         )}
+
+        {/* DBD registration number — optional, manual. Sits right under the
+            certificate upload so it reads as part of verification. */}
+        <div style={{ marginTop: '20px' }}>
+          <label style={labelStyle}>
+            {lang === 'th' ? 'เลขทะเบียนนิติบุคคล (DBD)' : 'DBD registration number'}
+            <span style={{ color: '#9AA0AE', fontWeight: 400 }}> · {lang === 'th' ? 'ไม่บังคับ' : 'optional'}</span>
+          </label>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={form.dbdNo}
+            onChange={(e) => set('dbdNo', e.target.value.replace(/[^\d]/g, '').slice(0, 13))}
+            style={inputStyle}
+            placeholder={lang === 'th' ? 'เลข 13 หลัก (ดูได้จากหนังสือรับรอง)' : '13-digit number (see your certificate)'}
+          />
+          <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '6px', lineHeight: 1.6 }}>
+            {lang === 'th'
+              ? 'เลข 13 หลักบนหนังสือรับรองการจดทะเบียนของคุณ ไม่บังคับ — ปล่อยว่างได้ถ้าไม่ทราบ'
+              : 'The 13-digit number on your registration certificate. Optional — leave blank if you don’t have it handy.'}
+          </div>
+        </div>
       </div>
 
       {/* Sticky footer */}

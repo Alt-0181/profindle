@@ -57,7 +57,6 @@ export async function POST(request: NextRequest) {
         phone: d.phone || null,
         email: d.emailPublic || null,
         line_id: null,
-        dbd_no: d.dbdNo || null,
         services: d.services,
         industry,
         description: d.descEn || null,
