@@ -266,6 +266,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
                   projects={projects}
                   contact={{ phone: claimed ? (company.phone ?? null) : null, email: claimed ? (company.email ?? null) : null, companyName: displayName }}
                   isTh={isTh}
+                  companyId={id}
                 />
               </div>
             )}

@@ -4,6 +4,7 @@ import { useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { Turnstile, captchaEnabled } from '@/components/turnstile';
 
 const DICT = {
   en: {
@@ -41,12 +42,14 @@ export default function LoginPage({ params }: { params: Promise<{ lang: string }
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [captchaToken, setCaptchaToken] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (captchaEnabled && !captchaToken) { setError(lang === 'th' ? 'กรุณายืนยันว่าคุณไม่ใช่บอท' : 'Please complete the verification below'); return; }
     setLoading(true);
     setError('');
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password, ...(captchaToken ? { options: { captchaToken } } : {}) });
     if (error) {
       try {
         const res = await fetch('/api/auth/check-email', {
@@ -152,9 +155,15 @@ export default function LoginPage({ params }: { params: Promise<{ lang: string }
                 </div>
               </div>
 
+              {captchaEnabled && (
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <Turnstile onToken={setCaptchaToken} />
+                </div>
+              )}
+
               {error && <p style={{ fontSize: '13px', color: '#FF5A5F', margin: 0 }}>{error}</p>}
 
-              <button type="submit" disabled={loading} style={{ padding: '12px 16px', background: 'linear-gradient(135deg, #0F6F73 0%, #1A9DA3 100%)', color: 'white', fontWeight: 600, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: loading ? 0.7 : 1 }}>
+              <button type="submit" disabled={loading || (captchaEnabled && !captchaToken)} style={{ padding: '12px 16px', background: 'linear-gradient(135deg, #0F6F73 0%, #1A9DA3 100%)', color: 'white', fontWeight: 600, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: loading || (captchaEnabled && !captchaToken) ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: loading || (captchaEnabled && !captchaToken) ? 0.7 : 1 }}>
                 {loading ? '…' : t.signInBtn}
               </button>
             </div>

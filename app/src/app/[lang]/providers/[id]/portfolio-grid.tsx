@@ -223,9 +223,29 @@ function ProjectDetail({ project, contact, isTh, onBack }: { project: Project; c
   );
 }
 
-export function PortfolioGrid({ projects, contact, isTh }: { projects: Project[]; contact: Contact; isTh: boolean }) {
+// Fire-and-forget: record that a buyer opened this project. Deduped server-side
+// per viewer/day, so reopening never inflates the count. Never blocks the UI.
+function trackPortfolioView(projectId: string, companyId: string) {
+  try {
+    fetch('/api/portfolio-view', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ projectId, companyId }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    /* ignore */
+  }
+}
+
+export function PortfolioGrid({ projects, contact, isTh, companyId }: { projects: Project[]; contact: Contact; isTh: boolean; companyId: string }) {
   const [activeCategory, setActiveCategory] = useState('All');
   const [selected, setSelected] = useState<Project | null>(null);
+
+  const openProject = (p: Project) => {
+    setSelected(p);
+    trackPortfolioView(p.id, companyId);
+  };
 
   const categoryMap = new Map<string, number>();
   for (const p of projects) {
@@ -282,7 +302,7 @@ export function PortfolioGrid({ projects, contact, isTh }: { projects: Project[]
           return (
           <div
             key={p.id}
-            onClick={() => setSelected(p)}
+            onClick={() => openProject(p)}
             style={{ background: 'white', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(15,111,115,0.10)', cursor: 'pointer', transition: 'transform 250ms, box-shadow 250ms' }}
             onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 24px rgba(15,111,115,0.13)'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = ''; }}

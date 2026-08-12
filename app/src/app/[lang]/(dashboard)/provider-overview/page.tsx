@@ -34,10 +34,21 @@ export default async function ProviderOverviewPage({ params }: { params: Promise
         .eq('channel', 'reveal')
     : { count: 0 };
 
+  // Top projects by all-time views (populated by portfolio-view tracking).
+  const { data: topProjects } = company
+    ? await supabase
+        .from('portfolio_projects')
+        .select('id, title, views')
+        .eq('company_id', company.id)
+        .order('views', { ascending: false })
+        .limit(5)
+    : { data: [] };
+
   const services: string[] = company?.services ?? [];
   const totalViews = company?.views ?? 0;
   const totalInquiries = matchCount ?? 0;
   const totalIntent = intentCount ?? 0;
+  const projects = (topProjects ?? []).filter((p) => (p.views ?? 0) > 0);
 
   const isTh = lang === 'th';
   const t = {
@@ -49,6 +60,9 @@ export default async function ProviderOverviewPage({ params }: { params: Promise
     inquiries: isTh ? 'คำขอที่ได้รับ' : 'Broadcast Matches',
     activeServices: isTh ? 'บริการที่ใช้งาน' : 'Active Services',
     total: isTh ? 'รวม' : 'total',
+    topProjects: isTh ? 'ผลงานยอดนิยม' : 'Top Projects',
+    topProjectsSub: isTh ? 'เรียงตามยอดเข้าชม' : 'By profile views',
+    viewsUnit: isTh ? 'ครั้ง' : 'views',
     servicesLabel: isTh ? 'บริการของคุณ' : 'Your Services',
     noServices: isTh ? 'ยังไม่ได้เพิ่มบริการ' : 'No services added yet',
     noServicesSub: isTh ? 'ไปที่ My Company เพื่อเพิ่มบริการของคุณ' : 'Go to My Company to add your services',
@@ -98,6 +112,24 @@ export default async function ProviderOverviewPage({ params }: { params: Promise
           </div>
         ))}
       </div>
+
+      {/* Top projects by views */}
+      {projects.length > 0 && (
+        <div style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden', marginBottom: '24px' }}>
+          <div style={{ padding: '18px 24px', borderBottom: '1px solid #F4F5F7', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px' }}>
+            <span style={{ fontSize: '15px', fontWeight: 700, color: '#171A21' }}>{t.topProjects}</span>
+            <span style={{ fontSize: '12px', color: '#9AA0AE' }}>{t.topProjectsSub}</span>
+          </div>
+          <div style={{ padding: '8px 0' }}>
+            {projects.map((p, i) => (
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '12px 24px', borderTop: i > 0 ? '1px solid #F4F5F7' : undefined }}>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: '#171A21', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</span>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F6F73', flexShrink: 0 }}>{p.views ?? 0} <span style={{ fontWeight: 500, color: '#9AA0AE' }}>{t.viewsUnit}</span></span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Services list */}
       <div style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden' }}>

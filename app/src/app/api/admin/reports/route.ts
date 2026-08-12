@@ -75,15 +75,21 @@ async function buildCompanyReport(admin: any, today: string) {
     { data: clicks },
     { data: matches },
     { data: views },
+    { data: projects },
   ] = await Promise.all([
     admin
       .from('companies')
-      .select('id, name, name_th, claimed, source, verified, premium, plan, industry, province, views, created_at')
+      .select('id, name, name_th, claimed, source, verified, premium, plan, industry, province, views, services, created_at')
       .order('created_at', { ascending: false }),
     admin.from('contact_clicks').select('company_id, channel'),
     admin.from('broadcast_matches').select('provider_company_id'),
     admin.from('profile_views').select('company_id, created_at'),
+    admin.from('portfolio_projects').select('id, company_id, title, client, confidential, year, services, views'),
   ]);
+
+  // company id -> display name, for the portfolio tab.
+  const nameById: Record<string, string> = {};
+  for (const c of companies ?? []) nameById[c.id] = c.name ?? '';
 
   // Aggregate contact clicks per company per channel.
   const clickAgg: Record<string, Record<string, number>> = {};
@@ -159,6 +165,65 @@ async function buildCompanyReport(admin: any, today: string) {
     });
   }
   styleHeader(sheet);
+
+  // --- Tab B: Service Performance ---
+  // Demand/supply per service: how many companies offer it, how many portfolio
+  // projects deliver it, and the total portfolio views those projects earned.
+  const svcCompanies: Record<string, number> = {};
+  for (const c of companies ?? []) {
+    for (const s of c.services ?? []) svcCompanies[s] = (svcCompanies[s] ?? 0) + 1;
+  }
+  const svcProjects: Record<string, number> = {};
+  const svcViews: Record<string, number> = {};
+  for (const p of projects ?? []) {
+    for (const s of p.services ?? []) {
+      svcProjects[s] = (svcProjects[s] ?? 0) + 1;
+      svcViews[s] = (svcViews[s] ?? 0) + (p.views ?? 0);
+    }
+  }
+  const allServices = new Set<string>([...Object.keys(svcCompanies), ...Object.keys(svcProjects)]);
+  const svcSheet = wb.addWorksheet('Service Performance');
+  svcSheet.columns = [
+    { header: 'Service', key: 'service', width: 32 },
+    { header: 'Companies Offering', key: 'companies', width: 18 },
+    { header: 'Portfolio Projects', key: 'projects', width: 18 },
+    { header: 'Portfolio Views', key: 'views', width: 16 },
+  ];
+  const svcRows = Array.from(allServices).map((s) => ({
+    service: s,
+    companies: svcCompanies[s] ?? 0,
+    projects: svcProjects[s] ?? 0,
+    views: svcViews[s] ?? 0,
+  }));
+  svcRows.sort((a, b) => b.views - a.views || b.projects - a.projects || a.service.localeCompare(b.service));
+  for (const r of svcRows) svcSheet.addRow(r);
+  styleHeader(svcSheet);
+
+  // --- Tab C: Portfolio Performance ---
+  // One row per portfolio project, most-viewed first. Confidential projects
+  // never expose the client name.
+  const pfSheet = wb.addWorksheet('Portfolio Performance');
+  pfSheet.columns = [
+    { header: 'Project ID', key: 'id', width: 38 },
+    { header: 'Company', key: 'company', width: 28 },
+    { header: 'Title', key: 'title', width: 32 },
+    { header: 'Client', key: 'client', width: 22 },
+    { header: 'Year', key: 'year', width: 8 },
+    { header: 'Services', key: 'services', width: 32 },
+    { header: 'Views', key: 'views', width: 10 },
+  ];
+  const pfRows = (projects ?? []).map((p: any) => ({
+    id: p.id,
+    company: nameById[p.company_id] ?? '',
+    title: p.title ?? '',
+    client: p.confidential ? 'Confidential' : (p.client ?? ''),
+    year: p.year ?? '',
+    services: (p.services ?? []).join(', '),
+    views: p.views ?? 0,
+  }));
+  pfRows.sort((a: { views: number }, b: { views: number }) => b.views - a.views);
+  for (const r of pfRows) pfSheet.addRow(r);
+  styleHeader(pfSheet);
 
   return workbookToResponse(wb, `profindle-company-performance-${today}.xlsx`);
 }

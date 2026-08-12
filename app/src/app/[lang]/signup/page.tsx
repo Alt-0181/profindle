@@ -4,6 +4,7 @@ import { use, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { Turnstile, captchaEnabled } from '@/components/turnstile';
 
 export default function SignupPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = use(params);
@@ -19,6 +20,7 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
   const [shake, setShake] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const t = isTh ? {
@@ -57,12 +59,13 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
     e.preventDefault();
     if (form.password.length < 8) { setError(isTh ? 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' : 'Password must be at least 8 characters'); return; }
     if (form.password !== form.confirmPassword) { setError(isTh ? 'รหัสผ่านไม่ตรงกัน' : 'Passwords do not match'); return; }
+    if (captchaEnabled && !captchaToken) { setError(isTh ? 'กรุณายืนยันว่าคุณไม่ใช่บอท' : 'Please complete the verification below'); return; }
     setLoading(true);
     setError('');
     const { error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
-      options: { data: { full_name: form.name } },
+      options: { data: { full_name: form.name }, ...(captchaToken ? { captchaToken } : {}) },
     });
     if (error) { setError(error.message); setLoading(false); return; }
     setStep('verify');
@@ -199,9 +202,15 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
                   )}
                 </div>
 
+                {captchaEnabled && (
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <Turnstile onToken={setCaptchaToken} />
+                  </div>
+                )}
+
                 {error && <p style={{ fontSize: '13px', color: '#FF5A5F', margin: 0 }}>{error}</p>}
 
-                <button type="submit" disabled={loading} style={{ padding: '12px 16px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: loading ? 0.7 : 1 }}>
+                <button type="submit" disabled={loading || (captchaEnabled && !captchaToken)} style={{ padding: '12px 16px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: loading || (captchaEnabled && !captchaToken) ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: loading || (captchaEnabled && !captchaToken) ? 0.7 : 1 }}>
                   {loading ? '…' : t.btn}
                 </button>
               </div>

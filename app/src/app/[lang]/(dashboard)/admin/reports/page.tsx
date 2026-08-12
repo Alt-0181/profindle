@@ -18,8 +18,8 @@ export default async function AdminReportsPage({ params }: { params: Promise<{ l
     back: isTh ? '← กลับไปหน้าแอดมิน' : '← Back to Admin',
     r1title: isTh ? 'รายงานประสิทธิภาพบริษัท' : 'Company Performance',
     r1desc: isTh
-      ? 'หนึ่งแถวต่อหนึ่งบริษัท: ยอดเข้าชม ความสนใจติดต่อแยกตามช่องทาง งานที่จับคู่ สถานะ และช่วงวันที่เข้าชม'
-      : 'One row per company: views, contact intent by channel, broadcast matches, status, and view date range.',
+      ? 'สามแท็บ: (A) สรุปรายบริษัท — ยอดเข้าชม ความสนใจติดต่อแยกตามช่องทาง งานที่จับคู่ สถานะ ช่วงวันที่เข้าชม (B) ประสิทธิภาพบริการ (C) ประสิทธิภาพผลงาน'
+      : 'Three tabs: (A) Company Summary — views, contact intent by channel, broadcast matches, status, view date range; (B) Service Performance; (C) Portfolio Performance.',
     r2title: isTh ? 'ข้อมูลผู้ใช้และบริษัท' : 'User & Company Master',
     r2desc: isTh
       ? 'ข้อมูล CRM: บริษัททั้งหมด (พร้อมอีเมลเจ้าของ) และบัญชีผู้ใช้ทั้งหมด สองแท็บในไฟล์เดียว'
