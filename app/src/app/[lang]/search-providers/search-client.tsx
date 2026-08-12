@@ -19,6 +19,9 @@ interface SearchProvidersClientProps {
 
 type SortKey = 'relevance' | 'views' | 'az';
 
+// Cap how many provider cards render at once. Buyers page through the rest.
+const PAGE_SIZE = 100;
+
 type PortfolioProject = {
   id: string;
   title: string;
@@ -606,6 +609,7 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
   const [selectedBudget, setSelectedBudget] = useState('');
   const [budgetOpen, setBudgetOpen] = useState(false);
   const [sort, setSort] = useState<SortKey>('relevance');
+  const [page, setPage] = useState(1);
   const [drawerProvider, setDrawerProvider] = useState<Company | null>(null);
   const provinceRef = useRef<HTMLDivElement>(null);
   const budgetRef = useRef<HTMLDivElement>(null);
@@ -636,6 +640,11 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [budgetOpen]);
+
+  // Any change to the result set jumps back to the first page.
+  useEffect(() => {
+    setPage(1);
+  }, [verifiedOnly, selectedProvince, selectedBudget, sort, initialQuery, initialWhere]);
 
   const filtered = companies
     .filter(p => {
@@ -672,6 +681,20 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
       return (b.views ?? 0) - (a.views ?? 0);
     });
 
+  // Pagination — at most PAGE_SIZE cards per page. safePage guards against a
+  // stale page index after filtering shrinks the result set.
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageStart = (safePage - 1) * PAGE_SIZE;
+  const pageItems = filtered.slice(pageStart, pageStart + PAGE_SIZE);
+  const rangeStart = filtered.length === 0 ? 0 : pageStart + 1;
+  const rangeEnd = Math.min(pageStart + PAGE_SIZE, filtered.length);
+
+  const goToPage = (p: number) => {
+    setPage(p);
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif", minHeight: '100vh', background: '#F4F5F7' }}>
       <PublicNav locale={lang} dict={dict} dark={false} />
@@ -698,7 +721,15 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ fontSize: '13px', color: '#9AA0AE' }}>
-            {isTh ? 'แสดง' : 'Showing'} <strong style={{ color: '#171A21' }}>{filtered.length}</strong> {isTh ? 'ผู้ให้บริการ' : `provider${filtered.length !== 1 ? 's' : ''}`}
+            {totalPages > 1 ? (
+              <>
+                {isTh ? 'แสดง' : 'Showing'} <strong style={{ color: '#171A21' }}>{rangeStart}–{rangeEnd}</strong> {isTh ? 'จาก' : 'of'} <strong style={{ color: '#171A21' }}>{filtered.length}</strong> {isTh ? 'ผู้ให้บริการ' : `provider${filtered.length !== 1 ? 's' : ''}`}
+              </>
+            ) : (
+              <>
+                {isTh ? 'แสดง' : 'Showing'} <strong style={{ color: '#171A21' }}>{filtered.length}</strong> {isTh ? 'ผู้ให้บริการ' : `provider${filtered.length !== 1 ? 's' : ''}`}
+              </>
+            )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <button
@@ -807,7 +838,7 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
-            {filtered.map(p => {
+            {pageItems.map(p => {
               const name = isTh && p.name_th ? p.name_th : p.name;
               const desc = isTh && p.description_th ? p.description_th : p.description;
               const initial = p.logo_initial ?? (p.name ?? '??').slice(0, 2).toUpperCase();
@@ -858,6 +889,42 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
                 </Link>
               );
             })}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '28px', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => goToPage(safePage - 1)}
+              disabled={safePage === 1}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '8px 14px', borderRadius: '10px', border: '1.5px solid #E4E7ED', background: 'white', color: safePage === 1 ? '#C4CAD4' : '#444B5A', fontSize: '13px', fontWeight: 600, fontFamily: 'inherit', cursor: safePage === 1 ? 'not-allowed' : 'pointer' }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6"/></svg>
+              {isTh ? 'ก่อนหน้า' : 'Prev'}
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => {
+              const active = n === safePage;
+              return (
+                <button
+                  key={n}
+                  onClick={() => goToPage(n)}
+                  style={{ minWidth: '38px', padding: '8px 12px', borderRadius: '10px', border: `1.5px solid ${active ? '#0F6F73' : '#E4E7ED'}`, background: active ? '#0F6F73' : 'white', color: active ? 'white' : '#444B5A', fontSize: '13px', fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}
+                >
+                  {n}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => goToPage(safePage + 1)}
+              disabled={safePage === totalPages}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '8px 14px', borderRadius: '10px', border: '1.5px solid #E4E7ED', background: 'white', color: safePage === totalPages ? '#C4CAD4' : '#444B5A', fontSize: '13px', fontWeight: 600, fontFamily: 'inherit', cursor: safePage === totalPages ? 'not-allowed' : 'pointer' }}
+            >
+              {isTh ? 'ถัดไป' : 'Next'}
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
           </div>
         )}
 
