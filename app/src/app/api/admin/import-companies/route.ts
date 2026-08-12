@@ -38,10 +38,12 @@ export async function POST(request: NextRequest) {
 
   const admin = getAdmin();
 
-  // Existing names + websites, to skip duplicates (and avoid re-import dupes).
-  const { data: existing } = await admin.from('companies').select('name, website');
+  // Existing names + websites + DBD numbers, to skip duplicates (and avoid
+  // re-import dupes). DBD number is the strongest dedup signal when present.
+  const { data: existing } = await admin.from('companies').select('name, website, dbd_no');
   const seenNames = new Set((existing ?? []).map((c: any) => (c.name ?? '').trim().toLowerCase()).filter(Boolean));
   const seenSites = new Set((existing ?? []).map((c: any) => c.website ? normWebsite(c.website) : '').filter(Boolean));
+  const seenDbd = new Set((existing ?? []).map((c: any) => (c.dbd_no ?? '').replace(/\D/g, '')).filter(Boolean));
 
   const rows: any[] = [];
   const invalid: string[] = [];
@@ -55,9 +57,12 @@ export async function POST(request: NextRequest) {
 
     const nameKey = name.toLowerCase();
     const siteKey = c?.website ? normWebsite(String(c.website)) : '';
-    if (seenNames.has(nameKey) || (siteKey && seenSites.has(siteKey))) { skipped.push(name); continue; }
+    const dbdKey = c?.dbd_no ? String(c.dbd_no).replace(/\D/g, '') : '';
+    const dbdValid = /^\d{13}$/.test(dbdKey) ? dbdKey : '';
+    if (seenNames.has(nameKey) || (siteKey && seenSites.has(siteKey)) || (dbdValid && seenDbd.has(dbdValid))) { skipped.push(name); continue; }
     seenNames.add(nameKey);
     if (siteKey) seenSites.add(siteKey);
+    if (dbdValid) seenDbd.add(dbdValid);
 
     // Map services to the canonical catalog; drop (and report) unknown ones.
     const services: string[] = [];
@@ -91,6 +96,7 @@ export async function POST(request: NextRequest) {
       founded_year: Number.isFinite(Number(c?.founded_year)) && c?.founded_year ? Number(c.founded_year) : null,
       team_size: c?.team_size ?? null,
       logo_initial: (c?.logo_initial ?? name.slice(0, 2)).toUpperCase(),
+      dbd_no: dbdValid || null,             // 13-digit DBD juristic-person number (verified upstream)
       claimed: false,
       source: 'seeded',
       source_url: c?.source_url ?? null,    // provenance: where this listing was found

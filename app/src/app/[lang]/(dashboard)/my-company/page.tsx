@@ -40,6 +40,7 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
     website: company.website ?? '',
     phone: company.phone ?? '',
     emailPublic: company.email ?? '',
+    dbdNo: company.dbd_no ?? '',
     lineIdType: lineIdParsed.lineIdType,
     lineIdValue: lineIdParsed.lineIdValue,
     dbdCertPath: company.dbd_certificate_url ?? null,

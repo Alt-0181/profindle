@@ -56,7 +56,7 @@ interface MyCompanyFormProps {
     nameEn: string; nameTh: string; descEn: string; descTh: string;
     province: string; address: string;
     teamSize: string; foundedYear: string; website: string;
-    phone: string; emailPublic: string;
+    phone: string; emailPublic: string; dbdNo: string;
     lineIdType: 'oa' | 'id' | 'phone'; lineIdValue: string;
     dbdCertPath: string | null; dbdCertName: string | null;
     services: string[];
@@ -71,7 +71,7 @@ const EMPTY = {
   nameEn: '', nameTh: '', descEn: '', descTh: '',
   province: '', address: '',
   teamSize: '', foundedYear: '', website: '',
-  phone: '', emailPublic: '', lineIdType: 'id' as 'oa' | 'id' | 'phone', lineIdValue: '',
+  phone: '', emailPublic: '', dbdNo: '', lineIdType: 'id' as 'oa' | 'id' | 'phone', lineIdValue: '',
   buyerOnly: false,
 };
 
@@ -333,6 +333,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         nameEn: d.nameEn ?? '', nameTh: d.nameTh ?? '', descEn: d.descEn ?? '', descTh: d.descTh ?? '',
         province: d.province ?? '', address: d.address ?? '', teamSize: d.teamSize ?? '',
         foundedYear: d.foundedYear ?? '', phone: d.phone ?? '', emailPublic: d.emailPublic ?? '',
+        dbdNo: d.dbdNo ?? '',
         website: url,
       };
       const nextForm = { ...form } as Record<string, unknown>;
@@ -400,6 +401,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         website: website || null,
         phone: form.phone || null,
         email: form.emailPublic || null,
+        dbd_no: form.dbdNo ? form.dbdNo.replace(/\D/g, '') : null,
         line_id: form.lineIdValue ? `${form.lineIdType}:${form.lineIdValue.trim()}` : null,
         buyer_only: form.buyerOnly,
         ...(dbdPath ? { dbd_certificate_url: dbdPath, dbd_certificate_name: uploadFile?.name ?? initialData?.dbdCertName ?? null } : {}),
@@ -837,6 +839,27 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
           <div>
             <label style={labelStyle}>{t.foundedYear}</label>
             <input type="number" value={form.foundedYear} onChange={(e) => set('foundedYear', e.target.value)} min={1900} max={2026} style={inputStyle} placeholder="2020" />
+          </div>
+        </div>
+
+        {/* DBD registration number — optional, usually auto-filled from the website */}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={labelStyle}>
+            {lang === 'th' ? 'เลขทะเบียนนิติบุคคล (DBD)' : 'DBD registration number'}
+            <span style={{ color: '#9AA0AE', fontWeight: 400 }}> · {lang === 'th' ? 'ไม่บังคับ' : 'optional'}</span>
+          </label>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={form.dbdNo}
+            onChange={(e) => set('dbdNo', e.target.value.replace(/[^\d]/g, '').slice(0, 13))}
+            style={inputStyle}
+            placeholder={lang === 'th' ? 'เลข 13 หลัก' : '13-digit number'}
+          />
+          <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '6px', lineHeight: 1.6 }}>
+            {lang === 'th'
+              ? 'เลข 13 หลักของบริษัท มักเติมให้อัตโนมัติเมื่อกรอกจากเว็บไซต์ ไม่ต้องจำ ปล่อยว่างได้ถ้าไม่ทราบ'
+              : 'Your 13-digit company number. Usually filled automatically from your website — no need to memorize it. Leave blank if unknown.'}
           </div>
         </div>
 
