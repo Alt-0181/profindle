@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { isExcludedViewer } from '@/lib/analytics-exclude';
 
 // 'reveal' = buyer tapped "View contact" (interest signal). The rest = which
 // channel they then used.
@@ -14,6 +15,9 @@ export async function POST(request: NextRequest) {
     if (!companyId || !CHANNELS.has(channel)) {
       return NextResponse.json({ ok: false }, { status: 400 });
     }
+
+    // Don't count testing / super-admin / self activity.
+    if (await isExcludedViewer(companyId)) return NextResponse.json({ ok: true, skipped: true });
     const admin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
