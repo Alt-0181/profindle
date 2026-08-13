@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { Turnstile, captchaEnabled } from '@/components/turnstile';
 
 export default function ForgotPasswordPage() {
   const params = useParams();
@@ -13,6 +14,7 @@ export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [captchaToken, setCaptchaToken] = useState('');
 
   const t = {
     forgotTitle: lang === 'th' ? 'รีเซ็ตรหัสผ่าน' : 'Reset your password',
@@ -29,12 +31,17 @@ export default function ForgotPasswordPage() {
 
   async function handleSendReset() {
     if (!email) return;
+    if (captchaEnabled && !captchaToken) {
+      setError(lang === 'th' ? 'กรุณายืนยันว่าคุณไม่ใช่บอท' : 'Please complete the verification below');
+      return;
+    }
     setLoading(true);
     setError('');
     const supabase = createClient();
     const origin = process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
     const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${origin}/${lang}/reset-password`,
+      ...(captchaToken ? { captchaToken } : {}),
     });
     setLoading(false);
     if (err) { setError(err.message); return; }
@@ -97,17 +104,28 @@ export default function ForgotPasswordPage() {
                 />
               </div>
 
+              {captchaEnabled && (
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+                  <Turnstile onToken={setCaptchaToken} />
+                </div>
+              )}
+
               {error && (
                 <p style={{ fontSize: '13px', color: '#E04347', marginBottom: '12px' }}>{error}</p>
               )}
 
-              <button
-                onClick={handleSendReset}
-                disabled={!email || loading}
-                style={{ width: '100%', padding: '14px', background: email && !loading ? 'linear-gradient(135deg, #0F6F73, #1A9DA3)' : '#E4E7ED', color: email && !loading ? 'white' : '#9AA0AE', fontWeight: 700, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: email && !loading ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'all 150ms' }}
-              >
-                {loading ? (lang === 'th' ? 'กำลังส่ง...' : 'Sending...') : t.sendResetBtn}
-              </button>
+              {(() => {
+                const ready = email && !loading && (!captchaEnabled || captchaToken);
+                return (
+                  <button
+                    onClick={handleSendReset}
+                    disabled={!ready}
+                    style={{ width: '100%', padding: '14px', background: ready ? 'linear-gradient(135deg, #0F6F73, #1A9DA3)' : '#E4E7ED', color: ready ? 'white' : '#9AA0AE', fontWeight: 700, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: ready ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'all 150ms' }}
+                  >
+                    {loading ? (lang === 'th' ? 'กำลังส่ง...' : 'Sending...') : t.sendResetBtn}
+                  </button>
+                );
+              })()}
 
               <div style={{ marginTop: '24px', textAlign: 'center' }}>
                 <Link href={`/${lang}/login`} style={{ fontSize: '13px', color: '#0F6F73', fontWeight: 600, textDecoration: 'none' }}>
