@@ -51,6 +51,13 @@ export default function LoginPage({ params }: { params: Promise<{ lang: string }
     setError('');
     const { error } = await supabase.auth.signInWithPassword({ email, password, ...(captchaToken ? { options: { captchaToken } } : {}) });
     if (error) {
+      // A captcha/verification failure is NOT a wrong password — surface it as
+      // its own error so it doesn't masquerade as "Incorrect password".
+      if ((error.message ?? '').toLowerCase().includes('captcha')) {
+        setError(lang === 'th' ? 'การยืนยันตัวตนล้มเหลว กรุณารีเฟรชหน้าแล้วลองใหม่' : 'Verification failed. Please refresh the page and try again.');
+        setLoading(false);
+        return;
+      }
       try {
         const res = await fetch('/api/auth/check-email', {
           method: 'POST',
