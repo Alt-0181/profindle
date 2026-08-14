@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import type { Dictionary } from '@/dictionaries';
 import { PublicNav } from '@/components/layout/public-nav';
@@ -615,6 +615,24 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
   const provinceRef = useRef<HTMLDivElement>(null);
   const budgetRef = useRef<HTMLDivElement>(null);
 
+  // Fair within-tier ordering. Instead of always showing providers in upload
+  // order, each visit gets a random order *within* each tier — so everyone in a
+  // tier gets equal exposure over time. Seed starts at 0 (deterministic, so the
+  // server render and first client render match — no hydration mismatch), then
+  // randomises after mount so the order varies per visit.
+  const [shuffleSeed, setShuffleSeed] = useState(0);
+  useEffect(() => { setShuffleSeed(Math.random()); }, []);
+  const randKey = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const c of companies) {
+      let h = 2166136261;
+      const s = `${c.id}:${shuffleSeed}`;
+      for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+      m.set(c.id, h >>> 0);
+    }
+    return m;
+  }, [companies, shuffleSeed]);
+
   const BUDGET_RANGES = [
     'Under ฿50,000',
     '฿50,000 – 100,000',
@@ -671,15 +689,17 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
       return true;
     })
     .sort((a, b) => {
-      // Claimed always outranks unclaimed (in every sort mode), so a seeded
-      // famous name with lots of curious views can't bury real claimed SMEs.
-      const ac = a.claimed !== false, bc = b.claimed !== false;
-      if (ac !== bc) return ac ? -1 : 1;
+      // Tier hierarchy is ALWAYS enforced first (in every sort mode):
+      //   0 = Premium, 1 = Free (claimed), 2 = Unclaimed.
+      // So a seeded famous name can never bury a real claimed SME.
+      const tier = (c: Company) => (c.claimed === false ? 2 : c.premium ? 0 : 1);
+      const ta = tier(a), tb = tier(b);
+      if (ta !== tb) return ta - tb;
+      // Within the same tier: honour an explicit sort choice, otherwise shuffle
+      // so exposure rotates fairly instead of favouring upload order.
       if (sort === 'views') return (b.views ?? 0) - (a.views ?? 0);
       if (sort === 'az') return (a.name ?? '').localeCompare(b.name ?? '');
-      if (b.premium !== a.premium) return b.premium ? 1 : -1;
-      if (b.verified !== a.verified) return b.verified ? 1 : -1;
-      return (b.views ?? 0) - (a.views ?? 0);
+      return (randKey.get(a.id) ?? 0) - (randKey.get(b.id) ?? 0);
     });
 
   // Pagination — at most PAGE_SIZE cards per page. safePage guards against a
