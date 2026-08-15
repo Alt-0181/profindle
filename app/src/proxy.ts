@@ -4,12 +4,6 @@ import type { NextRequest } from 'next/server';
 const locales = ['th', 'en'];
 const defaultLocale = 'th';
 
-function getLocale(request: NextRequest): string {
-  const acceptLang = request.headers.get('accept-language') || '';
-  const preferred = acceptLang.split(',')[0].split('-')[0].toLowerCase();
-  return locales.includes(preferred) ? preferred : defaultLocale;
-}
-
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -30,9 +24,9 @@ export function proxy(request: NextRequest) {
 
   if (pathnameHasLocale) return NextResponse.next();
 
-  // Redirect to locale
-  const locale = getLocale(request);
-  request.nextUrl.pathname = `/${locale}${pathname}`;
+  // Thai-first: un-prefixed URLs always land on the Thai version. English is
+  // reachable via the EN/TH toggle (which navigates to the /en path directly).
+  request.nextUrl.pathname = `/${defaultLocale}${pathname}`;
   return NextResponse.redirect(request.nextUrl);
 }
 
