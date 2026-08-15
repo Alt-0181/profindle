@@ -343,8 +343,9 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
                   <p style={{ fontSize: '13px', color: '#9AA0AE', marginBottom: '4px' }}>
                     {lang === 'th' ? 'รับการแจ้งเตือน Broadcast ทันทีผ่าน LINE' : 'Get instant broadcast notifications on LINE'}
                   </p>
-                  <p style={{ fontSize: '12px', color: '#C8CDD7', marginBottom: '24px' }}>
-                    {lang === 'th' ? '(หากทำการเชื่อมต่อบน Desktop กรุณา Log In LINE ก่อน)' : '(If connecting on Desktop, please log in to LINE first)'}
+                  <p style={{ fontSize: '12.5px', color: '#E06B00', fontWeight: 600, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E06B00" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M12 9v4" /><path d="M12 17h.01" /><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /></svg>
+                    {lang === 'th' ? 'หากเชื่อมต่อบนคอมพิวเตอร์ กรุณาล็อกอิน LINE บนเบราว์เซอร์ก่อน' : 'If connecting on Desktop, log in to LINE in your browser first'}
                   </p>
 
                   {/* Primary: LINE OAuth button */}
@@ -381,7 +382,7 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: showManual ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }}>
                       <polyline points="6 9 12 15 18 9" />
                     </svg>
-                    {lang === 'th' ? 'กรอก LINE User ID ด้วยตัวเอง (สำหรับผู้ใช้เดสก์ท็อป)' : "Can't use the button? Enter your LINE User ID manually"}
+                    {lang === 'th' ? 'ยังไม่ได้ล็อกอิน LINE? นี่คืออีกวิธีที่ทำได้' : "Not logged in to LINE? Here's another way you can do it"}
                   </button>
 
                   {showManual && (

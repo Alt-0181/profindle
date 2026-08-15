@@ -135,10 +135,13 @@ export function makeBroadcastFlexMessage(broadcast: {
   };
 }
 
-export function makeWelcomeMessage(lineUserId: string): object {
+// Pushed right after a provider successfully connects their LINE account
+// (OAuth or manual). They are already linked, so this is a confirmation — not
+// linking instructions.
+export function makeConnectedMessage(): object {
   return {
     type: 'text',
-    text: `Welcome to Profindle! 🎉\n\nYou'll receive broadcast notifications here when clients post requests matching your services.\n\nTo link your account:\n1. Go to Profindle → Settings → LINE Connect\n2. Enter your LINE User ID below\n\nYour LINE User ID:\n${lineUserId}`,
+    text: `✅ เชื่อมต่อ LINE กับ Profindle สำเร็จแล้ว!\n\nจากนี้คุณจะได้รับแจ้งเตือนที่นี่ทันที เมื่อมีลูกค้าโพสต์งานที่ตรงกับบริการของคุณ\n\nพิมพ์ "status" เพื่อดูสถานะแพ็กเกจของคุณได้ทุกเมื่อ\n\n—\n\n✅ Your LINE is now connected to Profindle!\n\nYou'll get an instant alert here whenever a client posts a request matching your services.\n\nType "status" anytime to check your plan.`,
   };
 }
 
@@ -162,6 +165,6 @@ export function makeVipStatusMessage(plan: string | null, planExpiresAt: string 
   }
   return {
     type: 'text',
-    text: `📋 แพ็กเกจฟรี / Free Plan\n\nอัปเกรดเป็น Premium เพื่อ:\n• แสดงก่อนใครในผลการค้นหา (Priority)\n• เพิ่มจำนวนผลงาน\n• ได้รับการแจ้งเตือน Real Time ผ่าน Line\n\n🎁 Early Bird: ใช้ Premium ฟรีถึง 31 ธ.ค. 2026\nอัปเกรดที่ Profindle → แพ็กเกจ\n\nUpgrade to Premium for:\n• Priority placement\n• Unlimited portfolio showcases\n• Real-time notification via Line\n\n🎁 Early Bird: Premium free until 31 Dec 2026.\nUpgrade at Profindle → Package.`,
+    text: `📋 แพ็กเกจฟรี / Free Plan\n\nอัปเกรดเป็น Premium เพื่อ:\n• แสดงก่อนใครในผลการค้นหา (Priority)\n• เพิ่มจำนวนผลงาน\n• ได้รับการแจ้งเตือน Real Time ผ่าน Line\n\n🎁 Early Bird: ใช้ Premium ฟรีถึง 31 มี.ค. 2570\nอัปเกรดที่ Profindle → แพ็กเกจ\n\nUpgrade to Premium for:\n• Priority placement\n• Unlimited portfolio showcases\n• Real-time notification via Line\n\n🎁 Early Bird: Premium free until 31 Mar 2027.\nUpgrade at Profindle → Package.`,
   };
 }

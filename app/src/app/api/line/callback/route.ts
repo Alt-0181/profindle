@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { pushMessage, makeWelcomeMessage } from '@/lib/line';
+import { pushMessage, makeConnectedMessage } from '@/lib/line';
 import { notifyAdmin } from '@/lib/notify';
 
 export async function GET(request: NextRequest) {
@@ -72,8 +72,8 @@ export async function GET(request: NextRequest) {
 
   const companyName = company?.name ?? user.email ?? 'Unknown';
 
-  // Send welcome push to provider (best-effort)
-  try { await pushMessage(lineUserId, [makeWelcomeMessage(lineUserId)]); } catch {}
+  // Confirm the connection to the provider (best-effort)
+  try { await pushMessage(lineUserId, [makeConnectedMessage()]); } catch {}
 
   // Notify admin
   await notifyAdmin(

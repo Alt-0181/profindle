@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { verifyLineSignature, replyMessage, makeWelcomeMessage, makeUidReplyMessage, makeVipStatusMessage } from '@/lib/line';
+import { verifyLineSignature, replyMessage, makeUidReplyMessage, makeVipStatusMessage } from '@/lib/line';
 
 function adminClient() {
   return createClient(
@@ -8,6 +8,33 @@ function adminClient() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { persistSession: false } }
   );
+}
+
+// Greeting sent when someone adds the Profindle LINE OA as a friend.
+// The live text is editable from Super Admin → LINE Templates → Welcome Message
+// (the 'welcome' row in line_message_templates). This constant is only the
+// fallback used if that row is missing or empty.
+const DEFAULT_WELCOME =
+  'ยินดีต้อนรับสู่ Profindle! 🎉\n\n' +
+  'เมื่อบัญชีของคุณเชื่อมต่อแล้ว คุณจะได้รับแจ้งเตือนที่นี่ทันที เมื่อมีลูกค้าโพสต์งานที่ตรงกับบริการของคุณ\n\n' +
+  'พิมพ์ "status" เพื่อดูสถานะแพ็กเกจและรหัสผู้ใช้ (User ID) ของคุณได้ทุกเมื่อ\n\n' +
+  '—\n\n' +
+  'Welcome to Profindle! 🎉\n\n' +
+  'Once your account is linked, you\'ll get an instant alert here whenever a client posts a request matching your services.\n\n' +
+  'Type "status" anytime to see your plan and your User ID.';
+
+async function getWelcomeText(): Promise<string> {
+  try {
+    const { data } = await adminClient()
+      .from('line_message_templates')
+      .select('content')
+      .eq('id', 'welcome')
+      .maybeSingle();
+    const content = (data as { content?: string } | null)?.content?.trim();
+    return content || DEFAULT_WELCOME;
+  } catch {
+    return DEFAULT_WELCOME;
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -34,7 +61,7 @@ async function handleEvent(event: any) {
   const userId: string | undefined = event.source?.userId;
 
   if (event.type === 'follow' && event.replyToken && userId) {
-    await replyMessage(event.replyToken, [makeWelcomeMessage(userId)]);
+    await replyMessage(event.replyToken, [{ type: 'text', text: await getWelcomeText() }]);
     return;
   }
 
@@ -59,7 +86,9 @@ async function handleEvent(event: any) {
         .maybeSingle();
       const plan = (company as any)?.premium ? 'premium' : 'free';
       const planExpiresAt = (company as any)?.plan_expires_at ?? null;
-      await replyMessage(event.replyToken, [makeVipStatusMessage(plan, planExpiresAt)]);
+      // Also return the User ID here so the manual-connect flow ("send status to
+      // get your User ID") keeps working now that the greeting no longer prints it.
+      await replyMessage(event.replyToken, [makeVipStatusMessage(plan, planExpiresAt), makeUidReplyMessage(userId)]);
       return;
     }
   }

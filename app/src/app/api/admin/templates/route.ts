@@ -21,7 +21,7 @@ const DEFAULT_TEMPLATES = [
   {
     id: 'welcome',
     name: 'Welcome Message',
-    content: "🎉 Welcome to Profindle! Your LINE account is now connected. You'll receive instant notifications for broadcast requests.",
+    content: "ยินดีต้อนรับสู่ Profindle! 🎉\n\nเมื่อบัญชีของคุณเชื่อมต่อแล้ว คุณจะได้รับแจ้งเตือนที่นี่ทันที เมื่อมีลูกค้าโพสต์งานที่ตรงกับบริการของคุณ\n\nพิมพ์ \"status\" เพื่อดูสถานะแพ็กเกจและรหัสผู้ใช้ (User ID) ของคุณได้ทุกเมื่อ\n\n—\n\nWelcome to Profindle! 🎉\n\nOnce your account is linked, you'll get an instant alert here whenever a client posts a request matching your services.\n\nType \"status\" anytime to see your plan and your User ID.",
   },
   {
     id: 'verified',
