@@ -752,6 +752,11 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
           <div style={{ maxWidth: '640px', margin: '0 auto', textAlign: 'left' }}>
             <SearchCard lang={lang} initialService={initialQuery} initialInfo={initialWhere} />
           </div>
+          <div style={{ textAlign: 'center', marginTop: '16px' }}>
+            <Link href={`/${lang}/services`} style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontWeight: 500 }}>
+              {isTh ? 'เรียกดูบริการทั้งหมด →' : 'Browse all services →'}
+            </Link>
+          </div>
         </div>
       </div>
 
