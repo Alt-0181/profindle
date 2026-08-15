@@ -79,16 +79,25 @@ async function handleEvent(event: any) {
     }
 
     if (/^(status|สถานะ)$/i.test(text)) {
-      const { data: company } = await adminClient()
+      // premium_until (Early Bird expiry) is the source of truth; fall back to
+      // plan_expires_at. Query is resilient if premium_until isn't migrated yet.
+      let { data: company, error } = await adminClient()
         .from('companies')
-        .select('premium, plan_expires_at')
+        .select('premium, premium_until, plan_expires_at')
         .eq('line_user_id', userId)
         .maybeSingle();
+      if (error) {
+        ({ data: company } = await adminClient()
+          .from('companies')
+          .select('premium, plan_expires_at')
+          .eq('line_user_id', userId)
+          .maybeSingle());
+      }
       const plan = (company as any)?.premium ? 'premium' : 'free';
-      const planExpiresAt = (company as any)?.plan_expires_at ?? null;
+      const expiry = (company as any)?.premium_until ?? (company as any)?.plan_expires_at ?? null;
       // Also return the User ID here so the manual-connect flow ("send status to
       // get your User ID") keeps working now that the greeting no longer prints it.
-      await replyMessage(event.replyToken, [makeVipStatusMessage(plan, planExpiresAt), makeUidReplyMessage(userId)]);
+      await replyMessage(event.replyToken, [makeVipStatusMessage(plan, expiry), makeUidReplyMessage(userId)]);
       return;
     }
   }
