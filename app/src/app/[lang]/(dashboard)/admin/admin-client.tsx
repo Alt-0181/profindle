@@ -1530,12 +1530,21 @@ export function AdminClient({ companies, users, broadcasts, earlyBirdClaims, lan
           <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>Super Admin Panel</h1>
           <p style={{ fontSize: '13px', color: '#9AA0AE' }}>Manage all aspects of the Profindle platform</p>
         </div>
-        <a
-          href={`/${_lang}/admin/reports`}
-          style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '13px', borderRadius: '12px', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}
-        >
-          📊 Reports
-        </a>
+        <div style={{ display: 'flex', gap: '10px', flexShrink: 0, flexWrap: 'wrap' }}>
+          <a
+            href={`/${_lang}/broadcast-request`}
+            title="Post a broadcast as Profindle — for testing and live demos (no company or 4/month limit)"
+            style={{ padding: '10px 20px', background: 'white', color: '#F77F00', fontWeight: 600, fontSize: '13px', borderRadius: '12px', textDecoration: 'none', whiteSpace: 'nowrap', border: '1.5px solid rgba(247,127,0,0.4)' }}
+          >
+            📣 Test broadcast
+          </a>
+          <a
+            href={`/${_lang}/admin/reports`}
+            style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '13px', borderRadius: '12px', textDecoration: 'none', whiteSpace: 'nowrap' }}
+          >
+            📊 Reports
+          </a>
+        </div>
       </div>
 
       {/* Tab bar */}
