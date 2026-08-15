@@ -1347,16 +1347,39 @@ function ClaimsTab({ companies: initial }: { companies: Company[] }) {
     }
   };
 
-  const pending = companies.filter(c => !c.verified && c.dbd_certificate_url);
+  const unverify = async (companyId: string) => {
+    setLoading(companyId);
+    try {
+      const res = await fetch('/api/admin/companies', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companyId, field: 'verified', value: false }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setCompanies(prev => prev.map(c => c.id === companyId ? { ...c, verified: false } : c));
+    } catch {
+      alert('Action failed. Please try again.');
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  // Only companies that went through the claim/upload flow (have a doc) belong here.
+  const withDoc = companies.filter(c => c.dbd_certificate_url);
+  const pending = withDoc.filter(c => !c.verified);
+  const verified = withDoc.filter(c => c.verified);
 
   return (
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '14px', marginBottom: '24px' }}>
         <KpiCard label="Awaiting Verification" value={pending.length} warn={pending.length > 0} />
+        <KpiCard label="Verified" value={verified.length} />
       </div>
+
+      {/* ── Awaiting verification ─────────────────────────────────────────── */}
       <div style={card}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #F4F5F7' }}>
-          <span style={{ fontSize: '15px', fontWeight: 700, color: '#171A21' }}>Claim Requests</span>
+          <span style={{ fontSize: '15px', fontWeight: 700, color: '#171A21' }}>Awaiting Verification</span>
           <span style={{ fontSize: '13px', color: '#9AA0AE', marginLeft: '8px' }}>Providers who claimed their profile and uploaded a registration document. Verify to grant the Verified badge.</span>
         </div>
         <div style={{ overflowX: 'auto' }}>
@@ -1393,6 +1416,50 @@ function ClaimsTab({ companies: initial }: { companies: Company[] }) {
           </table>
         </div>
       </div>
+
+      {/* ── Verified (kept for tracking) ──────────────────────────────────── */}
+      <div style={{ ...card, marginTop: '20px' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #F4F5F7' }}>
+          <span style={{ fontSize: '15px', fontWeight: 700, color: '#171A21' }}>Verified</span>
+          <span style={{ fontSize: '13px', color: '#9AA0AE', marginLeft: '8px' }}>Companies you have already verified. Undo if a document was approved by mistake.</span>
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '520px' }}>
+            <thead>
+              <tr style={{ background: '#F4F5F7' }}>
+                {['Company', 'Owner Email', 'Document', 'Joined', 'Status'].map(col => <th key={col} style={thStyle}>{col}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {verified.length === 0 ? (
+                <tr><td colSpan={5} style={{ padding: '48px', textAlign: 'center', color: '#9AA0AE', fontSize: '14px' }}>No verified companies yet</td></tr>
+              ) : verified.map((c, i) => (
+                <tr key={c.id} style={{ borderTop: i > 0 ? '1px solid #F4F5F7' : undefined }}>
+                  <td style={tdStyle}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#171A21' }}>{c.name}</div>
+                    {c.name_th && <div style={{ fontSize: '11px', color: '#9AA0AE' }}>{c.name_th}</div>}
+                  </td>
+                  <td style={{ ...tdStyle, fontSize: '13px', color: '#444B5A' }}>{c.user_email || '—'}</td>
+                  <td style={tdStyle}>
+                    {c.dbd_certificate_url
+                      ? <button onClick={() => openAdminDoc(c.dbd_certificate_url)} style={{ fontSize: '12px', color: '#0F6F73', fontWeight: 600, textDecoration: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>View document →</button>
+                      : <span style={{ fontSize: '12px', color: '#9AA0AE' }}>No document</span>}
+                  </td>
+                  <td style={{ ...tdStyle, fontSize: '12px', color: '#9AA0AE' }}>{fmt(c.created_at)}</td>
+                  <td style={tdStyle}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 700, color: '#0F6F73', background: 'rgba(15,111,115,0.09)', borderRadius: '999px', padding: '3px 10px' }}>✓ Verified</span>
+                      <button onClick={() => unverify(c.id)} disabled={loading === c.id} style={{ fontSize: '12px', color: '#9AA0AE', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit', textDecoration: 'underline', opacity: loading === c.id ? 0.6 : 1 }}>
+                        {loading === c.id ? '…' : 'Undo'}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1405,7 +1472,7 @@ function RequestsHub({ broadcasts, earlyBirdClaims, companies }: { broadcasts: B
   const pendingEB = earlyBirdClaims.filter(c => c.status === 'pending').length;
   const SUBS: { id: 'broadcast' | 'claim' | 'earlybird'; label: string; badge: number }[] = [
     { id: 'broadcast', label: 'Broadcast', badge: 0 },
-    { id: 'claim', label: 'Claim', badge: pendingClaims },
+    { id: 'claim', label: 'Verification', badge: pendingClaims },
     { id: 'earlybird', label: 'Early Bird', badge: pendingEB },
   ];
   return (
