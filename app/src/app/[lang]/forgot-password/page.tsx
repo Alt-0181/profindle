@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
     backToLogin: lang === 'th' ? 'กลับไปเข้าสู่ระบบ' : 'Back to sign in',
     sentTitle: lang === 'th' ? 'ตรวจสอบอีเมลของคุณ' : 'Check your email',
     sentSub: lang === 'th' ? 'เราส่งลิงก์รีเซ็ตไปที่' : 'We sent a reset link to',
-    leftQuote: lang === 'th' ? 'วิธีที่ฉลาดที่สุดในการหาพันธมิตรทางธุรกิจในไทย' : "Thailand's smartest way to find business partners",
+    leftQuote: lang === 'th' ? 'แพลตฟอร์มรวมผู้ให้บริการแห่งใหม่ของไทย' : "Thailand's new platform for service providers",
     leftTagline: lang === 'th' ? 'ไม่มีรหัสผ่าน เราส่งรหัสแบบครั้งเดียวทางอีเมล' : 'No passwords. We send a one-time code to your email.',
   };
 

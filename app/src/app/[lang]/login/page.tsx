@@ -15,7 +15,7 @@ const DICT = {
     signInBtn: 'Sign in',
     noAccount: "Don't have an account?", signUpLink: 'Sign up',
     forgotPw: 'Forgot password?',
-    leftTagline: 'Connect Thai businesses with verified B2B service providers.',
+    leftTagline: 'Helping businesses find the right provider, fast.',
     badge1: '400+ services', badge2: 'Verified companies', badge3: 'Free to join',
   },
   th: {
@@ -26,7 +26,7 @@ const DICT = {
     signInBtn: 'เข้าสู่ระบบ',
     noAccount: 'ยังไม่มีบัญชี?', signUpLink: 'สมัครสมาชิก',
     forgotPw: 'ลืมรหัสผ่าน?',
-    leftTagline: 'เชื่อมต่อธุรกิจไทยกับผู้ให้บริการ B2B ที่ผ่านการตรวจสอบ',
+    leftTagline: 'ช่วยให้ธุรกิจเจอผู้ให้บริการที่ใช่ ได้อย่างรวดเร็ว',
     badge1: 'มากกว่า 400 บริการ', badge2: 'บริษัทที่ยืนยันแล้ว', badge3: 'สมัครฟรี',
   },
 };
@@ -111,8 +111,8 @@ export default function LoginPage({ params }: { params: Promise<{ lang: string }
           </Link>
           <blockquote style={{ fontSize: '24px', fontWeight: 700, color: 'white', lineHeight: 1.4, letterSpacing: '-0.02em', maxWidth: '380px', marginTop: '40px' }}>
             {lang === 'en'
-              ? <>Thailand's <span style={{ color: '#F77F00' }}>smartest</span> way to find business partners</>
-              : <>วิธี<span style={{ color: '#F77F00' }}>อัจฉริยะที่สุด</span>ในการหาพันธมิตรทางธุรกิจของไทย</>}
+              ? <>Thailand's <span style={{ color: '#F77F00' }}>new</span> platform for service providers</>
+              : <>แพลตฟอร์มรวมผู้ให้บริการ<span style={{ color: '#F77F00' }}>แห่งใหม่</span>ของไทย</>}
           </blockquote>
           <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginTop: '16px' }}>{t.leftTagline}</p>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '32px' }}>

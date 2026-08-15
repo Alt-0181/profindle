@@ -44,8 +44,8 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
     verifySub: 'เราส่งรหัสยืนยันไปยัง',
     otpLabel: 'รหัสยืนยัน', verifyBtn: 'ยืนยัน & สร้างบัญชี',
     backBtn: 'กลับ',
-    leftQuote: 'วิธีอัจฉริยะที่สุดในการหาพันธมิตรทางธุรกิจของไทย',
-    leftTagline: 'เชื่อมต่อธุรกิจไทยกับผู้ให้บริการ B2B ที่ผ่านการตรวจสอบ',
+    leftQuote: 'แพลตฟอร์มรวมผู้ให้บริการแห่งใหม่ของไทย',
+    leftTagline: 'ช่วยให้ธุรกิจเจอผู้ให้บริการที่ใช่ ได้อย่างรวดเร็ว',
   } : {
     title: 'Create your account',
     sub: 'Join Profindle — free, no credit card required',
@@ -59,8 +59,8 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
     verifySub: 'We sent a verification code to',
     otpLabel: 'Verification code', verifyBtn: 'Verify & create account',
     backBtn: 'Back',
-    leftQuote: "Thailand's smartest way to find business partners",
-    leftTagline: 'Connect Thai businesses with verified B2B service providers.',
+    leftQuote: "Thailand's new platform for service providers",
+    leftTagline: 'Helping businesses find the right provider, fast.',
   };
 
   const handleRegister = async (e: React.FormEvent) => {

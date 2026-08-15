@@ -90,7 +90,7 @@ export default function ResetPasswordPage() {
             <img src="/assets/logo-white.svg" alt="Profindle" style={{ height: '32px', width: 'auto', marginBottom: '48px' }} />
           </Link>
           <h2 style={{ fontSize: '30px', fontWeight: 700, color: 'white', lineHeight: 1.3, marginBottom: '16px' }}>
-            {isTh ? 'วิธีที่ฉลาดที่สุดในการหาพันธมิตรทางธุรกิจในไทย' : "Thailand's smartest way to find business partners"}
+            {isTh ? 'แพลตฟอร์มรวมผู้ให้บริการแห่งใหม่ของไทย' : "Thailand's new platform for service providers"}
           </h2>
           <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.6 }}>
             {isTh ? 'ค้นหา ติดต่อ และทำงานร่วมกับผู้ให้บริการที่ผ่านการยืนยัน' : 'Find, contact, and collaborate with verified service providers.'}
