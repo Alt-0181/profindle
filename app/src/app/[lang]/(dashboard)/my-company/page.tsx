@@ -32,7 +32,7 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
   const pendingVerify = !!company && (company as any).claimed !== false && !(company as any).verified;
 
   const initialData = company ? {
-    nameEn: company.name ?? '',
+    nameEn: company.name || company.name_th || '',
     nameTh: company.name_th ?? '',
     descEn: company.description ?? '',
     descTh: company.description_th ?? '',

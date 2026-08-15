@@ -46,10 +46,10 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
   }
 
   const freeFeatures = [t.freeFeature1, t.freeFeature2, t.freeFeature3, t.freeFeature4];
-  // Only list benefits we actually deliver as premium-only (no Pro badge — we
-  // don't want ranking bias from it; no "advanced analytics"/"dedicated support"
-  // until those exist as real premium features).
-  const premFeatures = [t.premFeature2, t.premFeature3, t.premFeature4];
+  // Profile · unlimited portfolio · broadcast (10/mo) · receive buyer leads ·
+  // priority placement. (No Pro badge / advanced analytics / dedicated support —
+  // not real premium-only features yet.)
+  const premFeatures = [t.premFeature1, t.premFeature2, t.premFeature3, t.premFeature5, t.premFeature4];
 
   return (
     <div className="page-body">
