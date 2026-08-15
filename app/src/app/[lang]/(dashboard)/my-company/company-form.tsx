@@ -373,6 +373,12 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Company registration number (DBD) is required for service providers — it's
+    // the basis for verification. Buyer-only accounts are exempt.
+    if (!form.buyerOnly && form.dbdNo.replace(/\D/g, '').length !== 13) {
+      setSaveError(lang === 'th' ? 'กรุณากรอกเลขทะเบียนนิติบุคคล (DBD) 13 หลัก' : 'Please enter your 13-digit DBD registration number.');
+      return;
+    }
     setSaving(true);
     setSaveError('');
     try {
@@ -982,7 +988,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         <div style={{ marginTop: '20px' }}>
           <label style={labelStyle}>
             {lang === 'th' ? 'เลขทะเบียนนิติบุคคล (DBD)' : 'DBD registration number'}
-            <span style={{ color: '#9AA0AE', fontWeight: 400 }}> · {lang === 'th' ? 'ไม่บังคับ' : 'optional'}</span>
+            <span style={{ color: '#F77F00', fontWeight: 600 }}> · {lang === 'th' ? 'จำเป็น' : 'required'}</span>
           </label>
           <input
             type="text"
@@ -994,8 +1000,8 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
           />
           <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '6px', lineHeight: 1.6 }}>
             {lang === 'th'
-              ? 'เลข 13 หลักบนหนังสือรับรองการจดทะเบียนของคุณ ไม่บังคับ — ปล่อยว่างได้ถ้าไม่ทราบ'
-              : 'The 13-digit number on your registration certificate. Optional — leave blank if you don’t have it handy.'}
+              ? 'เลข 13 หลักบนหนังสือรับรองการจดทะเบียนบริษัทของคุณ ใช้สำหรับการยืนยันตัวตน'
+              : 'The 13-digit number on your company registration certificate — used to verify your business.'}
           </div>
         </div>
       </div>
