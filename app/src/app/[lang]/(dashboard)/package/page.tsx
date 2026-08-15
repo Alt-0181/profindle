@@ -135,7 +135,7 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
               <span style={{ fontSize: '40px', fontWeight: 800, color: 'white', letterSpacing: '-0.03em', textDecoration: 'line-through', opacity: 0.4 }}>฿990</span>
               <div>
                 <div style={{ fontSize: '28px', fontWeight: 800, color: '#F77F00', letterSpacing: '-0.03em' }}>{lang === 'th' ? 'ฟรี' : 'FREE'}</div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>until Dec 31, 2026</div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>until Mar 31, 2027</div>
               </div>
             </div>
           </div>

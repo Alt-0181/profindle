@@ -44,12 +44,22 @@ export async function PATCH(request: NextRequest) {
     // in case the company row was recreated after the claim was made.
     // Use 'premium' — it matches the "Premium" tier in the pricing UI and the
     // companies_plan_check DB constraint (which does not include 'vip').
-    const upgrade = { premium: true, plan: 'premium' };
-    let upgradeErr = null;
-    if (claim.company_id) {
-      ({ error: upgradeErr } = await admin.from('companies').update(upgrade).eq('id', claim.company_id));
-    } else if (claim.user_id) {
-      ({ error: upgradeErr } = await admin.from('companies').update(upgrade).eq('user_id', claim.user_id));
+    // Early Bird premium is free until 31 Mar 2027 (Bangkok end-of-day).
+    const PREMIUM_UNTIL = '2027-03-31T23:59:59+07:00';
+    const runUpgrade = (payload: Record<string, unknown>) =>
+      claim.company_id
+        ? admin.from('companies').update(payload).eq('id', claim.company_id)
+        : admin.from('companies').update(payload).eq('user_id', claim.user_id);
+
+    if (!claim.company_id && !claim.user_id) {
+      return NextResponse.json({ error: 'Claim has no company or user to upgrade' }, { status: 400 });
+    }
+
+    let { error: upgradeErr } = await runUpgrade({ premium: true, plan: 'premium', premium_until: PREMIUM_UNTIL });
+    // If the premium_until column has not been migrated yet, fall back to the
+    // basic upgrade so the grant still succeeds (run supabase-premium-until.sql).
+    if (upgradeErr && /premium_until/i.test(upgradeErr.message)) {
+      ({ error: upgradeErr } = await runUpgrade({ premium: true, plan: 'premium' }));
     }
     if (upgradeErr) return NextResponse.json({ error: upgradeErr.message }, { status: 500 });
   }

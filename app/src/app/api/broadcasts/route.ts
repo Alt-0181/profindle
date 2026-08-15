@@ -16,14 +16,20 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  const isSuperAdmin = user.user_metadata?.role === 'super_admin';
+
   const { data: buyerCompany } = await supabase
     .from('companies')
     .select('id, name, verified')
     .eq('user_id', user.id)
     .maybeSingle();
-  if (!buyerCompany) return NextResponse.json({ error: 'No company profile' }, { status: 400 });
-  if (!(buyerCompany as any).verified) {
-    return NextResponse.json({ error: 'Your company is pending verification. An admin will review your documents shortly.' }, { status: 403 });
+
+  // Broadcast gate: any logged-in buyer with a company profile may post a
+  // request — verification is no longer required (it gated a buyer action
+  // behind a provider-side review). Super-admins can post without a company at
+  // all, so Profindle can test and demo broadcasts without posing as a provider.
+  if (!buyerCompany && !isSuperAdmin) {
+    return NextResponse.json({ error: 'No company profile' }, { status: 400 });
   }
 
   const body = await request.json();
@@ -34,16 +40,19 @@ export async function POST(request: NextRequest) {
 
   const admin = getAdmin();
 
-  // Monthly rate limit: 4 broadcasts per user per calendar month
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const { count: monthCount } = await admin
-    .from('broadcasts')
-    .select('id', { count: 'exact', head: true })
-    .eq('buyer_user_id', user.id)
-    .gte('created_at', startOfMonth);
-  if ((monthCount ?? 0) >= 4) {
-    return NextResponse.json({ error: 'Monthly broadcast limit reached (4 per month). Try again next month.' }, { status: 429 });
+  // Monthly rate limit: 4 broadcasts per user per calendar month.
+  // Super-admins are exempt so they can test/demo without hitting the cap.
+  if (!isSuperAdmin) {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const { count: monthCount } = await admin
+      .from('broadcasts')
+      .select('id', { count: 'exact', head: true })
+      .eq('buyer_user_id', user.id)
+      .gte('created_at', startOfMonth);
+    if ((monthCount ?? 0) >= 4) {
+      return NextResponse.json({ error: 'Monthly broadcast limit reached (4 per month). Try again next month.' }, { status: 429 });
+    }
   }
 
   const effectiveDescEn = descriptionEn || descriptionTh || '';
@@ -53,7 +62,7 @@ export async function POST(request: NextRequest) {
     .from('broadcasts')
     .insert({
       buyer_user_id: user.id,
-      buyer_company_id: buyerCompany.id,
+      buyer_company_id: buyerCompany?.id ?? null,
       category,
       title: title ?? null,
       description_en: effectiveDescEn,
@@ -66,14 +75,16 @@ export async function POST(request: NextRequest) {
     .single();
   if (broadcastErr) return NextResponse.json({ error: broadcastErr.message }, { status: 500 });
 
-  // Find ALL premium providers with matching services
-  const { data: providerRows } = await admin
+  // Find ALL premium providers with matching services (exclude the buyer's own
+  // company when they have one — super-admin broadcasts have no company).
+  let providerQuery = admin
     .from('companies')
     .select('id, line_user_id, buyer_only')
-    .neq('id', buyerCompany.id)
     .eq('premium', true)
     .contains('services', [category])
     .limit(50);
+  if (buyerCompany?.id) providerQuery = providerQuery.neq('id', buyerCompany.id);
+  const { data: providerRows } = await providerQuery;
 
   // Exclude buyer-only companies — they're here to hire, not to receive leads.
   const allProviders = (providerRows ?? []).filter((p: any) => !p.buyer_only);
@@ -99,7 +110,7 @@ export async function POST(request: NextRequest) {
       budgetBand: budgetBand || '—',
       timeline: timeline || '—',
       descriptionEn: effectiveDescEn,
-      buyerCompany: buyerCompany.name,
+      buyerCompany: buyerCompany?.name ?? 'Profindle',
     });
 
     await Promise.allSettled(

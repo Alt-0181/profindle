@@ -107,7 +107,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
       desc: isTh ? `รับฟีเจอร์ Premium ทั้งหมดฟรี — เหลือ ${earlyBirdLeft} จาก ${earlyBirdTotal} สิทธิ์` : `Get all Premium features FREE — ${earlyBirdLeft} of ${earlyBirdTotal} spots left.`,
       done: companyPremium,
       status: companyPremium ? (isTh ? 'พรีเมียม' : 'Premium') : (isTh ? 'จำกัด' : 'Limited'),
-      bodyText: isTh ? '100 บริษัทแรกบน Profindle จะได้รับฟีเจอร์ Premium ทั้งหมดฟรีตลอดชีพ (รวมถึงการเชื่อม LINE ในขั้นตอนที่ 4) เมื่อสิทธิ์หมด จะไม่มีอีก' : 'First 100 companies on Profindle get all Premium features free for life — including LINE alerts in step 4. Once spots are gone, they\'re gone.',
+      bodyText: isTh ? '100 บริษัทแรกบน Profindle จะได้รับฟีเจอร์ Premium ทั้งหมดฟรีจนถึง 31 มี.ค. 2570 (รวมถึงการเชื่อม LINE ในขั้นตอนที่ 4)' : 'First 100 companies on Profindle get all Premium features free until Mar 31, 2027 — including LINE alerts in step 4.',
       ctaLabel: companyPremium ? (isTh ? 'ดูแพ็กเกจ' : 'View plan') : (isTh ? 'รับสิทธิ์ →' : 'Claim now →'),
       ctaHref: `/${lang}/package`,
       ctaStyle: 'amber' as const,
