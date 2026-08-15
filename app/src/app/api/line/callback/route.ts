@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   const storedState = request.cookies.get('line_oauth_state')?.value;
 
   if (!code || !state || state !== storedState) {
-    const res = NextResponse.redirect(`${appUrl}/en/settings?line=error`);
+    const res = NextResponse.redirect(`${appUrl}/th/settings?line=error`);
     res.cookies.delete('line_oauth_state');
     return res;
   }
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
   });
 
   if (!tokenRes.ok) {
-    const res = NextResponse.redirect(`${appUrl}/en/settings?line=error`);
+    const res = NextResponse.redirect(`${appUrl}/th/settings?line=error`);
     res.cookies.delete('line_oauth_state');
     return res;
   }
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
   });
 
   if (!verifyRes.ok) {
-    const res = NextResponse.redirect(`${appUrl}/en/settings?line=error`);
+    const res = NextResponse.redirect(`${appUrl}/th/settings?line=error`);
     res.cookies.delete('line_oauth_state');
     return res;
   }
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    const res = NextResponse.redirect(`${appUrl}/en/login`);
+    const res = NextResponse.redirect(`${appUrl}/th/login`);
     res.cookies.delete('line_oauth_state');
     return res;
   }
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     `🔗 New LINE Connection!\n\n${companyName} just connected their LINE account.\n\nAdmin panel: https://profindle.com/en/admin`,
   );
 
-  const res = NextResponse.redirect(`${appUrl}/en/settings?line=connected&section=line`);
+  const res = NextResponse.redirect(`${appUrl}/th/settings?line=connected&section=line`);
   res.cookies.delete('line_oauth_state');
   return res;
 }

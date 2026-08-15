@@ -4,7 +4,7 @@ import crypto from 'crypto';
 export async function GET(request: NextRequest) {
   const channelId = process.env.LINE_LOGIN_CHANNEL_ID;
   if (!channelId) {
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/en/settings?line=unavailable`);
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/th/settings?line=unavailable`);
   }
 
   const state = crypto.randomUUID();

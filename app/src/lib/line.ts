@@ -126,7 +126,7 @@ export function makeBroadcastFlexMessage(broadcast: {
             action: {
               type: 'uri',
               label: 'View & Respond →',
-              uri: `${baseUrl}/en/broadcasts/${broadcast.id}`,
+              uri: `${baseUrl}/th/broadcasts/${broadcast.id}`,
             },
           },
         ],
