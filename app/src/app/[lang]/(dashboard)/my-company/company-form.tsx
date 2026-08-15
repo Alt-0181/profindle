@@ -373,6 +373,20 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Required fields (marked * in the form). Provider-only requirements are
+    // skipped for buyer-only accounts.
+    if (!form.nameEn.trim()) {
+      setSaveError(lang === 'th' ? 'กรุณากรอกชื่อบริษัท (ภาษาอังกฤษ)' : 'Please enter your company name (English).');
+      return;
+    }
+    if (!form.buyerOnly && selectedServices.length === 0) {
+      setSaveError(lang === 'th' ? 'กรุณาเลือกบริการอย่างน้อย 1 รายการ' : 'Please select at least one service.');
+      return;
+    }
+    if (!form.buyerOnly && !form.province) {
+      setSaveError(lang === 'th' ? 'กรุณาเลือกจังหวัด' : 'Please select a province.');
+      return;
+    }
     // Company registration number (DBD) is required for service providers — it's
     // the basis for verification. Buyer-only accounts are exempt.
     if (!form.buyerOnly && form.dbdNo.replace(/\D/g, '').length !== 13) {
@@ -731,7 +745,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         <div style={{ marginBottom: '20px' }}>
           <div className="mc-row-2">
             <div>
-              <label style={labelStyle}>{t.companyNameEn} <span style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>EN</span></label>
+              <label style={labelStyle}>{t.companyNameEn} <span style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>EN</span><span style={{ color: '#F77F00', fontWeight: 700 }}> *</span></label>
               <input type="text" value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} style={inputStyle} placeholder="Acme" />
             </div>
             <div>
@@ -770,7 +784,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         {/* Services multi-select with fuzzy search */}
         <div style={{ marginBottom: '20px' }}>
           <label style={labelStyle}>
-            {lang === 'th' ? 'บริการของคุณ' : 'Services'}
+            {lang === 'th' ? 'บริการของคุณ' : 'Services'}<span style={{ color: '#F77F00', fontWeight: 700 }}> *</span>
           </label>
 
           {/* Selected service tags */}
@@ -825,7 +839,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
 
         {/* Province */}
         <div style={{ marginBottom: '20px' }}>
-          <label style={labelStyle}>{t.province}</label>
+          <label style={labelStyle}>{t.province}<span style={{ color: '#F77F00', fontWeight: 700 }}> *</span></label>
           <select value={form.province} onChange={(e) => set('province', e.target.value)} style={inputStyle}>
             <option value="">{t.selectProvince}</option>
             {PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
@@ -988,7 +1002,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         <div style={{ marginTop: '20px' }}>
           <label style={labelStyle}>
             {lang === 'th' ? 'เลขทะเบียนนิติบุคคล (DBD)' : 'DBD registration number'}
-            <span style={{ color: '#F77F00', fontWeight: 600 }}> · {lang === 'th' ? 'จำเป็น' : 'required'}</span>
+            <span style={{ color: '#F77F00', fontWeight: 700 }}> *</span>
           </label>
           <input
             type="text"
