@@ -168,6 +168,67 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
         </div>
       </div>
 
+      {/* LINE broadcast preview — shows a provider exactly what a matching lead
+          looks like when it arrives on LINE. Clearly labelled as a sample. */}
+      <div style={{ marginTop: '56px', maxWidth: '760px', margin: '56px auto 0' }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#171A21', marginBottom: '6px' }}>
+            {isTh ? 'ลูกค้าที่ตรงกับคุณ ส่งตรงถึง LINE' : 'Matching leads, delivered to your LINE'}
+          </h2>
+          <p style={{ fontSize: '14px', color: '#6B7385', lineHeight: 1.6 }}>
+            {isTh
+              ? 'เมื่อผู้ซื้อประกาศหาบริการที่ตรงกับคุณ ผู้ให้บริการ Premium จะได้รับแจ้งเตือนทันทีผ่าน LINE'
+              : 'When a buyer broadcasts a request that matches your services, Premium providers get it pushed to LINE in real time.'}
+          </p>
+        </div>
+
+        <div style={{ maxWidth: '380px', margin: '0 auto' }}>
+          {/* LINE chat frame */}
+          <div style={{ background: '#8CABD9', borderRadius: '20px', padding: '10px', boxShadow: '0 12px 40px rgba(15,111,115,0.18)' }}>
+            {/* LINE header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px 12px' }}>
+              <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: '#06C755', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 5.64 2 10.13c0 4.02 3.55 7.39 8.35 8.03.33.07.77.22.88.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1.01.88.55 1.09-.46 5.86-3.45 8-5.91 1.47-1.62 2.17-3.26 2.17-5.4C22 5.64 17.52 2 12 2z"/></svg>
+              </div>
+              <div style={{ color: 'white', fontWeight: 700, fontSize: '14px' }}>Profindle</div>
+              <div style={{ marginLeft: 'auto', fontSize: '11px', color: 'rgba(255,255,255,0.85)' }}>{isTh ? 'ตอนนี้' : 'now'}</div>
+            </div>
+
+            {/* Flex message bubble */}
+            <div style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', margin: '0 4px 4px' }}>
+              <div style={{ background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', padding: '12px 16px', color: 'white' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, opacity: 0.85 }}>🔔 {isTh ? 'คำขอใหม่ที่ตรงกับคุณ' : 'New matching request'}</div>
+                <div style={{ fontSize: '16px', fontWeight: 800, marginTop: '2px' }}>{isTh ? 'ตั้งระบบ CRM' : 'CRM Setup'}</div>
+              </div>
+              <div style={{ padding: '14px 16px' }}>
+                {[
+                  { k: isTh ? 'งบประมาณ' : 'Budget', v: '฿100,000 – 500,000' },
+                  { k: isTh ? 'จังหวัด' : 'Province', v: isTh ? 'กรุงเทพฯ' : 'Bangkok' },
+                  { k: isTh ? 'เริ่มงาน' : 'Timeline', v: isTh ? 'เดือนหน้า' : 'Next month' },
+                ].map((row) => (
+                  <div key={row.k} style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '12px', color: '#9AA0AE', minWidth: '68px' }}>{row.k}</span>
+                    <span style={{ fontSize: '13px', color: '#171A21', fontWeight: 600 }}>{row.v}</span>
+                  </div>
+                ))}
+                <p style={{ fontSize: '13px', color: '#444B5A', lineHeight: 1.6, margin: '10px 0 4px', borderTop: '1px solid #F0F0F0', paddingTop: '10px' }}>
+                  {isTh
+                    ? '“กำลังหาที่ปรึกษาวางระบบ CRM สำหรับบริษัทค้าปลีก ~50 คน”'
+                    : '“Looking for a CRM consultant for a ~50-person retail company.”'}
+                </p>
+                <div style={{ fontSize: '11px', color: '#9AA0AE', marginBottom: '12px' }}>{isTh ? 'จาก บริษัท เอบีซี รีเทล' : 'from ABC Retail Co.'}</div>
+                <div style={{ display: 'block', textAlign: 'center', padding: '10px', background: '#06C755', color: 'white', fontWeight: 700, fontSize: '13px', borderRadius: '10px' }}>
+                  {isTh ? 'ดูและตอบกลับ →' : 'View & Respond →'}
+                </div>
+              </div>
+            </div>
+          </div>
+          <p style={{ textAlign: 'center', fontSize: '11px', color: '#9AA0AE', marginTop: '10px' }}>
+            {isTh ? 'ตัวอย่างเพื่อการสาธิต' : 'Sample for illustration'}
+          </p>
+        </div>
+      </div>
+
       {/* FAQ / note */}
       <div style={{ marginTop: '40px', textAlign: 'center' }}>
         <p style={{ fontSize: '13px', color: '#9AA0AE' }}>
