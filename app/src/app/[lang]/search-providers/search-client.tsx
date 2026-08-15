@@ -665,6 +665,25 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
     setPage(1);
   }, [verifiedOnly, selectedProvince, selectedBudget, sort, initialQuery, initialWhere]);
 
+  // Demand logging: record each buyer search + how many results it returned
+  // (0 = unmet demand). Fires once per search navigation, not per keystroke.
+  const loggedRef = useRef('');
+  useEffect(() => {
+    const q = initialQuery.trim(), w = initialWhere.trim();
+    if (!q && !w) return;
+    const key = `${q}|${w}`;
+    if (loggedRef.current === key) return; // avoid double-log on re-render
+    loggedRef.current = key;
+    fetch('/api/search-log', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      keepalive: true,
+      body: JSON.stringify({ q, where: w, province: selectedProvince || null, resultCount: filtered.length, lang }),
+    }).catch(() => {});
+    // Only re-fire when the query itself changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuery, initialWhere]);
+
   const filtered = companies
     .filter(p => {
       if (verifiedOnly && !p.verified) return false;
