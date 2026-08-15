@@ -3,6 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import { SERVICES, ALL_INDUSTRIES } from '@/lib/services';
 
+// Open a company's DBD document in a new tab via a super-admin signed URL. The
+// stored value is a private-bucket path, not a usable URL, so it must be signed.
+async function openAdminDoc(path: string | null | undefined) {
+  if (!path) return;
+  try {
+    const res = await fetch(`/api/admin/dbd-url?path=${encodeURIComponent(path)}`);
+    const { signedUrl } = await res.json();
+    if (signedUrl) window.open(signedUrl, '_blank', 'noopener,noreferrer');
+    else alert('Could not open document.');
+  } catch {
+    alert('Could not open document.');
+  }
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface Company {
@@ -261,7 +275,7 @@ function CompanyDetailPanel({ company, onClose, onUpdate, onDelete }: {
               {company.province && <Row label="Province" value={company.province} />}
               <Row label="Company Added" value={fmt(company.created_at)} />
               {company.dbd_certificate_url
-                ? <Row label="DBD Document" value={<a href={company.dbd_certificate_url} target="_blank" rel="noopener noreferrer" style={{ color: '#0F6F73', fontWeight: 600, textDecoration: 'none', fontSize: '12px' }}>View →</a>} />
+                ? <Row label="DBD Document" value={<button onClick={() => openAdminDoc(company.dbd_certificate_url)} style={{ color: '#0F6F73', fontWeight: 600, textDecoration: 'none', fontSize: '12px', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>View →</button>} />
                 : <Row label="DBD Document" value="Not uploaded" />}
             </div>
           </section>
@@ -470,7 +484,7 @@ function CompaniesTab({ companies: initial }: { companies: Company[] }) {
                   <td style={{ ...tdStyle, fontSize: '13px', color: '#444B5A' }}>{c.user_email || '—'}</td>
                   <td style={tdStyle}>
                     {c.dbd_certificate_url
-                      ? <a href={c.dbd_certificate_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: '#0F6F73', fontWeight: 600, textDecoration: 'none' }}>View document →</a>
+                      ? <button onClick={() => openAdminDoc(c.dbd_certificate_url)} style={{ fontSize: '12px', color: '#0F6F73', fontWeight: 600, textDecoration: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>View document →</button>
                       : <span style={{ fontSize: '12px', color: '#9AA0AE' }}>No document</span>}
                   </td>
                   <td style={{ ...tdStyle, fontSize: '12px', color: '#9AA0AE' }}>{fmt(c.created_at)}</td>
@@ -1364,7 +1378,7 @@ function ClaimsTab({ companies: initial }: { companies: Company[] }) {
                   <td style={{ ...tdStyle, fontSize: '13px', color: '#444B5A' }}>{c.user_email || '—'}</td>
                   <td style={tdStyle}>
                     {c.dbd_certificate_url
-                      ? <a href={c.dbd_certificate_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: '#0F6F73', fontWeight: 600, textDecoration: 'none' }}>View document →</a>
+                      ? <button onClick={() => openAdminDoc(c.dbd_certificate_url)} style={{ fontSize: '12px', color: '#0F6F73', fontWeight: 600, textDecoration: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>View document →</button>
                       : <span style={{ fontSize: '12px', color: '#9AA0AE' }}>No document</span>}
                   </td>
                   <td style={{ ...tdStyle, fontSize: '12px', color: '#9AA0AE' }}>{fmt(c.created_at)}</td>
