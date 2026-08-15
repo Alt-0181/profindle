@@ -12,8 +12,10 @@ interface BroadcastCtaProps {
     email?: string;
     phone?: string;
     line_id?: string;
+    website?: string;
   } | null;
   buyerName: string;
+  isAuthed: boolean;
   signupHref: string;
 }
 
@@ -44,14 +46,17 @@ const LINE_ICON = (
   </svg>
 );
 
-export function BroadcastCta({ broadcastId, lang, category, buyer, buyerName, signupHref }: BroadcastCtaProps) {
+export function BroadcastCta({ broadcastId, lang, category, buyer, buyerName, isAuthed, signupHref }: BroadcastCtaProps) {
   const isTh = lang === 'th';
 
   useEffect(() => {
     track(broadcastId, 'view');
   }, [broadcastId]);
 
-  const hasContact = !!(buyer?.email || buyer?.phone || buyer?.line_id);
+  const websiteUrl = buyer?.website
+    ? (/^https?:\/\//i.test(buyer.website) ? buyer.website : `https://${buyer.website}`)
+    : null;
+  const hasContact = !!(buyer?.email || buyer?.phone || buyer?.line_id || websiteUrl);
   const lineInfo = buyer?.line_id ? parseLineId(buyer.line_id) : null;
 
   return (
@@ -60,9 +65,9 @@ export function BroadcastCta({ broadcastId, lang, category, buyer, buyerName, si
         {isTh ? 'สนใจรับงานนี้?' : 'Interested in this project?'}
       </div>
       <div style={{ fontSize: '13px', color: '#6B7385', marginBottom: '16px', lineHeight: 1.6 }}>
-        {isTh
-          ? 'ติดต่อผู้ว่าจ้างโดยตรงผ่านช่องทางด้านล่าง'
-          : 'Reach out to the buyer directly through the channels below.'}
+        {hasContact
+          ? (isTh ? 'ติดต่อผู้ว่าจ้างโดยตรงผ่านช่องทางที่คุณสะดวก' : 'Reach out to the buyer directly through whichever channel you prefer.')
+          : (isTh ? 'รายละเอียดคำขอบริการจากผู้ว่าจ้าง' : 'Details of the request from the buyer.')}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {buyer?.email && (
@@ -97,11 +102,33 @@ export function BroadcastCta({ broadcastId, lang, category, buyer, buyerName, si
             <div style={{ fontSize: '11px', color: '#9AA0AE', whiteSpace: 'nowrap' }}>{isTh ? 'แตะเพื่อคัดลอก' : 'tap to copy'}</div>
           </div>
         )}
+        {websiteUrl && (
+          <a
+            href={websiteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => track(broadcastId, 'click_website')}
+            style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '13px 16px', background: '#F4F5F7', color: '#171A21', border: '1.5px solid #E4E7ED', borderRadius: '12px', textDecoration: 'none', fontWeight: 600, fontSize: '14px' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            {isTh ? 'เยี่ยมชมเว็บไซต์' : 'Visit website'}
+          </a>
+        )}
+
+        {/* No public contact channels. Members just see a note; anonymous
+            visitors get a genuine acquisition CTA (not a false "view contact"). */}
         {!hasContact && (
-          <Link href={signupHref}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '13px 16px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', borderRadius: '12px', textDecoration: 'none', fontWeight: 600, fontSize: '14px' }}>
-            {isTh ? 'สมัครสมาชิกเพื่อดูข้อมูลติดต่อ' : 'Sign up to view contact details'}
-          </Link>
+          isAuthed ? (
+            <div style={{ padding: '13px 16px', background: '#F4F5F7', borderRadius: '12px', fontSize: '13px', color: '#6B7385', lineHeight: 1.6, textAlign: 'center' }}>
+              {isTh
+                ? 'ผู้ว่าจ้างรายนี้ยังไม่ได้ระบุช่องทางติดต่อสาธารณะ'
+                : "This requester hasn't listed a public contact channel yet."}
+            </div>
+          ) : (
+            <Link href={signupHref}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '13px 16px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', borderRadius: '12px', textDecoration: 'none', fontWeight: 600, fontSize: '14px' }}>
+              {isTh ? 'อยากรับงานแบบนี้? สมัครฟรี' : 'Want requests like this? Join free'}
+            </Link>
+          )
         )}
       </div>
     </div>

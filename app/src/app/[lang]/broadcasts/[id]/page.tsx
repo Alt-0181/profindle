@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { BroadcastCta } from './broadcast-cta';
 
@@ -29,6 +30,13 @@ export default async function BroadcastDetailPage({
     .maybeSingle();
 
   if (!broadcast) notFound();
+
+  // The people who receive a broadcast are already logged-in providers — so the
+  // page must not gate them behind a sign-up. Only anonymous visitors (who reach
+  // a shared link) see the acquisition CTA.
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const isAuthed = !!user;
 
   const isTh = lang === 'th';
   const buyer = (broadcast as any).companies;
@@ -101,6 +109,7 @@ export default async function BroadcastDetailPage({
           category={broadcast.category}
           buyer={buyer}
           buyerName={buyerName}
+          isAuthed={isAuthed}
           signupHref={`/${lang}/signup`}
         />
 
