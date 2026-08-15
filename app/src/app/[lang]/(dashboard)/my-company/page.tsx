@@ -26,6 +26,10 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
   }
 
   const lineIdParsed = parseLineId((company as any)?.line_id ?? null);
+  const isTh = lang === 'th';
+  // A claimed-but-unverified company is awaiting super-admin verification —
+  // nudge the owner to upload their registration document.
+  const pendingVerify = !!company && (company as any).claimed !== false && !(company as any).verified;
 
   const initialData = company ? {
     nameEn: company.name ?? '',
@@ -62,6 +66,19 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
           <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{dict.myCompany.title}</h1>
           <p style={{ fontSize: '14px', color: '#6B7385' }}>{dict.myCompany.subtitle}</p>
         </div>
+        {pendingVerify && (
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', background: '#FFF6EC', border: '1px solid rgba(247,127,0,0.25)', borderRadius: '14px', padding: '16px 18px', marginBottom: '24px' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F77F00" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0, marginTop: '1px' }}><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21', marginBottom: '3px' }}>{isTh ? 'รอการยืนยัน' : 'Pending verification'}</div>
+              <div style={{ fontSize: '13px', color: '#6B7385', lineHeight: 1.6 }}>
+                {isTh
+                  ? 'อัปโหลดหนังสือรับรองการจดทะเบียนบริษัท (DBD) ในส่วน “การยืนยัน” ด้านล่าง แล้วกดบันทึก ทีมงานจะตรวจสอบและติดเครื่องหมายยืนยันให้'
+                  : 'Upload your company registration (DBD) document in the “Verification” section below and save. Our team will review it and add your Verified badge.'}
+              </div>
+            </div>
+          </div>
+        )}
         <MyCompanyForm lang={lang} dict={dict} initialData={initialData} />
       </div>
     </div>

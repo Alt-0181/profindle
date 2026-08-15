@@ -306,7 +306,10 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
                 )}
                 <div style={{ borderTop: '1px solid #F0F0F0', paddingTop: '14px' }}>
                   <div style={{ fontSize: '13px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{isTh ? 'ธุรกิจนี้เป็นของคุณ?' : 'Is this your business?'}</div>
-                  <p style={{ fontSize: '12px', color: '#6B7385', lineHeight: 1.6, marginBottom: '10px' }}>{isTh ? 'ติดต่อ Profindle เพื่อยืนยันและจัดการโปรไฟล์ของคุณ — ฟรี' : 'Contact Profindle to claim and manage your profile — free.'}</p>
+                  <p style={{ fontSize: '12px', color: '#6B7385', lineHeight: 1.6, marginBottom: '10px' }}>{isTh ? 'ยืนยันความเป็นเจ้าของเพื่อจัดการโปรไฟล์ อัปโหลดผลงาน และรับการติดต่อ — ฟรี' : 'Claim it to manage the profile, add your portfolio, and receive enquiries — free.'}</p>
+                  <Link href={`/${lang}/signup?claim=${id}`} style={{ display: 'block', textAlign: 'center', padding: '10px 12px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', fontWeight: 600, fontSize: '13px', borderRadius: '10px', textDecoration: 'none', marginBottom: '10px' }}>
+                    {isTh ? 'ยืนยันธุรกิจนี้ — ฟรี' : 'Claim this business — Free'}
+                  </Link>
                   <a href="mailto:support@profindle.com" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', border: '1px solid #E4E7ED', borderRadius: '10px', textDecoration: 'none', color: '#444B5A', fontSize: '13px', marginBottom: '8px' }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                     support@profindle.com

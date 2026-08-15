@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState, useRef } from 'react';
+import { use, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -21,7 +21,15 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
   const [showPw, setShowPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [captchaToken, setCaptchaToken] = useState('');
+  const [claimId, setClaimId] = useState<string | null>(null);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // When arriving from "Claim this business" (/signup?claim=<companyId>), remember
+  // which company to map to this new account after verification.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('claim');
+    if (id) setClaimId(id);
+  }, []);
 
   const t = isTh ? {
     title: 'สร้างบัญชีของคุณ',
@@ -102,6 +110,13 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
       setShake(true); setTimeout(() => setShake(false), 500);
       setLoading(false); return;
     }
+    // If this signup came from "Claim this business", map the company to the new
+    // account, then send them to My Company to upload their registration doc.
+    if (claimId) {
+      try { await fetch('/api/claim', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ companyId: claimId }) }); } catch { /* fall through to My Company either way */ }
+      router.push(`/${lang}/my-company?claimed=1`);
+      return;
+    }
     router.push(`/${lang}/home`);
   };
 
@@ -154,7 +169,15 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
           {step === 'register' ? (
             <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
               <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#171A21', letterSpacing: '-0.02em', marginBottom: '6px' }}>{t.title}</h2>
-              <p style={{ fontSize: '14px', color: '#6B7385', marginBottom: '28px' }}>{t.sub}</p>
+              <p style={{ fontSize: '14px', color: '#6B7385', marginBottom: claimId ? '16px' : '28px' }}>{t.sub}</p>
+              {claimId && (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: '#F0F9F9', border: '1px solid rgba(15,111,115,0.2)', borderRadius: '12px', padding: '12px 14px', marginBottom: '24px' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0, marginTop: '1px' }}><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+                  <div style={{ fontSize: '13px', color: '#0F6F73', lineHeight: 1.5 }}>
+                    {isTh ? 'คุณกำลังยืนยันความเป็นเจ้าของธุรกิจ สร้างบัญชีเพื่อจัดการโปรไฟล์ของคุณ' : "You're claiming your business. Create an account to manage its profile."}
+                  </div>
+                </div>
+              )}
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
