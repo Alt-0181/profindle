@@ -1308,22 +1308,138 @@ function ActivityLogsTab() {
   );
 }
 
+// ─── Claim / verification queue ───────────────────────────────────────────────
+// Companies that uploaded a registration document but aren't verified yet —
+// i.e. providers who claimed their profile and are awaiting super-admin review.
+
+function ClaimsTab({ companies: initial }: { companies: Company[] }) {
+  const [companies, setCompanies] = useState(initial);
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const verify = async (companyId: string) => {
+    setLoading(companyId);
+    try {
+      const res = await fetch('/api/admin/companies', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companyId, field: 'verified', value: true }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setCompanies(prev => prev.map(c => c.id === companyId ? { ...c, verified: true } : c));
+    } catch {
+      alert('Action failed. Please try again.');
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const pending = companies.filter(c => !c.verified && c.dbd_certificate_url);
+
+  return (
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '14px', marginBottom: '24px' }}>
+        <KpiCard label="Awaiting Verification" value={pending.length} warn={pending.length > 0} />
+      </div>
+      <div style={card}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #F4F5F7' }}>
+          <span style={{ fontSize: '15px', fontWeight: 700, color: '#171A21' }}>Claim Requests</span>
+          <span style={{ fontSize: '13px', color: '#9AA0AE', marginLeft: '8px' }}>Providers who claimed their profile and uploaded a registration document. Verify to grant the Verified badge.</span>
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '520px' }}>
+            <thead>
+              <tr style={{ background: '#F4F5F7' }}>
+                {['Company', 'Owner Email', 'Document', 'Joined', 'Actions'].map(col => <th key={col} style={thStyle}>{col}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {pending.length === 0 ? (
+                <tr><td colSpan={5} style={{ padding: '48px', textAlign: 'center', color: '#9AA0AE', fontSize: '14px' }}>No claim requests awaiting verification</td></tr>
+              ) : pending.map((c, i) => (
+                <tr key={c.id} style={{ borderTop: i > 0 ? '1px solid #F4F5F7' : undefined }}>
+                  <td style={tdStyle}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#171A21' }}>{c.name}</div>
+                    {c.name_th && <div style={{ fontSize: '11px', color: '#9AA0AE' }}>{c.name_th}</div>}
+                  </td>
+                  <td style={{ ...tdStyle, fontSize: '13px', color: '#444B5A' }}>{c.user_email || '—'}</td>
+                  <td style={tdStyle}>
+                    {c.dbd_certificate_url
+                      ? <a href={c.dbd_certificate_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: '#0F6F73', fontWeight: 600, textDecoration: 'none' }}>View document →</a>
+                      : <span style={{ fontSize: '12px', color: '#9AA0AE' }}>No document</span>}
+                  </td>
+                  <td style={{ ...tdStyle, fontSize: '12px', color: '#9AA0AE' }}>{fmt(c.created_at)}</td>
+                  <td style={tdStyle}>
+                    <button onClick={() => verify(c.id)} disabled={loading === c.id} style={{ ...primaryBtn, opacity: loading === c.id ? 0.6 : 1 }}>
+                      {loading === c.id ? '…' : '✓ Verify'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Requests hub: Broadcast / Claim / Early Bird under one tab ────────────────
+
+function RequestsHub({ broadcasts, earlyBirdClaims, companies }: { broadcasts: Broadcast[]; earlyBirdClaims: EarlyBirdClaim[]; companies: Company[] }) {
+  const [sub, setSub] = useState<'broadcast' | 'claim' | 'earlybird'>('broadcast');
+  const pendingClaims = companies.filter(c => !c.verified && c.dbd_certificate_url).length;
+  const pendingEB = earlyBirdClaims.filter(c => c.status === 'pending').length;
+  const SUBS: { id: 'broadcast' | 'claim' | 'earlybird'; label: string; badge: number }[] = [
+    { id: 'broadcast', label: 'Broadcast', badge: 0 },
+    { id: 'claim', label: 'Claim', badge: pendingClaims },
+    { id: 'earlybird', label: 'Early Bird', badge: pendingEB },
+  ];
+  return (
+    <div>
+      <div style={{ display: 'inline-flex', gap: '4px', background: '#F4F5F7', borderRadius: '12px', padding: '4px', marginBottom: '24px' }}>
+        {SUBS.map(s => (
+          <button
+            key={s.id}
+            onClick={() => setSub(s.id)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '9px', border: 'none',
+              background: sub === s.id ? 'white' : 'transparent',
+              color: sub === s.id ? '#0F6F73' : '#6B7385',
+              fontWeight: sub === s.id ? 700 : 500, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit',
+              boxShadow: sub === s.id ? '0 1px 3px rgba(23,26,33,0.1)' : 'none', transition: 'all 0.12s',
+            }}
+          >
+            {s.label}
+            {s.badge > 0 && (
+              <span style={{ fontSize: '11px', fontWeight: 700, minWidth: '18px', height: '18px', padding: '0 5px', borderRadius: '999px', background: 'linear-gradient(135deg,#F77F00,#E06B00)', color: 'white', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{s.badge}</span>
+            )}
+          </button>
+        ))}
+      </div>
+      {sub === 'broadcast' && <RequestsTab broadcasts={broadcasts} />}
+      {sub === 'claim' && <ClaimsTab companies={companies} />}
+      {sub === 'earlybird' && <EarlyBirdTab claims={earlyBirdClaims} />}
+    </div>
+  );
+}
+
 // ─── Main AdminClient component ───────────────────────────────────────────────
 
 const TABS = [
   { id: 'companies', label: 'Companies' },
   { id: 'users', label: 'Users' },
-  { id: 'earlybird', label: 'Early Bird' },
+  { id: 'requests', label: 'Requests' },
   { id: 'services', label: 'Industries & Services' },
   { id: 'templates', label: 'LINE Templates' },
   { id: 'line', label: 'LINE Config' },
-  { id: 'requests', label: 'Requests' },
   { id: 'logs', label: 'Activity Logs' },
 ];
 
 export function AdminClient({ companies, users, broadcasts, earlyBirdClaims, lang: _lang }: Props) {
   const [activeTab, setActiveTab] = useState('companies');
   const pendingEarlyBird = earlyBirdClaims.filter(c => c.status === 'pending').length;
+  const pendingClaims = companies.filter(c => !c.verified && c.dbd_certificate_url).length;
+  const pendingRequests = pendingEarlyBird + pendingClaims;
 
   return (
     <div className="page-body">
@@ -1364,9 +1480,9 @@ export function AdminClient({ companies, users, broadcasts, earlyBirdClaims, lan
             }}
           >
             {tab.label}
-            {tab.id === 'earlybird' && pendingEarlyBird > 0 && (
+            {tab.id === 'requests' && pendingRequests > 0 && (
               <span style={{ fontSize: '11px', fontWeight: 700, minWidth: '18px', height: '18px', padding: '0 5px', borderRadius: '999px', background: 'linear-gradient(135deg,#F77F00,#E06B00)', color: 'white', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                {pendingEarlyBird}
+                {pendingRequests}
               </span>
             )}
           </button>
@@ -1376,11 +1492,10 @@ export function AdminClient({ companies, users, broadcasts, earlyBirdClaims, lan
       {/* Tab content */}
       {activeTab === 'companies' && <CompaniesTab companies={companies} />}
       {activeTab === 'users' && <UsersTab users={users} />}
-      {activeTab === 'earlybird' && <EarlyBirdTab claims={earlyBirdClaims} />}
+      {activeTab === 'requests' && <RequestsHub broadcasts={broadcasts} earlyBirdClaims={earlyBirdClaims} companies={companies} />}
       {activeTab === 'services' && <ServicesTab />}
       {activeTab === 'templates' && <TemplatesTab />}
       {activeTab === 'line' && <LineConfigTab companies={companies} />}
-      {activeTab === 'requests' && <RequestsTab broadcasts={broadcasts} />}
       {activeTab === 'logs' && <ActivityLogsTab />}
     </div>
   );
