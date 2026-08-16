@@ -1014,7 +1014,6 @@ function ServicesTab() {
 const TEMPLATE_VARS: Record<string, string[]> = {
   welcome: [],
   verified: ['{{company_name}}'],
-  broadcast: ['{{service_category}}', '{{budget}}', '{{timeline}}', '{{buyer_company}}', '{{description}}'],
 };
 
 function TemplatesTab() {

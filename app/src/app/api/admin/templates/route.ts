@@ -26,16 +26,11 @@ const DEFAULT_TEMPLATES = [
   {
     id: 'verified',
     name: 'Verification Status Update',
-    content: '✅ Your company {{company_name}} has been verified! Your profile now shows the Verified badge.',
-  },
-  {
-    id: 'broadcast',
-    name: 'New Broadcast Request',
-    content: '📢 New request: {{service_category}} | Budget: {{budget}} | Timeline: {{timeline}}\n\nFrom: {{buyer_company}}\n{{description}}',
+    content: "✅ ยินดีด้วย! บริษัท {{company_name}} ได้รับการยืนยันแล้ว\n\nโปรไฟล์ของคุณจะแสดงเครื่องหมายยืนยัน (Verified) ให้ผู้ซื้อเห็นความน่าเชื่อถือของคุณมากขึ้น\n\n—\n\n✅ Congratulations! {{company_name}} is now verified.\n\nYour profile now shows the Verified badge, so buyers can see you're a trusted provider.",
   },
 ];
 
-// GET /api/admin/templates — return all 3 templates (DB rows merged with defaults)
+// GET /api/admin/templates — return the editable templates (DB rows merged with defaults)
 export async function GET() {
   const user = await requireSuperAdmin();
   if (!user) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -61,7 +56,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'id and content are required' }, { status: 400 });
   }
 
-  const validIds = ['welcome', 'verified', 'broadcast'];
+  const validIds = ['welcome', 'verified'];
   if (!validIds.includes(id)) {
     return NextResponse.json({ error: 'Invalid template id' }, { status: 400 });
   }
