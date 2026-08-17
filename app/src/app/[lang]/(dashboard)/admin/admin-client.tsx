@@ -1505,8 +1505,124 @@ function RequestsHub({ broadcasts, earlyBirdClaims, companies }: { broadcasts: B
 
 // ─── Main AdminClient component ───────────────────────────────────────────────
 
+// ─── Tab: Traffic ─────────────────────────────────────────────────────────────
+
+interface TrafficData {
+  site: { totalAllTime: number; views30: number; unique30: number; views7: number; views24: number; capped: boolean };
+  daily: { date: string; count: number }[];
+  topPages: { key: string; count: number }[];
+  topReferrers: { key: string; count: number }[];
+  topCountries: { key: string; count: number }[];
+  directCount: number;
+  topCompanies: { id: string; name: string; views: number; claimed: boolean; premium: boolean }[];
+}
+
+function TrafficListCard({ title, rows }: { title: string; rows: { label: string; value: number }[] }) {
+  const max = Math.max(1, ...rows.map(r => r.value));
+  return (
+    <div style={{ ...card, padding: '20px' }}>
+      <div style={{ fontSize: '13px', fontWeight: 700, color: '#171A21', marginBottom: '14px' }}>{title}</div>
+      {rows.length === 0 ? (
+        <div style={{ fontSize: '13px', color: '#9AA0AE' }}>No data yet</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {rows.map((r, i) => (
+            <div key={i}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', marginBottom: '3px', gap: '10px' }}>
+                <span style={{ color: '#444B5A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.label}</span>
+                <span style={{ color: '#171A21', fontWeight: 700, flexShrink: 0 }}>{r.value.toLocaleString()}</span>
+              </div>
+              <div style={{ height: '5px', background: '#F0F9F9', borderRadius: '999px', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${(r.value / max) * 100}%`, background: 'linear-gradient(90deg,#1A9DA3,#0F6F73)', borderRadius: '999px' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TrafficTab() {
+  const [data, setData] = useState<TrafficData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('/api/admin/traffic')
+      .then(r => (r.ok ? r.json() : Promise.reject()))
+      .then(setData)
+      .catch(() => setError('Failed to load traffic'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div style={{ padding: '48px', textAlign: 'center', color: '#9AA0AE' }}>Loading traffic…</div>;
+  if (error || !data) return <div style={{ padding: '48px', textAlign: 'center', color: '#C0392B' }}>{error ?? 'No data'}</div>;
+
+  const maxDay = Math.max(1, ...data.daily.map(d => d.count));
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '14px' }}>
+        <KpiCard label="Total Visits (all time)" value={data.site.totalAllTime.toLocaleString()} />
+        <KpiCard label="Visits (30 days)" value={data.site.views30.toLocaleString()} />
+        <KpiCard label="Unique Visitors (30d)" value={data.site.unique30.toLocaleString()} />
+        <KpiCard label="Visits (7 days)" value={data.site.views7.toLocaleString()} />
+        <KpiCard label="Visits (24 hours)" value={data.site.views24.toLocaleString()} />
+      </div>
+
+      <div style={{ ...card, padding: '20px' }}>
+        <div style={{ fontSize: '13px', fontWeight: 700, color: '#171A21', marginBottom: '16px' }}>Visits — last 30 days</div>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '120px' }}>
+          {data.daily.map(d => (
+            <div key={d.date} title={`${d.date}: ${d.count}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%' }}>
+              <div style={{ height: `${(d.count / maxDay) * 100}%`, minHeight: d.count > 0 ? '2px' : '0', background: 'linear-gradient(180deg,#1A9DA3,#0F6F73)', borderRadius: '3px 3px 0 0' }} />
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#9AA0AE', marginTop: '6px' }}>
+          <span>{data.daily[0]?.date}</span>
+          <span>{data.daily[data.daily.length - 1]?.date}</span>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+        <TrafficListCard title="Top Pages (30d)" rows={data.topPages.map(p => ({ label: p.key, value: p.count }))} />
+        <TrafficListCard title="Top Referrers (30d)" rows={[{ label: 'Direct / none', value: data.directCount }, ...data.topReferrers.map(r => ({ label: r.key, value: r.count }))]} />
+        <TrafficListCard title="Top Countries (30d)" rows={data.topCountries.map(c => ({ label: c.key, value: c.count }))} />
+      </div>
+
+      <div style={card}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #F4F5F7' }}>
+          <span style={{ fontSize: '15px', fontWeight: 700, color: '#171A21' }}>Top Companies by Profile Views</span>
+          <span style={{ fontSize: '13px', color: '#9AA0AE', marginLeft: '8px' }}>All-time, deduped per viewer per day</span>
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '420px' }}>
+            <thead><tr style={{ background: '#F4F5F7' }}>{['Company', 'Tier', 'Profile Views'].map(c => <th key={c} style={thStyle}>{c}</th>)}</tr></thead>
+            <tbody>
+              {data.topCompanies.length === 0 ? (
+                <tr><td colSpan={3} style={{ padding: '32px', textAlign: 'center', color: '#9AA0AE' }}>No views yet</td></tr>
+              ) : data.topCompanies.map((c, i) => (
+                <tr key={c.id} style={{ borderTop: i > 0 ? '1px solid #F4F5F7' : undefined }}>
+                  <td style={{ ...tdStyle, fontSize: '14px', fontWeight: 600, color: '#171A21' }}>{c.name}</td>
+                  <td style={{ ...tdStyle, fontSize: '12px', color: '#6B7385' }}>{c.premium ? 'Premium' : c.claimed ? 'Claimed' : 'Unclaimed'}</td>
+                  <td style={{ ...tdStyle, fontSize: '14px', fontWeight: 700, color: '#0F6F73' }}>{(c.views ?? 0).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {data.site.capped && <div style={{ fontSize: '12px', color: '#9AA0AE' }}>Note: 30-day aggregates use the most recent 50,000 views.</div>}
+    </div>
+  );
+}
+
 const TABS = [
   { id: 'companies', label: 'Companies' },
+  { id: 'traffic', label: 'Traffic' },
   { id: 'users', label: 'Users' },
   { id: 'requests', label: 'Requests' },
   { id: 'services', label: 'Industries & Services' },
@@ -1580,6 +1696,7 @@ export function AdminClient({ companies, users, broadcasts, earlyBirdClaims, lan
 
       {/* Tab content */}
       {activeTab === 'companies' && <CompaniesTab companies={companies} />}
+      {activeTab === 'traffic' && <TrafficTab />}
       {activeTab === 'users' && <UsersTab users={users} />}
       {activeTab === 'requests' && <RequestsHub broadcasts={broadcasts} earlyBirdClaims={earlyBirdClaims} companies={companies} />}
       {activeTab === 'services' && <ServicesTab />}
