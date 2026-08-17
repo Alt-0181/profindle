@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { PublicNav } from '@/components/layout/public-nav';
 import { SearchCard } from './search-card';
+import { JsonLd } from '@/components/seo/json-ld';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://profindle.com';
 
@@ -29,8 +30,33 @@ export default async function LandingPage({ params }: { params: Promise<{ lang: 
   const t = dict.landing;
   const nav = dict.nav;
 
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Profindle',
+      url: `${siteUrl}/${lang}`,
+      logo: `${siteUrl}/assets/logo-square.png`,
+      description: lang === 'th'
+        ? 'แพลตฟอร์มรวมผู้ให้บริการ B2B ของไทย'
+        : "Thailand's B2B service-provider marketplace",
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'Profindle',
+      url: `${siteUrl}/${lang}`,
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: { '@type': 'EntryPoint', urlTemplate: `${siteUrl}/${lang}/search-providers?q={search_term_string}` },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+  ];
+
   return (
     <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif", margin: 0, padding: 0 }}>
+      <JsonLd data={jsonLd} />
       <style>{`
         @media (max-width: 768px) {
           .how-grid { grid-template-columns: 1fr !important; }

@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { PublicNav } from '@/components/layout/public-nav';
 import { serviceFromSlug, provinceFromSlug, serviceSlug, MIN_INDEXABLE } from '@/lib/directory';
 import { ProviderCard, type DirCompany } from '../../provider-card';
+import { JsonLd } from '@/components/seo/json-ld';
 
 export const dynamic = 'force-dynamic';
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://profindle.com';
@@ -64,8 +65,34 @@ export default async function ServiceProvincePage({ params }: { params: Promise<
   const companies = (data ?? []) as DirCompany[];
   const isTh = lang === 'th';
 
+  const base = `${siteUrl}/${lang}`;
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: isTh ? 'บริการ' : 'Services', item: `${base}/services` },
+        { '@type': 'ListItem', position: 2, name: svc, item: `${base}/services/${service}` },
+        { '@type': 'ListItem', position: 3, name: prov, item: `${base}/services/${service}/${province}` },
+      ],
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: isTh ? `${svc} ใน${prov}` : `${svc} in ${prov}, Thailand`,
+      numberOfItems: companies.length,
+      itemListElement: companies.slice(0, 30).map((c, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `${base}/providers/${c.id}`,
+        name: (isTh && c.name_th ? c.name_th : c.name) as string,
+      })),
+    },
+  ];
+
   return (
     <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif", minHeight: '100vh', background: '#F4F5F7' }}>
+      <JsonLd data={jsonLd} />
       <PublicNav locale={lang} dict={dict} dark={false} />
 
       <div style={{ background: 'linear-gradient(140deg, #0E1017 0%, #0F6F73 100%)', padding: 'clamp(28px,5vw,44px) 0' }}>

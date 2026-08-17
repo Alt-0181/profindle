@@ -8,6 +8,7 @@ import { PortfolioGrid } from './portfolio-grid';
 import { LocationMap } from './location-map';
 import { ContactCard } from './contact-card';
 import { ViewTracker } from './view-tracker';
+import { JsonLd } from '@/components/seo/json-ld';
 
 // Always render against live data so a provider's public profile reflects the
 // current portfolio (no stale cache showing removed/duplicate projects).
@@ -147,8 +148,36 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
     similarProviders = sim ?? [];
   }
 
+  const base = `${siteUrl}/${lang}`;
+  const svcList = Array.isArray(company.services) ? (company.services as string[]) : [];
+  const providerLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfessionalService',
+    '@id': `${base}/providers/${id}`,
+    name: displayName,
+    url: `${base}/providers/${id}`,
+    ...(displayDesc ? { description: displayDesc } : {}),
+    ...(company.logo_url ? { image: company.logo_url, logo: company.logo_url } : {}),
+    address: { '@type': 'PostalAddress', addressCountry: 'TH', ...(company.province ? { addressRegion: company.province } : {}) },
+    ...(company.province ? { areaServed: { '@type': 'AdministrativeArea', name: company.province } } : {}),
+    ...(svcList.length ? { knowsAbout: svcList } : {}),
+    // Only claimed profiles expose contact (PDPA: never for seeded/unclaimed).
+    ...(claimed && company.website ? { sameAs: [company.website] } : {}),
+    ...(claimed && company.phone ? { telephone: company.phone } : {}),
+    ...(claimed && company.email ? { email: company.email } : {}),
+  };
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: isTh ? 'ค้นหาผู้ให้บริการ' : 'Providers', item: `${base}/search-providers` },
+      { '@type': 'ListItem', position: 2, name: displayName, item: `${base}/providers/${id}` },
+    ],
+  };
+
   return (
     <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif", minHeight: '100vh', background: '#F4F5F7' }}>
+      <JsonLd data={[providerLd, breadcrumbLd]} />
       <ViewTracker companyId={id} />
       <style>{`
         .pp-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }

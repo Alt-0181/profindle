@@ -5,6 +5,7 @@ import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { PublicNav } from '@/components/layout/public-nav';
 import { INDUSTRIES } from '@/lib/services';
 import { serviceSlug } from '@/lib/directory';
+import { JsonLd } from '@/components/seo/json-ld';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://profindle.com';
 
@@ -29,8 +30,18 @@ export default async function ServicesIndexPage({ params }: { params: Promise<{ 
   const dict = await getDictionary(lang as Locale);
   const isTh = lang === 'th';
 
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Profindle', item: `${siteUrl}/${lang}` },
+      { '@type': 'ListItem', position: 2, name: isTh ? 'บริการทั้งหมด' : 'Services', item: `${siteUrl}/${lang}/services` },
+    ],
+  };
+
   return (
     <div style={{ fontFamily: "'Inter', 'Noto Sans Thai', sans-serif", minHeight: '100vh', background: '#F4F5F7' }}>
+      <JsonLd data={breadcrumbLd} />
       <PublicNav locale={lang} dict={dict} dark={false} />
 
       <div style={{ background: 'linear-gradient(140deg, #0E1017 0%, #0F6F73 100%)', padding: 'clamp(28px,5vw,44px) 0' }}>
