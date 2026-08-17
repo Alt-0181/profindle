@@ -7,9 +7,12 @@ const defaultLocale = 'th';
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip Next.js internals and static files
+  // Skip Next.js internals, Vercel endpoints (analytics beacon, etc.), API, and
+  // static files. /_vercel/insights/view has no file extension, so without this
+  // the locale redirect would hijack the analytics beacon and drop all traffic.
   if (
     pathname.startsWith('/_next') ||
+    pathname.startsWith('/_vercel') ||
     pathname.startsWith('/api') ||
     pathname.startsWith('/assets') ||
     /\.(.*)$/.test(pathname)
@@ -31,5 +34,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next|api|assets|.*\\..*).*)'],
+  matcher: ['/((?!_next|_vercel|api|assets|.*\\..*).*)'],
 };
