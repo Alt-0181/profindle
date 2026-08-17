@@ -3,6 +3,7 @@ import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Topbar } from '@/components/layout/topbar';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 
 export default async function DashboardLayout({
   children,
@@ -33,11 +34,30 @@ export default async function DashboardLayout({
     company: null,
   };
 
-  const { count: companyCount } = await supabase
+  const { data: myCompany } = await supabase
     .from('companies')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', user.id);
-  const hasCompany = (companyCount ?? 0) > 0;
+    .select('id')
+    .eq('user_id', user.id)
+    .maybeSingle();
+  const hasCompany = !!myCompany;
+
+  // Unactioned leads (broadcast requests matched to this provider, not yet
+  // responded to) → sidebar badge. broadcast_matches has no provider-side RLS
+  // read policy, so count via the service role, scoped to this company only.
+  let leadsCount = 0;
+  if (myCompany) {
+    const admin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+    const { count } = await admin
+      .from('broadcast_matches')
+      .select('id', { count: 'exact', head: true })
+      .eq('provider_company_id', (myCompany as { id: string }).id)
+      .eq('provider_response', 'no_reply');
+    leadsCount = count ?? 0;
+  }
 
   return (
     <>
@@ -45,6 +65,7 @@ export default async function DashboardLayout({
         locale={lang}
         dict={dict}
         hasCompany={hasCompany}
+        leadsCount={leadsCount}
         user={currentUser}
         isAdmin={isAdmin}
       />

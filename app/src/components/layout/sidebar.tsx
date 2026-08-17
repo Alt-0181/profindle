@@ -52,6 +52,14 @@ function LayoutIcon() {
     </svg>
   );
 }
+function InboxIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
+      <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+    </svg>
+  );
+}
 function StarIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -100,10 +108,11 @@ interface SidebarProps {
   dict: Dictionary;
   hasCompany?: boolean;
   isAdmin?: boolean;
+  leadsCount?: number;
   user?: { initial: string; fullName: string; plan: string };
 }
 
-export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, user }: SidebarProps) {
+export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, leadsCount = 0, user }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -118,6 +127,7 @@ export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, use
     { type: 'item', id: 'company', labelKey: 'myCompany', icon: <BuildingIcon />, href: `/${locale}/my-company` },
     { type: 'section', labelKey: 'forProvidersSec' },
     { type: 'item', id: 'overview', labelKey: 'overview', icon: <GridIcon />, href: `/${locale}/provider-overview`, locked: !hasCompany },
+    { type: 'item', id: 'leads', labelKey: 'leads', icon: <InboxIcon />, href: `/${locale}/leads`, locked: !hasCompany, badge: leadsCount > 0 ? String(leadsCount) : undefined },
     { type: 'item', id: 'portfolio', labelKey: 'portfolio', icon: <LayoutIcon />, href: `/${locale}/portfolio`, locked: !hasCompany },
     { type: 'item', id: 'package', labelKey: 'package', icon: <StarIcon />, href: `/${locale}/package`, locked: !hasCompany },
     { type: 'section', labelKey: 'forBuyersSec' },
