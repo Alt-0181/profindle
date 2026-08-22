@@ -1508,7 +1508,9 @@ function RequestsHub({ broadcasts, earlyBirdClaims, companies }: { broadcasts: B
 // ─── Tab: Traffic ─────────────────────────────────────────────────────────────
 
 interface TrafficData {
-  site: { totalAllTime: number; views30: number; unique30: number; views7: number; views24: number; capped: boolean };
+  site: { totalAllTime: number; views30: number; unique30: number; humanEstimate: number; suspectedAutomated: number; thVisitors: number; views7: number; views24: number; capped: boolean };
+  callerExcluded: boolean;
+  excludedDevices: number;
   daily: { date: string; count: number }[];
   topPages: { key: string; count: number }[];
   topReferrers: { key: string; count: number }[];
@@ -1547,6 +1549,7 @@ function TrafficTab() {
   const [data, setData] = useState<TrafficData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [excluding, setExcluding] = useState(false);
 
   useEffect(() => {
     fetch('/api/admin/traffic')
@@ -1556,6 +1559,25 @@ function TrafficTab() {
       .finally(() => setLoading(false));
   }, []);
 
+  const toggleExclude = async () => {
+    if (!data) return;
+    setExcluding(true);
+    try {
+      const res = await fetch('/api/admin/traffic', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: data.callerExcluded ? 'remove' : 'add' }),
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error();
+      setData({ ...data, callerExcluded: j.callerExcluded, excludedDevices: data.excludedDevices + (j.callerExcluded ? 1 : -1) });
+    } catch {
+      alert('Action failed. Please try again.');
+    } finally {
+      setExcluding(false);
+    }
+  };
+
   if (loading) return <div style={{ padding: '48px', textAlign: 'center', color: '#9AA0AE' }}>Loading traffic…</div>;
   if (error || !data) return <div style={{ padding: '48px', textAlign: 'center', color: '#C0392B' }}>{error ?? 'No data'}</div>;
 
@@ -1563,13 +1585,37 @@ function TrafficTab() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Data-quality control bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', flexWrap: 'wrap', background: '#F0F9F9', border: '1px solid rgba(15,111,115,0.15)', borderRadius: '12px', padding: '12px 16px' }}>
+        <div style={{ fontSize: '12.5px', color: '#444B5A', lineHeight: 1.5 }}>
+          {data.callerExcluded
+            ? '✓ Your own visits on this device/network are not counted.'
+            : 'These numbers may include your own testing. Exclude this device to see real visitors only.'}
+          <span style={{ color: '#9AA0AE' }}> · Bots filtered automatically · {data.excludedDevices} device(s) excluded</span>
+        </div>
+        <button onClick={toggleExclude} disabled={excluding} style={{
+          flexShrink: 0, padding: '8px 14px', borderRadius: '9px', border: '1.5px solid rgba(15,111,115,0.35)',
+          background: data.callerExcluded ? 'white' : 'linear-gradient(135deg,#0F6F73,#1A9DA3)',
+          color: data.callerExcluded ? '#0F6F73' : 'white', fontFamily: 'inherit', fontSize: '12.5px', fontWeight: 700,
+          cursor: 'pointer', opacity: excluding ? 0.6 : 1,
+        }}>
+          {excluding ? '…' : data.callerExcluded ? 'Count my visits again' : 'Stop counting my visits'}
+        </button>
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '14px' }}>
-        <KpiCard label="Total Visits (all time)" value={data.site.totalAllTime.toLocaleString()} />
-        <KpiCard label="Visits (30 days)" value={data.site.views30.toLocaleString()} />
+        <KpiCard label="🇹🇭 Thailand Visitors (30d)" value={data.site.thVisitors.toLocaleString()} />
+        <KpiCard label="Real Humans (30d, est.)" value={data.site.humanEstimate.toLocaleString()} />
         <KpiCard label="Unique Visitors (30d)" value={data.site.unique30.toLocaleString()} />
-        <KpiCard label="Visits (7 days)" value={data.site.views7.toLocaleString()} />
+        <KpiCard label="Page Views (30d)" value={data.site.views30.toLocaleString()} />
         <KpiCard label="Visits (24 hours)" value={data.site.views24.toLocaleString()} />
       </div>
+
+      {data.site.suspectedAutomated > 0 && (
+        <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '-12px' }}>
+          {data.site.suspectedAutomated} likely-automated visitor(s) filtered from the &ldquo;Real Humans&rdquo; estimate (each viewed 20+ pages in 30 days). Total all-time page views: {data.site.totalAllTime.toLocaleString()}.
+        </div>
+      )}
 
       <div style={{ ...card, padding: '20px' }}>
         <div style={{ fontSize: '13px', fontWeight: 700, color: '#171A21', marginBottom: '16px' }}>Visits — last 30 days</div>

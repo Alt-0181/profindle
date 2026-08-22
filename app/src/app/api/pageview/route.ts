@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { createHash } from 'crypto';
 import { isExcludedViewer } from '@/lib/analytics-exclude';
+import { isBotUA, visitorHashFromHeaders } from '@/lib/visitor-hash';
 
 // First-party page-view logger. Records one row per navigation so we own an
 // unlimited-history archive of site traffic (Vercel Analytics only keeps 30
 // days). PDPA-friendly: we store a salted hash of IP+UA, never the raw IP, and
 // only the referrer HOST (no query strings). Best-effort — never blocks the page.
-
-const BOT_RE = /bot|crawl|spider|slurp|bingpreview|facebookexternalhit|whatsapp|telegram|headless|lighthouse|monitor|preview/i;
 
 // Our own hostnames — self-referrals are stored as null (direct/internal).
 const OWN_HOSTS = /(^|\.)profindle\.com$|vercel\.app$|localhost/i;
@@ -27,7 +25,7 @@ function referrerHost(raw: unknown): string | null {
 export async function POST(request: NextRequest) {
   try {
     const ua = request.headers.get('user-agent') ?? '';
-    if (BOT_RE.test(ua)) return NextResponse.json({ ok: true, skipped: 'bot' });
+    if (isBotUA(ua)) return NextResponse.json({ ok: true, skipped: 'bot' });
 
     // Never count the support/testing account or super-admins.
     if (await isExcludedViewer('')) return NextResponse.json({ ok: true, skipped: 'excluded' });
@@ -38,13 +36,7 @@ export async function POST(request: NextRequest) {
     // Drop query string / fragment — keep just the pathname (no PII).
     const path = rawPath.split(/[?#]/)[0].slice(0, 300);
 
-    const ip =
-      (request.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() ||
-      request.headers.get('x-real-ip') ||
-      'unknown';
-    const salt = process.env.VIEW_HASH_SALT ?? 'profindle-views';
-    const visitorHash = createHash('sha256').update(`${salt}|${ip}|${ua}`).digest('hex').slice(0, 40);
-
+    const visitorHash = visitorHashFromHeaders(request.headers);
     const country = request.headers.get('x-vercel-ip-country') || null;
 
     const admin = createClient(
@@ -52,6 +44,17 @@ export async function POST(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       { auth: { persistSession: false } }
     );
+
+    // Skip visitors the admin has explicitly excluded (e.g. the founder's own
+    // device/network). Resilient if the table hasn't been migrated yet.
+    try {
+      const { data: ex } = await admin
+        .from('analytics_excluded_visitors')
+        .select('visitor_hash')
+        .eq('visitor_hash', visitorHash)
+        .maybeSingle();
+      if (ex) return NextResponse.json({ ok: true, skipped: 'self' });
+    } catch { /* table missing → count normally */ }
 
     await admin.from('page_views').insert({
       path,
