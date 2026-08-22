@@ -368,6 +368,31 @@ function CompanyDetailPanel({ company, onClose, onUpdate, onDelete }: {
                 {loading === 'premium' ? '…' : company.premium ? '⭐ Premium' : 'Set Premium'}
               </button>
             </div>
+            {company.user_id && (
+              <button
+                disabled={loading === 'unclaim'}
+                style={{ width: '100%', marginTop: '10px', padding: '10px', fontSize: '13px', fontWeight: 700, borderRadius: '10px', border: '1.5px solid rgba(15,111,115,0.3)', background: 'white', color: '#0F6F73', cursor: 'pointer', fontFamily: 'inherit', opacity: loading === 'unclaim' ? 0.6 : 1 }}
+                onClick={async () => {
+                  if (!confirm(`Release the claim on "${company.name}"?\n\nThe listing stays (reverts to unclaimed); the owner link, contact details, uploaded docs/logo and portfolio are removed. Use this instead of deleting.`)) return;
+                  setLoading('unclaim');
+                  try {
+                    const res = await fetch('/api/admin/companies', {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ companyId: company.id, action: 'unclaim' }),
+                    });
+                    if (!res.ok) throw new Error('Failed');
+                    onUpdate({ user_id: null, verified: false, premium: false } as Partial<Company>);
+                    onClose();
+                  } catch {
+                    alert('Failed to release claim. Please try again.');
+                    setLoading(null);
+                  }
+                }}
+              >
+                {loading === 'unclaim' ? '…' : 'Release claim (revert to unclaimed)'}
+              </button>
+            )}
             <button
               disabled={loading === 'delete'}
               style={{ ...dangerBtn, width: '100%', marginTop: '10px', padding: '10px', fontSize: '13px', opacity: loading === 'delete' ? 0.6 : 1 }}
@@ -1578,6 +1603,27 @@ function TrafficTab() {
     }
   };
 
+  const [resetting, setResetting] = useState(false);
+  const resetHistory = async () => {
+    if (!confirm('Clear ALL traffic history and start counting from now?\n\nThis permanently deletes every recorded page view. It cannot be undone.')) return;
+    setResetting(true);
+    try {
+      const res = await fetch('/api/admin/traffic', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset' }),
+      });
+      if (!res.ok) throw new Error();
+      // Reload the (now-empty) figures.
+      const fresh = await fetch('/api/admin/traffic').then(r => r.json());
+      setData(fresh);
+    } catch {
+      alert('Reset failed. Please try again.');
+    } finally {
+      setResetting(false);
+    }
+  };
+
   if (loading) return <div style={{ padding: '48px', textAlign: 'center', color: '#9AA0AE' }}>Loading traffic…</div>;
   if (error || !data) return <div style={{ padding: '48px', textAlign: 'center', color: '#C0392B' }}>{error ?? 'No data'}</div>;
 
@@ -1593,14 +1639,23 @@ function TrafficTab() {
             : 'These numbers may include your own testing. Exclude this device to see real visitors only.'}
           <span style={{ color: '#9AA0AE' }}> · Bots filtered automatically · {data.excludedDevices} device(s) excluded</span>
         </div>
-        <button onClick={toggleExclude} disabled={excluding} style={{
-          flexShrink: 0, padding: '8px 14px', borderRadius: '9px', border: '1.5px solid rgba(15,111,115,0.35)',
-          background: data.callerExcluded ? 'white' : 'linear-gradient(135deg,#0F6F73,#1A9DA3)',
-          color: data.callerExcluded ? '#0F6F73' : 'white', fontFamily: 'inherit', fontSize: '12.5px', fontWeight: 700,
-          cursor: 'pointer', opacity: excluding ? 0.6 : 1,
-        }}>
-          {excluding ? '…' : data.callerExcluded ? 'Count my visits again' : 'Stop counting my visits'}
-        </button>
+        <div style={{ display: 'flex', gap: '8px', flexShrink: 0, flexWrap: 'wrap' }}>
+          <button onClick={toggleExclude} disabled={excluding} style={{
+            padding: '8px 14px', borderRadius: '9px', border: '1.5px solid rgba(15,111,115,0.35)',
+            background: data.callerExcluded ? 'white' : 'linear-gradient(135deg,#0F6F73,#1A9DA3)',
+            color: data.callerExcluded ? '#0F6F73' : 'white', fontFamily: 'inherit', fontSize: '12.5px', fontWeight: 700,
+            cursor: 'pointer', opacity: excluding ? 0.6 : 1,
+          }}>
+            {excluding ? '…' : data.callerExcluded ? 'Count my visits again' : 'Stop counting my visits'}
+          </button>
+          <button onClick={resetHistory} disabled={resetting} style={{
+            padding: '8px 14px', borderRadius: '9px', border: '1.5px solid rgba(192,57,43,0.3)',
+            background: 'white', color: '#C0392B', fontFamily: 'inherit', fontSize: '12.5px', fontWeight: 700,
+            cursor: 'pointer', opacity: resetting ? 0.6 : 1,
+          }}>
+            {resetting ? '…' : 'Clear history'}
+          </button>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '14px' }}>

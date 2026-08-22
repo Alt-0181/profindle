@@ -140,16 +140,25 @@ export async function GET(request: NextRequest) {
   });
 }
 
-// POST /api/admin/traffic  { action: 'add' | 'remove' }
-// Excludes (or re-includes) the caller's own device/network from analytics.
+// POST /api/admin/traffic
+//   { action: 'add' | 'remove' }  — exclude / re-include the caller's device
+//   { action: 'reset' }           — wipe all page-view history (start fresh)
 export async function POST(request: NextRequest) {
   const caller = await requireSuperAdmin();
   if (!caller) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const body = await request.json().catch(() => ({}));
+  const admin = getAdmin();
+
+  // Clear all recorded page views — counting starts fresh from now.
+  if (body.action === 'reset') {
+    const { error } = await admin.from('page_views').delete().gte('id', 0);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ ok: true, reset: true });
+  }
+
   const action = body.action === 'remove' ? 'remove' : 'add';
   const hash = visitorHashFromHeaders(request.headers);
-  const admin = getAdmin();
 
   if (action === 'remove') {
     const { error } = await admin.from('analytics_excluded_visitors').delete().eq('visitor_hash', hash);

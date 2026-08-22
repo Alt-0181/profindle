@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as adminClient } from '@supabase/supabase-js';
 import { pushMessage } from '@/lib/line';
+import { revertCompanyToUnclaimed } from '@/lib/revert-company';
 
 function getAdmin() {
   return adminClient(
@@ -54,17 +55,29 @@ async function requireSuperAdmin() {
   return user;
 }
 
-// PATCH /api/admin/companies  { companyId, field: 'verified'|'premium', value: boolean }
+// PATCH /api/admin/companies
+//   { companyId, field: 'verified'|'premium'|'line_user_id', value }  — set a field
+//   { companyId, action: 'unclaim' }                                  — release the claim
 export async function PATCH(request: NextRequest) {
   const user = await requireSuperAdmin();
   if (!user) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  const { companyId, field, value } = await request.json();
-  if (!companyId || !['verified', 'premium', 'line_user_id'].includes(field)) {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
-  }
+  const body = await request.json();
+  const { companyId, field, value, action } = body;
+  if (!companyId) return NextResponse.json({ error: 'companyId required' }, { status: 400 });
 
   const admin = getAdmin();
+
+  // Release a claim: revert to an unclaimed listing (keeps the business data,
+  // scrubs owner content) rather than deleting the company.
+  if (action === 'unclaim') {
+    await revertCompanyToUnclaimed(admin, companyId);
+    return NextResponse.json({ ok: true });
+  }
+
+  if (!['verified', 'premium', 'line_user_id'].includes(field)) {
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  }
   const { error } = await admin
     .from('companies')
     .update({ [field]: value })

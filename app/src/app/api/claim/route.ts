@@ -42,7 +42,10 @@ export async function POST(request: NextRequest) {
   // Claim it. Guarded on claimed=false so two simultaneous claims can't both win.
   const { error, data: updated } = await admin
     .from('companies')
-    .update({ user_id: user.id, claimed: true, source: 'signup', updated_at: new Date().toISOString() })
+    // Keep source as-is (a seeded listing stays source='seeded' after being
+    // claimed) so that if the owner later deletes their account, the listing is
+    // reverted to unclaimed instead of being destroyed.
+    .update({ user_id: user.id, claimed: true, updated_at: new Date().toISOString() })
     .eq('id', companyId)
     .eq('claimed', false)
     .select('id')
