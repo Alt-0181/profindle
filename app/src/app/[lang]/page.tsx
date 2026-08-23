@@ -12,10 +12,16 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const { lang } = await params;
   const isTh = lang === 'th';
   return {
-    title: isTh ? 'Profindle — ตลาด B2B ของไทย' : 'Profindle — Thailand B2B Service Marketplace',
+    title: isTh ? 'แพลตฟอร์มรวมผู้ให้บริการธุรกิจของไทย' : "Thailand's B2B service-provider platform",
     description: isTh
       ? 'ค้นหาผู้ให้บริการ B2B ในไทยที่ผ่านการยืนยัน — ดิจิทัลมาร์เก็ตติ้ง, IT, กฎหมาย, อีเว้นท์ และอื่นๆ ฟรี ไม่ต้องใช้บัตรเครดิต'
       : 'Find verified B2B service providers across Thailand — Digital Marketing, IT, Legal, Events and more. Free, no credit card required.',
+    openGraph: {
+      title: isTh ? 'แพลตฟอร์มรวมผู้ให้บริการธุรกิจของไทย' : "Thailand's B2B service-provider platform",
+      description: isTh
+        ? 'ค้นหาผู้ให้บริการ B2B ในไทยที่ผ่านการยืนยัน — ฟรี ไม่ต้องใช้บัตรเครดิต'
+        : 'Find verified B2B service providers across Thailand — free, no credit card required.',
+    },
     alternates: {
       canonical: `${siteUrl}/${lang}`,
       languages: { en: `${siteUrl}/en`, th: `${siteUrl}/th`, 'x-default': `${siteUrl}/en` },

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://profindle.com'),
   title: {
     template: '%s | Profindle',
-    default: 'Profindle — Thailand B2B Service Marketplace',
+    default: "Profindle — Thailand's B2B service-provider platform",
   },
   description: 'Find verified B2B service providers across Thailand — Digital Marketing, IT, Legal, Events and more. Free, no credit card required.',
   keywords: ['B2B', 'Thailand', 'service providers', 'marketplace', 'ผู้ให้บริการ', 'ไทย'],
