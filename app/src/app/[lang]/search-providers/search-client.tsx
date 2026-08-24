@@ -920,7 +920,7 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
                   </p>
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
-                    {p.services.slice(0, 3).map((s, i) => (
+                    {(p.services ?? []).slice(0, 3).map((s, i) => (
                       <span key={s} style={{ fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '999px', background: i === 0 ? '#F0F9F9' : 'transparent', color: i === 0 ? '#0F6F73' : '#6B7385', border: i === 0 ? '1px solid transparent' : '1px solid #E4E7ED' }}>{s}</span>
                     ))}
                   </div>
