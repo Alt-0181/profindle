@@ -11,7 +11,7 @@ import { JsonLd } from '@/components/seo/json-ld';
 export const dynamic = 'force-dynamic';
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://profindle.com';
 
-const CARD_FIELDS = 'id, name, name_th, description, description_th, province, services, verified, premium, logo_initial, logo_url';
+const CARD_FIELDS = 'id, name, name_th, description, description_th, province, services, verified, claimed, premium, logo_initial, logo_url';
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string; service: string; province: string }> }): Promise<Metadata> {
   const { lang, service, province } = await params;
@@ -62,7 +62,7 @@ export default async function ServiceProvincePage({ params }: { params: Promise<
     .order('claimed', { ascending: false })
     .order('premium', { ascending: false })
     .order('views', { ascending: false });
-  const companies = (data ?? []) as DirCompany[];
+  const companies = ((data ?? []) as DirCompany[]).filter((c) => c.verified || !c.claimed);
   const isTh = lang === 'th';
 
   const base = `${siteUrl}/${lang}`;

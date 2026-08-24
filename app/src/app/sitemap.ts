@@ -15,16 +15,20 @@ function getAdmin() {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const admin = getAdmin();
-  const { data: companies } = await admin
+  const { data: allCompanies } = await admin
     .from('companies')
-    .select('id, updated_at, services, province')
+    .select('id, updated_at, services, province, claimed, verified')
     .order('views', { ascending: false });
+
+  // Only list publicly-visible companies (seeded/unclaimed + verified) — never
+  // user-created profiles awaiting verification (keeps trolls out of Google).
+  const companies = (allCompanies ?? []).filter((c: any) => c.verified || !c.claimed);
 
   // Count providers per service and per service×province — only index directory
   // pages with enough providers to be genuinely useful (avoids thin pages).
   const svcCount: Record<string, number> = {};
   const svcProvCount: Record<string, number> = {};
-  for (const c of companies ?? []) {
+  for (const c of companies) {
     for (const s of (c.services as string[] | null) ?? []) {
       const ss = serviceSlug(s);
       svcCount[ss] = (svcCount[ss] ?? 0) + 1;
@@ -57,7 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   const providerEntries = locales.flatMap((lang) =>
-    (companies ?? []).map((c) => ({
+    companies.map((c) => ({
       url: `${siteUrl}/${lang}/providers/${c.id}`,
       lastModified: c.updated_at ? new Date(c.updated_at) : new Date(),
       changeFrequency: 'weekly' as const,

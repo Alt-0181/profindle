@@ -95,6 +95,10 @@ const getSearchData = unstable_cache(
 
     const companiesWithBudgets = (companies ?? [])
       .filter((c) => c.name)
+      // Public search shows seeded/unclaimed listings + verified companies, but
+      // NOT user-created profiles awaiting verification — that keeps troll/spam
+      // signups out while still showing the whole seeded directory.
+      .filter((c) => c.verified || !c.claimed)
       .map((c) => ({
         ...c,
         portfolioBudgets: budgetMap[c.id] ?? [],

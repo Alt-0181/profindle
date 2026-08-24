@@ -9,6 +9,7 @@ export type DirCompany = {
   province: string | null;
   services: string[] | null;
   verified: boolean;
+  claimed: boolean;
   premium: boolean;
   logo_initial: string | null;
   logo_url: string | null;
