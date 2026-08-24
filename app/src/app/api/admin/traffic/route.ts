@@ -71,14 +71,25 @@ export async function GET(request: NextRequest) {
   // Drop admin-excluded devices (e.g. the founder's own test visits).
   const rows = (rawRows ?? []).filter((r: any) => !excluded.has(r.visitor_hash));
 
+  // Per-visitor totals, then flag visitors with an automated-looking page-view
+  // count (crawler / scraper / monitor) and drop them from ALL human stats — so
+  // the whole tab (countries, referrers, pages, chart) reflects real people.
   const perVisitor = new Map<string, number>();
+  for (const row of rows as any[]) {
+    perVisitor.set(row.visitor_hash, (perVisitor.get(row.visitor_hash) ?? 0) + 1);
+  }
+  const automated = new Set<string>();
+  for (const [h, n] of perVisitor) if (n >= AUTOMATED_THRESHOLD) automated.add(h);
+  const humanRows = (rows as any[]).filter(r => !automated.has(r.visitor_hash));
+
+  const humanVisitors = new Set<string>();
   const thVisitors = new Set<string>();
   let views7 = 0;
   let views24 = 0;
   const dayMap = new Map<string, number>();
 
-  for (const row of rows as any[]) {
-    perVisitor.set(row.visitor_hash, (perVisitor.get(row.visitor_hash) ?? 0) + 1);
+  for (const row of humanRows) {
+    humanVisitors.add(row.visitor_hash);
     if (row.country === 'TH') thVisitors.add(row.visitor_hash);
     const ts = new Date(row.created_at).getTime();
     if (ts >= t7) views7++;
@@ -87,12 +98,9 @@ export async function GET(request: NextRequest) {
     dayMap.set(day, (dayMap.get(day) ?? 0) + 1);
   }
 
-  // Estimate real humans: unique visitors minus those with an automated-looking
-  // page-view count in the window.
-  let suspectedAutomated = 0;
-  for (const [, n] of perVisitor) if (n >= AUTOMATED_THRESHOLD) suspectedAutomated++;
-  const uniqueVisitors = perVisitor.size;
-  const humanEstimate = Math.max(0, uniqueVisitors - suspectedAutomated);
+  const uniqueVisitors = perVisitor.size;          // raw (incl. automated)
+  const humanEstimate = humanVisitors.size;         // real people
+  const suspectedAutomated = automated.size;
 
   const daily: { date: string; count: number }[] = [];
   for (let i = 29; i >= 0; i--) {
@@ -100,10 +108,11 @@ export async function GET(request: NextRequest) {
     daily.push({ date: d, count: dayMap.get(d) ?? 0 });
   }
 
-  const topPages = topCounts(rows.map((x: any) => x.path), 12);
-  const topReferrers = topCounts(rows.map((x: any) => x.referrer_host), 10);
-  const topCountries = topCounts(rows.map((x: any) => x.country), 8);
-  const directCount = rows.filter((x: any) => !x.referrer_host).length;
+  // Breakdowns from human rows only, so bots don't dominate the lists.
+  const topPages = topCounts(humanRows.map((x: any) => x.path), 12);
+  const topReferrers = topCounts(humanRows.map((x: any) => x.referrer_host), 10);
+  const topCountries = topCounts(humanRows.map((x: any) => x.country), 8);
+  const directCount = humanRows.filter((x: any) => !x.referrer_host).length;
 
   const { data: companyRows } = await admin
     .from('companies')
@@ -114,7 +123,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     site: {
       totalAllTime: totalAllTime ?? 0,
-      views30: rows.length,
+      views30: humanRows.length,
       unique30: uniqueVisitors,
       humanEstimate,
       suspectedAutomated,
