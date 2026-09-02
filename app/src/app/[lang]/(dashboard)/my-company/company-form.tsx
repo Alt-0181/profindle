@@ -408,7 +408,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
 
       const payload = {
         name: form.nameEn || null,
-        name_th: form.nameEn || null, // single name field → keep both columns in sync
+        name_th: form.nameTh || form.nameEn || null, // Thai name; fall back to the EN name if left blank
         description: form.descEn || null,
         description_th: form.descTh || null,
         services: selectedServices.length > 0 ? selectedServices : null,
@@ -741,11 +741,18 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
           </div>
         </div>
 
-        {/* Company name — one field; the provider fills whatever name clients recognise */}
+        {/* Company name — bilingual (EN + TH). Thai visitors see the Thai name,
+            English visitors see the English name. */}
         <div style={{ marginBottom: '20px' }}>
-          <div>
-            <label style={labelStyle}>{lang === 'th' ? 'ชื่อบริษัท' : 'Company name'}<span style={{ color: '#F77F00', fontWeight: 700 }}> *</span></label>
-            <input type="text" value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} style={inputStyle} placeholder={lang === 'th' ? 'เช่น แอคมี' : 'e.g. Acme'} />
+          <div className="mc-row-2">
+            <div>
+              <label style={labelStyle}>{lang === 'th' ? 'ชื่อบริษัท' : 'Company name'} <span style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>EN</span><span style={{ color: '#F77F00', fontWeight: 700 }}> *</span></label>
+              <input type="text" value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} style={inputStyle} placeholder="e.g. Acme" />
+            </div>
+            <div>
+              <label style={labelStyle}>{lang === 'th' ? 'ชื่อบริษัท' : 'Company name'} <span style={{ background: '#FFF6EC', color: '#E06B00', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>TH</span></label>
+              <input type="text" value={form.nameTh} onChange={(e) => set('nameTh', e.target.value)} style={inputStyle} placeholder={lang === 'th' ? 'เช่น แอคมี' : 'e.g. แอคมี'} />
+            </div>
           </div>
           {/* Brand vs legal name hint */}
           <div style={{ marginTop: '10px', display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '10px 14px', background: '#F0F9F9', borderRadius: '10px', border: '1px solid rgba(15,111,115,0.12)' }}>
