@@ -1748,6 +1748,13 @@ export function AdminClient({ companies, users, broadcasts, earlyBirdClaims, lan
         </div>
         <div style={{ display: 'flex', gap: '10px', flexShrink: 0, flexWrap: 'wrap' }}>
           <a
+            href={`/${_lang}/admin/import`}
+            title="Bulk-add companies by pasting a JSON array (creates unclaimed profiles)"
+            style={{ padding: '10px 20px', background: 'white', color: '#0F6F73', fontWeight: 600, fontSize: '13px', borderRadius: '12px', textDecoration: 'none', whiteSpace: 'nowrap', border: '1.5px solid rgba(15,111,115,0.4)' }}
+          >
+            ⬆ Import JSON
+          </a>
+          <a
             href={`/${_lang}/broadcast-request`}
             title="Post a broadcast as Profindle — for testing and live demos (no company or 4/month limit)"
             style={{ padding: '10px 20px', background: 'white', color: '#F77F00', fontWeight: 600, fontSize: '13px', borderRadius: '12px', textDecoration: 'none', whiteSpace: 'nowrap', border: '1.5px solid rgba(247,127,0,0.4)' }}
