@@ -175,6 +175,28 @@ function CompanyDetailPanel({ company, onClose, onUpdate, onDelete }: {
   const [lineUidInput, setLineUidInput] = useState(company.line_user_id ?? '');
   const [editingLine, setEditingLine] = useState(false);
   const [lineError, setLineError] = useState('');
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState(company.name ?? '');
+
+  const saveName = async () => {
+    const name = nameInput.trim();
+    if (!name) return;
+    setLoading('rename');
+    try {
+      const res = await fetch('/api/admin/companies', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companyId: company.id, action: 'rename', name }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      onUpdate({ name, name_th: name } as Partial<Company>);
+      setEditingName(false);
+    } catch {
+      alert('Failed to rename. Please try again.');
+    } finally {
+      setLoading(null);
+    }
+  };
 
   const toggle = async (field: 'verified' | 'premium', current: boolean) => {
     setLoading(field);
@@ -238,9 +260,22 @@ function CompanyDetailPanel({ company, onClose, onUpdate, onDelete }: {
         {/* Header */}
         <div style={{ padding: '24px 24px 20px', borderBottom: '1px solid #F4F5F7', position: 'sticky', top: 0, background: 'white', zIndex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <div style={{ fontSize: '18px', fontWeight: 700, color: '#171A21' }}>{company.name}</div>
-              {company.name_th && <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '2px' }}>{company.name_th}</div>}
+            <div style={{ minWidth: 0, flex: 1 }}>
+              {editingName ? (
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <input value={nameInput} onChange={e => setNameInput(e.target.value)} autoFocus
+                    onKeyDown={e => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') { setEditingName(false); setNameInput(company.name ?? ''); } }}
+                    style={{ fontSize: '16px', fontWeight: 700, padding: '6px 10px', border: '1.5px solid #0F6F73', borderRadius: '8px', outline: 'none', fontFamily: 'inherit', color: '#171A21', flex: 1, minWidth: 0 }} />
+                  <button onClick={saveName} disabled={loading === 'rename'} style={{ ...primaryBtn, fontSize: '11px', padding: '6px 12px', opacity: loading === 'rename' ? 0.6 : 1 }}>{loading === 'rename' ? '…' : 'Save'}</button>
+                  <button onClick={() => { setEditingName(false); setNameInput(company.name ?? ''); }} style={{ ...dangerBtn, padding: '6px 10px' }}>Cancel</button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#171A21' }}>{company.name}</div>
+                  <button onClick={() => { setNameInput(company.name ?? ''); setEditingName(true); }} title="Edit name" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9AA0AE', fontSize: '14px', padding: 0, fontFamily: 'inherit' }}>✎</button>
+                </div>
+              )}
+              {!editingName && company.name_th && company.name_th !== company.name && <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '2px' }}>{company.name_th}</div>}
               <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
                 {company.verified && <span style={{ fontSize: '11px', background: '#ECFDF5', color: '#059669', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>✓ Verified</span>}
                 {company.premium && <span style={{ fontSize: '11px', background: '#FFF8EE', color: '#E06B00', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>⭐ Premium</span>}

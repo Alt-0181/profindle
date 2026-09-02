@@ -75,6 +75,18 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
+  // Rename: update the single company name (kept in sync across name + name_th).
+  if (action === 'rename') {
+    const name = typeof body.name === 'string' ? body.name.trim() : '';
+    if (!name) return NextResponse.json({ error: 'name required' }, { status: 400 });
+    const { error } = await admin
+      .from('companies')
+      .update({ name, name_th: name, updated_at: new Date().toISOString() })
+      .eq('id', companyId);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  }
+
   if (!['verified', 'premium', 'line_user_id'].includes(field)) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
