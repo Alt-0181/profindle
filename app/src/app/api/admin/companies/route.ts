@@ -75,13 +75,15 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
-  // Rename: update the single company name (kept in sync across name + name_th).
+  // Rename: update the English/primary name and Thai name. name_th falls back to
+  // name when not supplied, so a single-value rename keeps them in sync.
   if (action === 'rename') {
     const name = typeof body.name === 'string' ? body.name.trim() : '';
     if (!name) return NextResponse.json({ error: 'name required' }, { status: 400 });
+    const nameTh = typeof body.name_th === 'string' && body.name_th.trim() ? body.name_th.trim() : name;
     const { error } = await admin
       .from('companies')
-      .update({ name, name_th: name, updated_at: new Date().toISOString() })
+      .update({ name, name_th: nameTh, updated_at: new Date().toISOString() })
       .eq('id', companyId);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true });
