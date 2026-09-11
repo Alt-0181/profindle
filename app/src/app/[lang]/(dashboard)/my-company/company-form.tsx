@@ -1024,7 +1024,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
       {/* Sticky footer */}
       <div style={{
         position: 'sticky', bottom: 0, background: 'white',
-        borderTop: '1px solid #E4E7ED', padding: '16px 0',
+        borderTop: '1px solid #E4E7ED', padding: '16px 28px',
         display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px',
         marginTop: '20px',
       }}>
