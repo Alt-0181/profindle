@@ -155,7 +155,7 @@
     "emailPublic": "อีเมลสาธารณะ",
     "emailPublicPh": "contact@yourcompany.com",
     "verification": "การยืนยัน",
-    "verificationSub": "อัปโหลดหนังสือรับรองบริษัทจาก DBD เพื่อรับป้าย Verified",
+    "verificationSub": "กรอกเลขทะเบียนนิติบุคคล (DBD) เพื่อรับป้าย “ยืนยันแล้ว”",
     "uploadDoc": "อัปโหลดหนังสือรับรองบริษัท (DBD)",
     "uploadDocSub": "PDF หรือรูปภาพ สูงสุด 10MB",
     "saveChanges": "บันทึกการเปลี่ยนแปลง",

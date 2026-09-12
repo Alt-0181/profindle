@@ -155,7 +155,7 @@
     "emailPublic": "Public Email",
     "emailPublicPh": "contact@yourcompany.com",
     "verification": "Verification",
-    "verificationSub": "Upload your DBD Certificate to get a Verified badge",
+    "verificationSub": "Enter your DBD registration number to get a Verified badge",
     "uploadDoc": "Upload DBD Certificate",
     "uploadDocSub": "PDF or image, max 10MB",
     "saveChanges": "Save Changes",

@@ -85,53 +85,6 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  // Only treat as "done" if we have both a path AND a name (i.e. new-format uploads)
-  const hasNamedCert = !!(initialData?.dbdCertPath && initialData?.dbdCertName);
-  const [uploadDone, setUploadDone] = useState(hasNamedCert);
-  const [uploadError, setUploadError] = useState('');
-  const [dbdPath, setDbdPath] = useState<string | null>(initialData?.dbdCertPath ?? null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!dbdPath || uploadFile) return;
-    fetch(`/api/dbd-url?path=${encodeURIComponent(dbdPath)}`).then(r => r.json()).then((d) => {
-      if (d?.signedUrl) setPreviewUrl(d.signedUrl);
-    }).catch(() => {});
-  }, [dbdPath]);
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploadFile(file);
-    setUploadError('');
-    setUploadDone(false);
-    setPreviewUrl(URL.createObjectURL(file));
-    setUploading(true);
-    try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await fetch('/api/dbd-upload', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Upload failed');
-      setDbdPath(data.path);
-      if (data.signedUrl) setPreviewUrl(data.signedUrl);
-      setUploadDone(true);
-    } catch (err: any) {
-      setUploadError(err.message ?? 'Upload failed');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const getCertFileName = () => {
-    if (uploadFile) return uploadFile.name;
-    if (initialData?.dbdCertName) return initialData.dbdCertName;
-    return null;
-  };
-
   const [logoUrl, setLogoUrl] = useState<string | null>(initialData?.logoUrl ?? null);
   const [logoDisplayUrl, setLogoDisplayUrl] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
@@ -262,32 +215,6 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
       setBannerMobileDisplayUrl(null);
     } finally {
       setBannerMobileUploading(false);
-    }
-  };
-
-  const [downloading, setDownloading] = useState(false);
-  const [downloadError, setDownloadError] = useState('');
-
-  const handleDownload = async () => {
-    if (!dbdPath || downloading) return;
-    const fileName = getCertFileName() ?? 'DBD_Certificate.pdf';
-    setDownloading(true);
-    try {
-      const response = await fetch(`/api/dbd-download?path=${encodeURIComponent(dbdPath)}`);
-      if (!response.ok) throw new Error('File fetch failed');
-      const blob = await response.blob();
-      const objectUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = objectUrl;
-      a.download = fileName;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(objectUrl); }, 1000);
-    } catch (err: any) {
-      setDownloadError(lang === 'th' ? 'ดาวน์โหลดไม่สำเร็จ — กรุณาลองใหม่' : 'Download failed — please try again');
-    } finally {
-      setDownloading(false);
     }
   };
 
@@ -423,7 +350,6 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         dbd_no: form.dbdNo ? form.dbdNo.replace(/\D/g, '') : null,
         line_id: form.lineIdValue ? `${form.lineIdType}:${form.lineIdValue.trim()}` : null,
         buyer_only: form.buyerOnly,
-        ...(dbdPath ? { dbd_certificate_url: dbdPath, dbd_certificate_name: uploadFile?.name ?? initialData?.dbdCertName ?? null } : {}),
         ...(logoUrl ? { logo_url: logoUrl } : {}),
         ...(bannerUrl ? { banner_url: bannerUrl } : {}),
         updated_at: new Date().toISOString(),
@@ -936,71 +862,9 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
       <div style={sectionStyle}>
         <div style={{ fontSize: '16px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{t.verification}</div>
         <div style={{ fontSize: '13px', color: '#9AA0AE', marginBottom: '20px' }}>{t.verificationSub}</div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".pdf,.jpg,.jpeg,.png"
-          style={{ display: 'none' }}
-          onChange={handleFileChange}
-        />
-        <div
-          onClick={() => fileInputRef.current?.click()}
-          style={{
-            border: `2px dashed ${uploadDone ? '#0F6F73' : '#C8CDD7'}`,
-            borderRadius: '14px', padding: '32px',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px',
-            cursor: 'pointer', transition: 'all 150ms',
-            background: uploadDone ? '#F0F9F9' : 'white',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = '#1A9DA3'; e.currentTarget.style.background = '#F0F9F9'; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = uploadDone ? '#0F6F73' : '#C8CDD7'; e.currentTarget.style.background = uploadDone ? '#F0F9F9' : 'white'; }}
-        >
-          <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'white', boxShadow: '0 2px 8px rgba(23,26,33,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {uploadDone
-              ? <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg>
-              : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
-            }
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            {uploading && <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F6F73' }}>Uploading…</div>}
-            {uploadDone && (
-              <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F6F73' }}>
-                ✓ {getCertFileName()}
-              </div>
-            )}
-            {!uploading && !uploadDone && (
-              <>
-                <div style={{ fontSize: '14px', fontWeight: 600, color: '#171A21' }}>{t.uploadDoc}</div>
-                <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '4px' }}>{t.uploadDocSub}</div>
-              </>
-            )}
-            {uploadError && <div style={{ fontSize: '12px', color: '#FF5A5F', marginTop: '4px' }}>{uploadError}</div>}
-            {uploadDone && <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '4px' }}>{lang === 'th' ? 'คลิกเพื่ออัปโหลดใหม่' : 'Click to replace'}</div>}
-          </div>
-        </div>
-
-        {/* File attachment card — only show when we know the filename */}
-        {getCertFileName() && !uploading && (
-          <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: '#F0F9F9', borderRadius: '10px', border: '1px solid rgba(15,111,115,0.15)' }} onClick={e => e.stopPropagation()}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
-            </svg>
-            <span style={{ fontSize: '13px', color: '#0F6F73', fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {getCertFileName()}
-            </span>
-            <button onClick={handleDownload} disabled={downloading} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '7px', background: 'white', border: '1px solid rgba(15,111,115,0.2)', color: '#0F6F73', fontSize: '12px', fontWeight: 600, cursor: downloading ? 'wait' : 'pointer', fontFamily: 'inherit', flexShrink: 0, opacity: downloading ? 0.6 : 1 }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-              {downloading ? '…' : (lang === 'th' ? 'ดาวน์โหลด' : 'Download')}
-            </button>
-          </div>
-        )}
-        {downloadError && (
-          <div style={{ marginTop: '6px', fontSize: '12px', color: '#FF5A5F', paddingLeft: '4px' }}>{downloadError}</div>
-        )}
-
-        {/* DBD registration number — optional, manual. Sits right under the
-            certificate upload so it reads as part of verification. */}
-        <div style={{ marginTop: '20px' }}>
+        {/* DBD registration number — the basis for verification. Admins confirm
+            it against the public DBD DataWarehouse; no document upload required. */}
+        <div>
           <label style={labelStyle}>
             {lang === 'th' ? 'เลขทะเบียนนิติบุคคล (DBD)' : 'DBD registration number'}
             <span style={{ color: '#F77F00', fontWeight: 700 }}> *</span>
@@ -1011,12 +875,20 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
             value={form.dbdNo}
             onChange={(e) => set('dbdNo', e.target.value.replace(/[^\d]/g, '').slice(0, 13))}
             style={inputStyle}
-            placeholder={lang === 'th' ? 'เลข 13 หลัก (ดูได้จากหนังสือรับรอง)' : '13-digit number (see your certificate)'}
+            placeholder={lang === 'th' ? 'เลข 13 หลัก' : '13-digit number'}
           />
           <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '6px', lineHeight: 1.6 }}>
             {lang === 'th'
-              ? 'เลข 13 หลักบนหนังสือรับรองการจดทะเบียนบริษัทของคุณ ใช้สำหรับการยืนยันตัวตน'
-              : 'The 13-digit number on your company registration certificate — used to verify your business.'}
+              ? 'เลข 13 หลักของนิติบุคคล ใช้สำหรับยืนยันธุรกิจของคุณ '
+              : 'Your 13-digit company registration number — used to verify your business. '}
+            <a
+              href="https://datawarehouse.dbd.go.th/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: '#0F6F73', fontWeight: 600, textDecoration: 'underline' }}
+            >
+              {lang === 'th' ? 'ค้นหาเลขทะเบียน DBD ของคุณที่นี่' : 'Find your DBD number here'}
+            </a>
           </div>
         </div>
       </div>
