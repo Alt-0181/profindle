@@ -382,6 +382,9 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
 
       if (error) throw error;
       setSaved(true);
+      // Refresh the cached public search directory so profile edits appear
+      // right away (fire-and-forget — never block the save on it).
+      fetch('/api/revalidate-companies', { method: 'POST' }).catch(() => {});
       // Show the success toast briefly, then take the user to the
       // dashboard home so they know what to do next.
       setTimeout(() => router.push(`/${lang}/home`), 900);

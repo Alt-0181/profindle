@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as adminClient } from '@supabase/supabase-js';
 import { SERVICES } from '@/lib/services';
 import { sanitizeSeededContact } from '@/lib/contact-classify';
+import { revalidateCompanies } from '@/lib/revalidate';
 
 function getAdmin() {
   return adminClient(
@@ -112,6 +113,7 @@ export async function POST(request: NextRequest) {
     const { error, count } = await admin.from('companies').insert(rows, { count: 'exact' });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     inserted = count ?? rows.length;
+    revalidateCompanies();
   }
 
   return NextResponse.json({

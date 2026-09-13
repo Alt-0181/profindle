@@ -4,6 +4,7 @@ import { unstable_cache } from 'next/cache';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/server';
+import { COMPANIES_TAG } from '@/lib/revalidate';
 import { SearchProvidersClient } from './search-client';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://profindle.com';
@@ -109,7 +110,7 @@ const getSearchData = unstable_cache(
     return { companies: companiesWithBudgets, provinces };
   },
   ['search-providers-data'],
-  { revalidate: 60 }
+  { revalidate: 60, tags: [COMPANIES_TAG] }
 );
 
 export default async function SearchProvidersPage({

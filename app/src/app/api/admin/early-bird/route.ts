@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as adminClient } from '@supabase/supabase-js';
+import { revalidateCompanies } from '@/lib/revalidate';
 
 function getAdmin() {
   return adminClient(
@@ -70,5 +71,6 @@ export async function PATCH(request: NextRequest) {
     .eq('id', claimId);
 
   if (updErr) return NextResponse.json({ error: updErr.message }, { status: 500 });
+  revalidateCompanies();
   return NextResponse.json({ ok: true });
 }

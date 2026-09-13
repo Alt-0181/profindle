@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as adminClient } from '@supabase/supabase-js';
 import { revertCompanyToUnclaimed } from '@/lib/revert-company';
+import { revalidateCompanies } from '@/lib/revalidate';
 
 function getAdmin() {
   return adminClient(
@@ -38,5 +39,6 @@ export async function DELETE() {
   const { error } = await admin.auth.admin.deleteUser(user.id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  revalidateCompanies();
   return NextResponse.json({ ok: true });
 }

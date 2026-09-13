@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as adminClient } from '@supabase/supabase-js';
+import { revalidateCompanies } from '@/lib/revalidate';
 
 // POST /api/claim  { companyId }
 // Maps an UNCLAIMED seeded company to the currently signed-in account: sets
@@ -53,5 +54,6 @@ export async function POST(request: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!updated) return NextResponse.json({ error: 'This business has already been claimed.' }, { status: 409 });
 
+  revalidateCompanies();
   return NextResponse.json({ ok: true, companyName: company.name });
 }

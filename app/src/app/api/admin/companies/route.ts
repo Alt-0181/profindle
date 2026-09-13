@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as adminClient } from '@supabase/supabase-js';
 import { pushMessage } from '@/lib/line';
 import { revertCompanyToUnclaimed } from '@/lib/revert-company';
+import { revalidateCompanies } from '@/lib/revalidate';
 
 function getAdmin() {
   return adminClient(
@@ -72,6 +73,7 @@ export async function PATCH(request: NextRequest) {
   // scrubs owner content) rather than deleting the company.
   if (action === 'unclaim') {
     await revertCompanyToUnclaimed(admin, companyId);
+    revalidateCompanies();
     return NextResponse.json({ ok: true });
   }
 
@@ -86,6 +88,7 @@ export async function PATCH(request: NextRequest) {
       .update({ name, name_th: nameTh, updated_at: new Date().toISOString() })
       .eq('id', companyId);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    revalidateCompanies();
     return NextResponse.json({ ok: true });
   }
 
@@ -104,6 +107,7 @@ export async function PATCH(request: NextRequest) {
     await notifyVerified(admin, companyId);
   }
 
+  revalidateCompanies();
   return NextResponse.json({ ok: true });
 }
 
@@ -119,5 +123,6 @@ export async function DELETE(request: NextRequest) {
   const { error } = await admin.from('companies').delete().eq('id', companyId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  revalidateCompanies();
   return NextResponse.json({ ok: true });
 }
