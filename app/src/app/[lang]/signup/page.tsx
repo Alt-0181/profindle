@@ -33,7 +33,7 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
 
   const t = isTh ? {
     title: 'สร้างบัญชีของคุณ',
-    sub: 'เข้าร่วม Profindle — ฟรี ไม่ต้องใช้บัตรเครดิต',
+    sub: 'เข้าร่วม Profind — ฟรี ไม่ต้องใช้บัตรเครดิต',
     nameLabel: 'ชื่อ-นามสกุล', namePh: 'ชื่อจริงของคุณ',
     emailLabel: 'อีเมล', emailPh: 'you@company.com',
     pwLabel: 'รหัสผ่าน', pwPh: 'อย่างน้อย 8 ตัวอักษร',
@@ -48,7 +48,7 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
     leftTagline: 'ช่วยให้ธุรกิจเจอผู้ให้บริการที่ใช่ ได้อย่างรวดเร็ว',
   } : {
     title: 'Create your account',
-    sub: 'Join Profindle — free, no credit card required',
+    sub: 'Join Profind — free, no credit card required',
     nameLabel: 'Full name', namePh: 'Your full name',
     emailLabel: 'Email address', emailPh: 'you@company.com',
     pwLabel: 'Password', pwPh: 'At least 8 characters',
@@ -149,21 +149,21 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 60% at 70% 40%, rgba(26,157,163,0.2) 0%, transparent 65%)' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <Link href={`/${lang}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-            <img src="/assets/logo-white.svg" alt="Profindle" style={{ height: '30px', width: 'auto' }} />
+            <img src="/assets/logo-white.svg" alt="Profind" style={{ height: '30px', width: 'auto' }} />
           </Link>
           <blockquote style={{ fontSize: '24px', fontWeight: 700, color: 'white', lineHeight: 1.4, maxWidth: '380px', marginTop: '40px' }}>
             {t.leftQuote}
           </blockquote>
           <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginTop: '16px' }}>{t.leftTagline}</p>
         </div>
-        <p style={{ position: 'relative', zIndex: 1, fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>© 2026 Profindle</p>
+        <p style={{ position: 'relative', zIndex: 1, fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>© 2026 Profind</p>
       </div>
 
       {/* Right */}
       <div className="auth-right">
         <div className="auth-card">
           <Link href={`/${lang}`} className="auth-mlogo" style={{ textDecoration: 'none' }}>
-            <img src="/assets/logo.svg" alt="Profindle" style={{ height: '32px', width: 'auto' }} />
+            <img src="/assets/logo.svg" alt="Profind" style={{ height: '32px', width: 'auto' }} />
           </Link>
 
           {step === 'register' ? (

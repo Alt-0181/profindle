@@ -9,8 +9,8 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const isTh = lang === 'th';
   return {
     title: isTh
-      ? { template: '%s | Profindle', default: 'Profindle — ตลาด B2B ของไทย' }
-      : { template: '%s | Profindle', default: 'Profindle — Thailand B2B Service Marketplace' },
+      ? { template: '%s | Profind', default: 'Profind — ตลาด B2B ของไทย' }
+      : { template: '%s | Profind', default: 'Profind — Thailand B2B Service Marketplace' },
     description: isTh
       ? 'ค้นหาผู้ให้บริการ B2B ในไทยที่ผ่านการยืนยัน — ดิจิทัลมาร์เก็ตติ้ง, IT, กฎหมาย, อีเว้นท์ และอื่นๆ ฟรี ไม่ต้องใช้บัตรเครดิต'
       : 'Find verified B2B service providers across Thailand — Digital Marketing, IT, Legal, Events and more. Free, no credit card required.',

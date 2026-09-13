@@ -27,8 +27,8 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const n = count ?? 0;
   const isTh = lang === 'th';
   const title = isTh
-    ? `${svc} ใน${prov} — ${n} ผู้ให้บริการ | Profindle`
-    : `${svc} in ${prov}, Thailand — ${n} Providers | Profindle`;
+    ? `${svc} ใน${prov} — ${n} ผู้ให้บริการ | Profind`
+    : `${svc} in ${prov}, Thailand — ${n} Providers | Profind`;
   const description = isTh
     ? `เปรียบเทียบผู้ให้บริการ ${svc} ${n} รายใน${prov} ดูผลงาน ติดต่อโดยตรง หรือประกาศหาผู้ให้บริการ — ฟรี`
     : `Compare ${n} verified ${svc} providers in ${prov}, Thailand. View portfolios, contact directly, or broadcast your request — free.`;

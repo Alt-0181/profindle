@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const { lang } = await params;
   const isTh = lang === 'th';
   return {
-    title: isTh ? 'บริการทั้งหมด — ผู้ให้บริการ B2B ในไทย | Profindle' : 'All Services — Thai B2B Service Providers | Profindle',
+    title: isTh ? 'บริการทั้งหมด — ผู้ให้บริการ B2B ในไทย | Profind' : 'All Services — Thai B2B Service Providers | Profind',
     description: isTh
       ? 'เรียกดูบริการ B2B กว่า 250 ประเภทในประเทศไทย ค้นหาผู้ให้บริการที่ผ่านการตรวจสอบตามบริการและจังหวัด'
       : 'Browse 250+ B2B service categories in Thailand. Find verified providers by service and province.',
@@ -34,7 +34,7 @@ export default async function ServicesIndexPage({ params }: { params: Promise<{ 
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Profindle', item: `${siteUrl}/${lang}` },
+      { '@type': 'ListItem', position: 1, name: 'Profind', item: `${siteUrl}/${lang}` },
       { '@type': 'ListItem', position: 2, name: isTh ? 'บริการทั้งหมด' : 'Services', item: `${siteUrl}/${lang}/services` },
     ],
   };

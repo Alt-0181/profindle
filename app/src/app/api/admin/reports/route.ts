@@ -115,7 +115,7 @@ async function buildCompanyReport(admin: any, today: string) {
   }
 
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'Profindle';
+  wb.creator = 'Profind';
   const sheet = wb.addWorksheet('Company Summary');
   sheet.columns = [
     { header: 'Company ID', key: 'id', width: 38 },
@@ -253,7 +253,7 @@ async function buildUserReport(admin: any, today: string) {
   }
 
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'Profindle';
+  wb.creator = 'Profind';
 
   // --- Companies tab ---
   const cSheet = wb.addWorksheet('Companies');

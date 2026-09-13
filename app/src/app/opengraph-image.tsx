@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og';
 
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
-export const alt = 'Profindle — Thailand B2B Service Marketplace';
+export const alt = 'Profind — Thailand B2B Service Marketplace';
 
 export default function Image() {
   return new ImageResponse(

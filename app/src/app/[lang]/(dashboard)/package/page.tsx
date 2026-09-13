@@ -190,7 +190,7 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
               <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: '#06C755', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 5.64 2 10.13c0 4.02 3.55 7.39 8.35 8.03.33.07.77.22.88.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1.01.88.55 1.09-.46 5.86-3.45 8-5.91 1.47-1.62 2.17-3.26 2.17-5.4C22 5.64 17.52 2 12 2z"/></svg>
               </div>
-              <div style={{ color: 'white', fontWeight: 700, fontSize: '14px' }}>Profindle</div>
+              <div style={{ color: 'white', fontWeight: 700, fontSize: '14px' }}>Profind</div>
               <div style={{ marginLeft: 'auto', fontSize: '11px', color: 'rgba(255,255,255,0.85)' }}>{isTh ? 'ตอนนี้' : 'now'}</div>
             </div>
 
@@ -232,7 +232,7 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
       {/* FAQ / note */}
       <div style={{ marginTop: '40px', textAlign: 'center' }}>
         <p style={{ fontSize: '13px', color: '#9AA0AE' }}>
-          {lang === 'th' ? 'ยกเลิกได้ทุกเมื่อ ไม่มีบัตรเครดิต • สนับสนุนโดย Profindle' : 'Cancel anytime. No credit card required • Powered by Profindle'}
+          {lang === 'th' ? 'ยกเลิกได้ทุกเมื่อ ไม่มีบัตรเครดิต • สนับสนุนโดย Profind' : 'Cancel anytime. No credit card required • Powered by Profind'}
         </p>
       </div>
     </div>

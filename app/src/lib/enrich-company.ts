@@ -43,7 +43,7 @@ function htmlToText(html: string): string {
     .replace(/\s+/g, ' ').trim();
 }
 
-const UA = 'Mozilla/5.0 (compatible; ProfindleBot/1.0; +https://profindle.com)';
+const UA = 'Mozilla/5.0 (compatible; ProfindBot/1.0; +https://profindle.com)';
 
 async function fetchHtml(target: string, timeoutMs: number): Promise<string> {
   try {

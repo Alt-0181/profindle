@@ -7,7 +7,7 @@ export async function notifyAdminEmail(subject: string, html: string): Promise<v
     method: 'POST',
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from: 'Profindle <noreply@profindle.com>',
+      from: 'Profind <noreply@profindle.com>',
       to: ['support@profindle.com'],
       subject,
       html,

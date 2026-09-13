@@ -873,7 +873,7 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
               {isTh ? 'ไม่พบผู้ให้บริการที่ตรงกัน — ให้ผู้ให้บริการมาหาคุณ' : 'No exact match — let providers come to you'}
             </div>
             <p style={{ fontSize: '13px', color: '#6B7385', lineHeight: 1.6, maxWidth: '440px', margin: '0 auto 18px' }}>
-              {isTh ? 'ประกาศคำขอและผู้ให้บริการที่ตรงกันทุกรายจะได้รับแจ้งผ่าน LINE ทันที ' : 'Broadcast your request and every matching service provider on Profindle gets pinged on LINE instantly. '}
+              {isTh ? 'ประกาศคำขอและผู้ให้บริการที่ตรงกันทุกรายจะได้รับแจ้งผ่าน LINE ทันที ' : 'Broadcast your request and every matching service provider on Profind gets pinged on LINE instantly. '}
               <strong style={{ color: '#F77F00' }}>{isTh ? 'ฟรี 100%' : '100% free'}</strong>
               {isTh ? ' — ไม่มีค่าคอมมิชชั่น' : ' — no commission, no hidden fees.'}
             </p>

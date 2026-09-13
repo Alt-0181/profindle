@@ -87,7 +87,7 @@ export default function ResetPasswordPage() {
         <div style={{ position: 'absolute', bottom: '-60px', left: '-60px', width: '240px', height: '240px', borderRadius: '50%', background: 'rgba(247,127,0,0.10)', filter: 'blur(48px)' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <Link href={`/${lang}`} style={{ textDecoration: 'none' }}>
-            <img src="/assets/logo-white.svg" alt="Profindle" style={{ height: '32px', width: 'auto', marginBottom: '48px' }} />
+            <img src="/assets/logo-white.svg" alt="Profind" style={{ height: '32px', width: 'auto', marginBottom: '48px' }} />
           </Link>
           <h2 style={{ fontSize: '30px', fontWeight: 700, color: 'white', lineHeight: 1.3, marginBottom: '16px' }}>
             {isTh ? 'แพลตฟอร์มรวมผู้ให้บริการแห่งใหม่ของไทย' : "Thailand's new platform for service providers"}
@@ -102,7 +102,7 @@ export default function ResetPasswordPage() {
       <div className="auth-right" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', padding: '40px' }}>
         <div style={{ width: '100%', maxWidth: '400px' }}>
           <Link href={`/${lang}`} className="auth-mlogo" style={{ textDecoration: 'none' }}>
-            <img src="/assets/logo.svg" alt="Profindle" style={{ height: '32px', width: 'auto' }} />
+            <img src="/assets/logo.svg" alt="Profind" style={{ height: '32px', width: 'auto' }} />
           </Link>
           {done ? (
             <div style={{ textAlign: 'center' }}>
