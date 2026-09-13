@@ -10,16 +10,16 @@ function adminClient() {
   );
 }
 
-// Greeting sent when someone adds the Profind LINE OA as a friend.
+// Greeting sent when someone adds the Profindle LINE OA as a friend.
 // The live text is editable from Super Admin → LINE Templates → Welcome Message
 // (the 'welcome' row in line_message_templates). This constant is only the
 // fallback used if that row is missing or empty.
 const DEFAULT_WELCOME =
-  'ยินดีต้อนรับสู่ Profind! 🎉\n\n' +
+  'ยินดีต้อนรับสู่ Profindle! 🎉\n\n' +
   'เมื่อบัญชีของคุณเชื่อมต่อแล้ว คุณจะได้รับแจ้งเตือนที่นี่ทันที เมื่อมีลูกค้าโพสต์งานที่ตรงกับบริการของคุณ\n\n' +
   'พิมพ์ "status" เพื่อดูสถานะแพ็กเกจและรหัสผู้ใช้ (User ID) ของคุณได้ทุกเมื่อ\n\n' +
   '—\n\n' +
-  'Welcome to Profind! 🎉\n\n' +
+  'Welcome to Profindle! 🎉\n\n' +
   'Once your account is linked, you\'ll get an instant alert here whenever a client posts a request matching your services.\n\n' +
   'Type "status" anytime to see your plan and your User ID.';
 

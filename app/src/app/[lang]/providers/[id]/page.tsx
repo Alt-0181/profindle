@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const displayDesc = isTh && company.description_th ? company.description_th : company.description;
   return {
     title: displayName,
-    description: displayDesc ?? `${displayName} — B2B service provider in Thailand on Profind`,
+    description: displayDesc ?? `${displayName} — B2B service provider in Thailand on Profindle`,
     alternates: {
       canonical: `${siteUrl}/${lang}/providers/${id}`,
       languages: {
@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     },
     openGraph: {
       title: displayName,
-      description: displayDesc ?? `${displayName} on Profind`,
+      description: displayDesc ?? `${displayName} on Profindle`,
       type: 'profile',
     },
   };
@@ -309,7 +309,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
               <ContactCard companyId={id} email={company.email ?? null} phone={company.phone ?? null} website={company.website ?? null} lineId={company.line_id ?? null} isTh={isTh} />
             ) : (
               <div style={{ background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', padding: '20px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#171A21', marginBottom: '6px' }}>{isTh ? 'ผู้ให้บริการนี้ยังไม่ได้เข้าร่วมกับ Profind' : "This provider hasn't joined yet"}</div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#171A21', marginBottom: '6px' }}>{isTh ? 'ผู้ให้บริการนี้ยังไม่ได้เข้าร่วมกับ Profindle' : "This provider hasn't joined yet"}</div>
                 <p style={{ fontSize: '12px', color: '#6B7385', lineHeight: 1.6, marginBottom: '14px' }}>{isTh ? 'ข้อมูลติดต่อจะแสดงเมื่อผู้ให้บริการยืนยันโปรไฟล์' : 'Contact details appear once the provider claims this profile.'}</p>
                 {similarProviders.length > 0 && (
                   <>

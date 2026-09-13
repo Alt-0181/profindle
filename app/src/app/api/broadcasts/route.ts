@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   // Broadcast gate: any logged-in buyer with a company profile may post a
   // request — verification is no longer required (it gated a buyer action
   // behind a provider-side review). Super-admins can post without a company at
-  // all, so Profind can test and demo broadcasts without posing as a provider.
+  // all, so Profindle can test and demo broadcasts without posing as a provider.
   if (!buyerCompany && !isSuperAdmin) {
     return NextResponse.json({ error: 'No company profile' }, { status: 400 });
   }
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
       budgetBand: budgetBand || '—',
       timeline: timeline || '—',
       descriptionEn: effectiveDescEn,
-      buyerCompany: buyerCompany?.name ?? 'Profind',
+      buyerCompany: buyerCompany?.name ?? 'Profindle',
     });
 
     await Promise.allSettled(

@@ -58,7 +58,7 @@ export function GettingStartedAccordion({ steps, lang, completedCount }: Props) 
               {lang === 'th' ? 'เริ่มต้นใช้งาน' : 'Getting Started'}
             </div>
             <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '1px' }}>
-              {lang === 'th' ? 'ทำให้ครบเพื่อใช้ Profind ได้เต็มประสิทธิภาพ' : 'Finish these to get the most out of Profind'}
+              {lang === 'th' ? 'ทำให้ครบเพื่อใช้ Profindle ได้เต็มประสิทธิภาพ' : 'Finish these to get the most out of Profindle'}
             </div>
           </div>
         </div>

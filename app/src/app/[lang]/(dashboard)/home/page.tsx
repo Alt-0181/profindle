@@ -107,7 +107,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
       desc: isTh ? `รับฟีเจอร์ Premium ทั้งหมดฟรี — เหลือ ${earlyBirdLeft} จาก ${earlyBirdTotal} สิทธิ์` : `Get all Premium features FREE — ${earlyBirdLeft} of ${earlyBirdTotal} spots left.`,
       done: companyPremium,
       status: companyPremium ? (isTh ? 'พรีเมียม' : 'Premium') : (isTh ? 'จำกัด' : 'Limited'),
-      bodyText: isTh ? '100 บริษัทแรกบน Profind จะได้รับฟีเจอร์ Premium ทั้งหมดฟรีจนถึง 31 มี.ค. 2570 (รวมถึงการเชื่อม LINE ในขั้นตอนที่ 4)' : 'First 100 companies on Profind get all Premium features free until Mar 31, 2027 — including LINE alerts in step 4.',
+      bodyText: isTh ? '100 บริษัทแรกบน Profindle จะได้รับฟีเจอร์ Premium ทั้งหมดฟรีจนถึง 31 มี.ค. 2570 (รวมถึงการเชื่อม LINE ในขั้นตอนที่ 4)' : 'First 100 companies on Profindle get all Premium features free until Mar 31, 2027 — including LINE alerts in step 4.',
       ctaLabel: companyPremium ? (isTh ? 'ดูแพ็กเกจ' : 'View plan') : (isTh ? 'รับสิทธิ์ →' : 'Claim now →'),
       ctaHref: `/${lang}/package`,
       ctaStyle: 'amber' as const,
@@ -253,14 +253,14 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
           <div style={{ padding: '14px 20px', borderBottom: '1px solid #F4F5F7', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
             <div style={{ width: '8px', height: '8px', borderRadius: '999px', background: '#0F6F73', flexShrink: 0, marginTop: '5px' }} />
             <div style={{ fontSize: '13px', color: '#444B5A', flex: 1, lineHeight: 1.5 }}>
-              {isTh ? 'สร้างบัญชีแล้ว — ยินดีต้อนรับสู่ Profind!' : 'Account created — welcome to Profind!'}
+              {isTh ? 'สร้างบัญชีแล้ว — ยินดีต้อนรับสู่ Profindle!' : 'Account created — welcome to Profindle!'}
             </div>
             <div style={{ fontSize: '11px', color: '#9AA0AE', flexShrink: 0, marginTop: '2px' }}>{isTh ? 'วันนี้' : 'Today'}</div>
           </div>
           <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'flex-start', gap: '12px', background: '#FAFCFC' }}>
             <div style={{ width: '8px', height: '8px', borderRadius: '999px', background: '#C8CDD7', flexShrink: 0, marginTop: '5px' }} />
             <div style={{ fontSize: '13px', color: '#9AA0AE', flex: 1, lineHeight: 1.5 }}>
-              {isTh ? 'กิจกรรมจะแสดงที่นี่เมื่อคุณเริ่มใช้งาน Profind' : 'Activity will appear here as you use Profind.'}
+              {isTh ? 'กิจกรรมจะแสดงที่นี่เมื่อคุณเริ่มใช้งาน Profindle' : 'Activity will appear here as you use Profindle.'}
             </div>
             <div style={{ fontSize: '11px', color: '#9AA0AE' }}>—</div>
           </div>
@@ -270,7 +270,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
         <div style={{ background: 'linear-gradient(135deg,#F0F9F9,#D4EEEF)', borderRadius: '14px', padding: '22px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ fontSize: '15px', fontWeight: 700, color: '#0F6F73' }}>{isTh ? 'ต้องการความช่วยเหลือ?' : 'Need help?'}</div>
           <p style={{ fontSize: '13px', color: '#6B7385', lineHeight: 1.55, margin: 0 }}>
-            {isTh ? 'ทีมงานพร้อมช่วยคุณตั้งค่าบน Profind ติดต่อเราได้ตลอดทาง LINE — ตอบกลับภายใน 1 ชั่วโมง' : 'Our team is ready to assist you get set up on Profind. Reach out anytime on LINE — we usually reply within an hour.'}
+            {isTh ? 'ทีมงานพร้อมช่วยคุณตั้งค่าบน Profindle ติดต่อเราได้ตลอดทาง LINE — ตอบกลับภายใน 1 ชั่วโมง' : 'Our team is ready to assist you get set up on Profindle. Reach out anytime on LINE — we usually reply within an hour.'}
           </p>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }}>
             <a href="https://lin.ee/VjYhQQ0" target="_blank" rel="noopener" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px', background: '#06C755', color: 'white', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}>

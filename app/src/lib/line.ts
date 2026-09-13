@@ -67,7 +67,7 @@ export function makeBroadcastFlexMessage(broadcast: {
                 margin: 'sm',
                 contents: [
                   { type: 'text', text: 'New Broadcast Request', color: '#FFFFFF', weight: 'bold', size: 'md' },
-                  { type: 'text', text: 'via Profind', color: '#FFFFFFA6', size: 'xs' },
+                  { type: 'text', text: 'via Profindle', color: '#FFFFFFA6', size: 'xs' },
                 ],
               },
             ],
@@ -141,14 +141,14 @@ export function makeBroadcastFlexMessage(broadcast: {
 export function makeConnectedMessage(): object {
   return {
     type: 'text',
-    text: `✅ เชื่อมต่อ LINE กับ Profind สำเร็จแล้ว!\n\nจากนี้คุณจะได้รับแจ้งเตือนที่นี่ทันที เมื่อมีลูกค้าโพสต์งานที่ตรงกับบริการของคุณ\n\nพิมพ์ "status" เพื่อดูสถานะแพ็กเกจของคุณได้ทุกเมื่อ\n\n—\n\n✅ Your LINE is now connected to Profind!\n\nYou'll get an instant alert here whenever a client posts a request matching your services.\n\nType "status" anytime to check your plan.`,
+    text: `✅ เชื่อมต่อ LINE กับ Profindle สำเร็จแล้ว!\n\nจากนี้คุณจะได้รับแจ้งเตือนที่นี่ทันที เมื่อมีลูกค้าโพสต์งานที่ตรงกับบริการของคุณ\n\nพิมพ์ "status" เพื่อดูสถานะแพ็กเกจของคุณได้ทุกเมื่อ\n\n—\n\n✅ Your LINE is now connected to Profindle!\n\nYou'll get an instant alert here whenever a client posts a request matching your services.\n\nType "status" anytime to check your plan.`,
   };
 }
 
 export function makeUidReplyMessage(lineUserId: string): object {
   return {
     type: 'text',
-    text: `🔑 LINE User ID ของคุณ / Your LINE User ID\n\n${lineUserId}\n\nคัดลอกรหัสนี้ไปวางใน Profind → ตั้งค่า → เชื่อมต่อ LINE เพื่อเริ่มรับแจ้งเตือนงานใหม่ที่นี่\n\nCopy this ID into Profind → Settings → LINE Connect to start receiving job alerts right here.`,
+    text: `🔑 LINE User ID ของคุณ / Your LINE User ID\n\n${lineUserId}\n\nคัดลอกรหัสนี้ไปวางใน Profindle → ตั้งค่า → เชื่อมต่อ LINE เพื่อเริ่มรับแจ้งเตือนงานใหม่ที่นี่\n\nCopy this ID into Profindle → Settings → LINE Connect to start receiving job alerts right here.`,
   };
 }
 
@@ -165,6 +165,6 @@ export function makeVipStatusMessage(plan: string | null, planExpiresAt: string 
   }
   return {
     type: 'text',
-    text: `📋 แพ็กเกจฟรี / Free Plan\n\nอัปเกรดเป็น Premium เพื่อ:\n• แสดงก่อนใครในผลการค้นหา (Priority)\n• เพิ่มจำนวนผลงาน\n• ได้รับการแจ้งเตือน Real Time ผ่าน Line\n\n🎁 Early Bird: ใช้ Premium ฟรีถึง 31 มี.ค. 2570\nอัปเกรดที่ Profind → แพ็กเกจ\n\nUpgrade to Premium for:\n• Priority placement\n• Unlimited portfolio showcases\n• Real-time notification via Line\n\n🎁 Early Bird: Premium free until 31 Mar 2027.\nUpgrade at Profind → Package.`,
+    text: `📋 แพ็กเกจฟรี / Free Plan\n\nอัปเกรดเป็น Premium เพื่อ:\n• แสดงก่อนใครในผลการค้นหา (Priority)\n• เพิ่มจำนวนผลงาน\n• ได้รับการแจ้งเตือน Real Time ผ่าน Line\n\n🎁 Early Bird: ใช้ Premium ฟรีถึง 31 มี.ค. 2570\nอัปเกรดที่ Profindle → แพ็กเกจ\n\nUpgrade to Premium for:\n• Priority placement\n• Unlimited portfolio showcases\n• Real-time notification via Line\n\n🎁 Early Bird: Premium free until 31 Mar 2027.\nUpgrade at Profindle → Package.`,
   };
 }

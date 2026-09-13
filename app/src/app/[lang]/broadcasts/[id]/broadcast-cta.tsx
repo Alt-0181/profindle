@@ -72,7 +72,7 @@ export function BroadcastCta({ broadcastId, lang, category, buyer, buyerName, is
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {buyer?.email && (
           <a
-            href={`mailto:${buyer.email}?subject=Re: ${category} Request&body=Hi ${buyerName},%0D%0A%0D%0AI saw your broadcast request for ${category} on Profind and I'd love to help.`}
+            href={`mailto:${buyer.email}?subject=Re: ${category} Request&body=Hi ${buyerName},%0D%0A%0D%0AI saw your broadcast request for ${category} on Profindle and I'd love to help.`}
             onClick={() => track(broadcastId, 'click_email')}
             style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '13px 16px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', color: 'white', borderRadius: '12px', textDecoration: 'none', fontWeight: 600, fontSize: '14px' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22 7 12 13 2 7"/></svg>

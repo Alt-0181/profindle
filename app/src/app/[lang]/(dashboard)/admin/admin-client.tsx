@@ -1799,7 +1799,7 @@ export function AdminClient({ companies, users, broadcasts, earlyBirdClaims, lan
       <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
         <div>
           <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>Super Admin Panel</h1>
-          <p style={{ fontSize: '13px', color: '#9AA0AE' }}>Manage all aspects of the Profind platform</p>
+          <p style={{ fontSize: '13px', color: '#9AA0AE' }}>Manage all aspects of the Profindle platform</p>
         </div>
         <div style={{ display: 'flex', gap: '10px', flexShrink: 0, flexWrap: 'wrap' }}>
           <a
@@ -1811,7 +1811,7 @@ export function AdminClient({ companies, users, broadcasts, earlyBirdClaims, lan
           </a>
           <a
             href={`/${_lang}/broadcast-request`}
-            title="Post a broadcast as Profind — for testing and live demos (no company or 4/month limit)"
+            title="Post a broadcast as Profindle — for testing and live demos (no company or 4/month limit)"
             style={{ padding: '10px 20px', background: 'white', color: '#F77F00', fontWeight: 600, fontSize: '13px', borderRadius: '12px', textDecoration: 'none', whiteSpace: 'nowrap', border: '1.5px solid rgba(247,127,0,0.4)' }}
           >
             📣 Test broadcast

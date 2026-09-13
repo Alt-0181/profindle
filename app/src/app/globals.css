@@ -295,7 +295,7 @@ textarea {
   }
 }
 
-/* Tailwind overrides for Profind design system */
+/* Tailwind overrides for Profindle design system */
 @layer utilities {
   .text-brand { color: var(--fg-brand); }
   .text-premium { color: var(--fg-premium); }

@@ -77,8 +77,8 @@ export async function GET(request: NextRequest) {
 
   // Notify admin
   await notifyAdmin(
-    `[Profind] New LINE Connection: ${companyName}`,
-    `<p><strong>${companyName}</strong> just connected their LINE account on Profind.</p><p>LINE UID: <code>${lineUserId}</code></p><p><a href="https://profindle.com/en/admin">View in Admin Panel →</a></p>`,
+    `[Profindle] New LINE Connection: ${companyName}`,
+    `<p><strong>${companyName}</strong> just connected their LINE account on Profindle.</p><p>LINE UID: <code>${lineUserId}</code></p><p><a href="https://profindle.com/en/admin">View in Admin Panel →</a></p>`,
     `🔗 New LINE Connection!\n\n${companyName} just connected their LINE account.\n\nAdmin panel: https://profindle.com/en/admin`,
   );
 

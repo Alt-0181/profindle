@@ -40,7 +40,7 @@ export default function NotFound() {
 
       {/* Logo */}
       <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', marginBottom: '48px' }}>
-        <img src="/assets/logo-white.svg" alt="Profind" style={{ height: '34px', width: 'auto' }} />
+        <img src="/assets/logo-white.svg" alt="Profindle" style={{ height: '34px', width: 'auto' }} />
       </Link>
 
       {/* 404 number */}

@@ -58,7 +58,7 @@ export default async function BroadcastDetailPage({
       {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #0B2B2C, #0F6F73)', padding: '20px 24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
         <Link href={`/${lang}`} style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '13px', fontWeight: 600 }}>
-          Profind
+          Profindle
         </Link>
         <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '13px' }}>/</span>
         <span style={{ color: 'white', fontSize: '13px', fontWeight: 600 }}>
@@ -115,7 +115,7 @@ export default async function BroadcastDetailPage({
 
         <p style={{ textAlign: 'center', fontSize: '12px', color: '#9AA0AE', marginTop: '24px' }}>
           {isTh ? 'คำขอนี้ส่งผ่าน ' : 'This request was sent via '}
-          <Link href={`/${lang}`} style={{ color: '#0F6F73', textDecoration: 'none', fontWeight: 600 }}>Profind</Link>
+          <Link href={`/${lang}`} style={{ color: '#0F6F73', textDecoration: 'none', fontWeight: 600 }}>Profindle</Link>
         </p>
       </div>
     </div>

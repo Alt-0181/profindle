@@ -40,7 +40,7 @@ export default async function LandingPage({ params }: { params: Promise<{ lang: 
     {
       '@context': 'https://schema.org',
       '@type': 'Organization',
-      name: 'Profind',
+      name: 'Profindle',
       url: `${siteUrl}/${lang}`,
       logo: `${siteUrl}/assets/logo-square.png`,
       description: lang === 'th'
@@ -50,7 +50,7 @@ export default async function LandingPage({ params }: { params: Promise<{ lang: 
     {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      name: 'Profind',
+      name: 'Profindle',
       url: `${siteUrl}/${lang}`,
       potentialAction: {
         '@type': 'SearchAction',

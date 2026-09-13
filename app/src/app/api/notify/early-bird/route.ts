@@ -57,8 +57,8 @@ export async function POST() {
   }
 
   await notifyAdmin(
-    `[Profind] Early Bird Request: ${companyName}`,
-    `<p><strong>${companyName}</strong> (${userEmail}) just clicked "Claim Early Bird Premium" on Profind.</p><p><a href="https://profindle.com/en/admin">View in Admin Panel →</a></p>`,
+    `[Profindle] Early Bird Request: ${companyName}`,
+    `<p><strong>${companyName}</strong> (${userEmail}) just clicked "Claim Early Bird Premium" on Profindle.</p><p><a href="https://profindle.com/en/admin">View in Admin Panel →</a></p>`,
     `⭐ Early Bird Request!\n\n${companyName} (${userEmail}) wants Premium Early Bird access.\n\nAdmin panel: https://profindle.com/en/admin`,
   );
 

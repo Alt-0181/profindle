@@ -9,7 +9,7 @@ import { Turnstile, captchaEnabled } from '@/components/turnstile';
 const DICT = {
   en: {
     welcomeBack: 'Welcome back',
-    sub: 'Sign in to your Profind account',
+    sub: 'Sign in to your Profindle account',
     emailLabel: 'Email address', emailPh: 'you@company.com',
     pwLabel: 'Password', pwPh: 'Your password',
     signInBtn: 'Sign in',
@@ -20,7 +20,7 @@ const DICT = {
   },
   th: {
     welcomeBack: 'ยินดีต้อนรับกลับมา',
-    sub: 'เข้าสู่ระบบบัญชี Profind ของคุณ',
+    sub: 'เข้าสู่ระบบบัญชี Profindle ของคุณ',
     emailLabel: 'อีเมล', emailPh: 'you@company.com',
     pwLabel: 'รหัสผ่าน', pwPh: 'รหัสผ่านของคุณ',
     signInBtn: 'เข้าสู่ระบบ',
@@ -107,7 +107,7 @@ export default function LoginPage({ params }: { params: Promise<{ lang: string }
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 60% at 70% 40%, rgba(26,157,163,0.2) 0%, transparent 65%)' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <Link href={`/${lang}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-            <img src="/assets/logo-white.svg" alt="Profind" style={{ height: '30px', width: 'auto' }} />
+            <img src="/assets/logo-white.svg" alt="Profindle" style={{ height: '30px', width: 'auto' }} />
           </Link>
           <blockquote style={{ fontSize: '24px', fontWeight: 700, color: 'white', lineHeight: 1.4, letterSpacing: '-0.02em', maxWidth: '380px', marginTop: '40px' }}>
             {lang === 'en'
@@ -123,14 +123,14 @@ export default function LoginPage({ params }: { params: Promise<{ lang: string }
             ))}
           </div>
         </div>
-        <p style={{ position: 'relative', zIndex: 1, fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>© 2026 Profind</p>
+        <p style={{ position: 'relative', zIndex: 1, fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>© 2026 Profindle</p>
       </div>
 
       {/* Right */}
       <div className="auth-right">
         <div className="auth-card">
           <Link href={`/${lang}`} className="auth-mlogo" style={{ textDecoration: 'none' }}>
-            <img src="/assets/logo.svg" alt="Profind" style={{ height: '32px', width: 'auto' }} />
+            <img src="/assets/logo.svg" alt="Profindle" style={{ height: '32px', width: 'auto' }} />
           </Link>
           <form onSubmit={handleSubmit}>
             <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#171A21', letterSpacing: '-0.02em', marginBottom: '6px' }}>{t.welcomeBack}</h2>
