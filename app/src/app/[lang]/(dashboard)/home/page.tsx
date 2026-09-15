@@ -54,10 +54,10 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
     : { count: 0 };
   const hasPortfolio = (portfolioCount ?? 0) > 0;
   const hasIndustry = !!company?.industry;
+  // Legacy: some early companies uploaded a DBD certificate. Upload has since
+  // been removed (verification is by DBD number), but keep detecting it so
+  // those companies still show a "pending review" state.
   const docsUploaded = !!company?.dbd_certificate_url;
-  // Path format: {user_id}-{timestamp}.ext — extract just the extension for display
-  const dbdCertPath = company?.dbd_certificate_url ?? null;
-  const dbdFileExt = dbdCertPath ? dbdCertPath.split('.').pop()?.toUpperCase() : null;
 
   const completedSteps = [hasCompany, hasPortfolio, lineConnected, companyPremium /* early bird */].filter(Boolean).length;
 
@@ -67,7 +67,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
       title: isTh ? 'กรอกข้อมูลโปรไฟล์ให้ครบ' : 'Complete your profile',
       desc: isTh ? 'เพิ่มบริการ คำอธิบาย และโลโก้ เพื่อปรากฏในการค้นหา' : 'Add services, description, and logo to appear in search.',
       done: hasCompany && emailVerified,
-      status: `${[emailVerified, hasCompany, hasIndustry, docsUploaded].filter(Boolean).length} / 4`,
+      status: `${[emailVerified, hasCompany, hasIndustry].filter(Boolean).length} / 3`,
       buyerShortcut: hasCompany ? {
         text: isTh ? 'มองหาผู้ให้บริการ? เริ่มค้นหาได้เลย — ขั้นตอน 2-4 สำหรับผู้ให้บริการ' : 'Hiring only? You can start finding providers now — steps 2–4 are for service providers.',
         label: isTh ? 'ค้นหาผู้ให้บริการ →' : 'Find Providers →',
@@ -77,14 +77,6 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
         { title: isTh ? 'ยืนยันอีเมล' : 'Verify your email', sub: isTh ? `ยืนยันแล้วผ่าน ${userEmail}` : `Confirmed via ${userEmail}`, done: emailVerified, href: `/${lang}/settings` },
         { title: isTh ? 'เพิ่มข้อมูลบริษัทพื้นฐาน' : 'Add company basic info', sub: isTh ? 'ชื่อบริษัท อุตสาหกรรม และข้อมูลติดต่อ' : 'Company name, industry, and contact info', done: hasCompany, href: `/${lang}/my-company` },
         { title: isTh ? 'เลือกอุตสาหกรรมและบริการ' : 'Select your industry & services', sub: isTh ? 'ช่วยให้ลูกค้าค้นหาคุณเจอ' : 'Helps clients find you in search', done: hasIndustry, href: `/${lang}/my-company` },
-        {
-          title: isTh ? 'อัปโหลดเอกสารยืนยันตัวตน' : 'Upload verification documents',
-          sub: docsUploaded
-            ? (isTh ? `✓ อัปโหลดแล้ว — ไฟล์ ${dbdFileExt}` : `✓ Uploaded — ${dbdFileExt} file`)
-            : (isTh ? 'รับ Verified badge บนโปรไฟล์' : 'Get the Verified badge on your profile'),
-          done: docsUploaded,
-          href: `/${lang}/my-company`,
-        },
       ],
     },
     {
@@ -232,7 +224,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
           )}
           <div style={{ fontSize: '12px', color: '#6B7385', fontWeight: 600 }}>{isTh ? 'สถานะการยืนยัน' : 'Verification Status'}</div>
           <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '3px' }}>
-            {companyVerified ? (isTh ? 'โปรไฟล์ของคุณได้รับการยืนยัน' : 'Your profile is verified') : docsUploaded ? (isTh ? 'แอดมินกำลังตรวจสอบ' : 'Admin reviewing your docs') : (isTh ? 'อัปโหลดเอกสารเพื่อยืนยัน' : 'Upload docs to get verified')}
+            {companyVerified ? (isTh ? 'โปรไฟล์ของคุณได้รับการยืนยัน' : 'Your profile is verified') : docsUploaded ? (isTh ? 'แอดมินกำลังตรวจสอบ' : 'Admin reviewing your docs') : (isTh ? 'กรอกเลขทะเบียน DBD เพื่อยืนยัน' : 'Add your DBD number to get verified')}
           </div>
         </div>
       </div>
