@@ -13,8 +13,8 @@ function getAdmin() {
 }
 
 // Super-admin only: returns a short-lived signed URL for ANY company's DBD
-// document (the owner-scoped /api/dbd-url can't view other companies' files, so
-// the admin verification queue needs this).
+// document. Document upload has been removed (verification is by DBD number),
+// but legacy companies may still have an uploaded certificate the admin can view.
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
