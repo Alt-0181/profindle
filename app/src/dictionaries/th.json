@@ -156,8 +156,6 @@
     "emailPublicPh": "contact@yourcompany.com",
     "verification": "การยืนยัน",
     "verificationSub": "กรอกเลขทะเบียนนิติบุคคล (DBD) เพื่อรับป้าย “ยืนยันแล้ว”",
-    "uploadDoc": "อัปโหลดหนังสือรับรองบริษัท (DBD)",
-    "uploadDocSub": "PDF หรือรูปภาพ สูงสุด 10MB",
     "saveChanges": "บันทึกการเปลี่ยนแปลง",
     "saving": "กำลังบันทึก…",
     "savedSuccess": "บันทึกโปรไฟล์สำเร็จ",

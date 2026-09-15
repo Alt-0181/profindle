@@ -73,8 +73,8 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
               <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21', marginBottom: '3px' }}>{isTh ? 'รอการยืนยัน' : 'Pending verification'}</div>
               <div style={{ fontSize: '13px', color: '#6B7385', lineHeight: 1.6 }}>
                 {isTh
-                  ? 'อัปโหลดหนังสือรับรองการจดทะเบียนบริษัท (DBD) ในส่วน “การยืนยัน” ด้านล่าง แล้วกดบันทึก ทีมงานจะตรวจสอบและติดเครื่องหมายยืนยันให้'
-                  : 'Upload your company registration (DBD) document in the “Verification” section below and save. Our team will review it and add your Verified badge.'}
+                  ? 'กรอกเลขทะเบียนนิติบุคคล (DBD) ในส่วน “การยืนยัน” ด้านล่าง แล้วกดบันทึก ทีมงานจะตรวจสอบและติดเครื่องหมายยืนยันให้'
+                  : 'Enter your DBD registration number in the “Verification” section below and save. Our team will review it and add your Verified badge.'}
               </div>
             </div>
           </div>

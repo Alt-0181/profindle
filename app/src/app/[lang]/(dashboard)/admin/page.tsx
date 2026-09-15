@@ -25,7 +25,7 @@ export default async function AdminPage({ params }: { params: Promise<{ lang: st
   // Fetch all companies with full details
   const { data: companies } = await admin
     .from('companies')
-    .select('id, name, name_th, industry, verified, premium, created_at, dbd_certificate_url, services, email, user_id, line_user_id, phone, website, address, province, team_size, founded_year, description')
+    .select('id, name, name_th, industry, verified, premium, created_at, dbd_certificate_url, dbd_no, services, email, user_id, line_user_id, phone, website, address, province, team_size, founded_year, description')
     .order('created_at', { ascending: false });
 
   // Fetch auth users

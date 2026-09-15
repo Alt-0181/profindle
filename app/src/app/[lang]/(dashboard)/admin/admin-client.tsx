@@ -17,6 +17,29 @@ async function openAdminDoc(path: string | null | undefined) {
   }
 }
 
+// A claimed company that provided a DBD number but isn't verified yet — the
+// admin verification queue. (Verification is by number; document upload was
+// removed. Legacy companies may still have an uploaded certificate.)
+function isAwaitingVerification(c: { verified: boolean; user_id: string | null; dbd_no: string | null }): boolean {
+  return !c.verified && !!c.user_id && !!c.dbd_no;
+}
+
+// Renders a company's DBD registration number (linked to the public DBD
+// DataWarehouse so an admin can confirm it) plus, for legacy companies, a link
+// to any uploaded certificate.
+function DbdRef({ company }: { company: Company }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+      {company.dbd_no
+        ? <a href="https://datawarehouse.dbd.go.th/" target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: '#0F6F73', fontWeight: 600, textDecoration: 'none' }}>{company.dbd_no} ↗</a>
+        : <span style={{ fontSize: '12px', color: '#9AA0AE' }}>No DBD number</span>}
+      {company.dbd_certificate_url && (
+        <button onClick={() => openAdminDoc(company.dbd_certificate_url)} style={{ fontSize: '11px', color: '#9AA0AE', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit', textAlign: 'left' }}>View legacy document →</button>
+      )}
+    </div>
+  );
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface Company {
@@ -28,6 +51,7 @@ export interface Company {
   premium: boolean;
   created_at: string;
   dbd_certificate_url: string | null;
+  dbd_no: string | null;
   services: string[];
   email: string | null;
   user_id: string | null;
@@ -329,9 +353,7 @@ function CompanyDetailPanel({ company, onClose, onUpdate, onDelete }: {
               {company.team_size && <Row label="Team Size" value={company.team_size} />}
               {company.province && <Row label="Province" value={company.province} />}
               <Row label="Company Added" value={fmt(company.created_at)} />
-              {company.dbd_certificate_url
-                ? <Row label="DBD Document" value={<button onClick={() => openAdminDoc(company.dbd_certificate_url)} style={{ color: '#0F6F73', fontWeight: 600, textDecoration: 'none', fontSize: '12px', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>View →</button>} />
-                : <Row label="DBD Document" value="Not uploaded" />}
+              <Row label="DBD Number" value={<DbdRef company={company} />} />
             </div>
           </section>
 
@@ -517,7 +539,7 @@ function CompaniesTab({ companies: initial }: { companies: Company[] }) {
     setSelected(prev => prev?.id === companyId ? { ...prev, ...updates } : prev);
   };
 
-  const pending = companies.filter(c => !c.verified && c.dbd_certificate_url);
+  const pending = companies.filter(isAwaitingVerification);
   const verified = companies.filter(c => c.verified);
   const premium = companies.filter(c => c.premium);
 
@@ -549,7 +571,7 @@ function CompaniesTab({ companies: initial }: { companies: Company[] }) {
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '520px' }}>
             <thead>
               <tr style={{ background: '#F4F5F7' }}>
-                {['Company', 'Email', 'Document', 'Joined', 'Actions'].map(col => (
+                {['Company', 'Email', 'DBD Number', 'Joined', 'Actions'].map(col => (
                   <th key={col} style={thStyle}>{col}</th>
                 ))}
               </tr>
@@ -563,9 +585,7 @@ function CompaniesTab({ companies: initial }: { companies: Company[] }) {
                   </td>
                   <td style={{ ...tdStyle, fontSize: '13px', color: '#444B5A' }}>{c.user_email || '—'}</td>
                   <td style={tdStyle}>
-                    {c.dbd_certificate_url
-                      ? <button onClick={() => openAdminDoc(c.dbd_certificate_url)} style={{ fontSize: '12px', color: '#0F6F73', fontWeight: 600, textDecoration: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>View document →</button>
-                      : <span style={{ fontSize: '12px', color: '#9AA0AE' }}>No document</span>}
+                    <DbdRef company={c} />
                   </td>
                   <td style={{ ...tdStyle, fontSize: '12px', color: '#9AA0AE' }}>{fmt(c.created_at)}</td>
                   <td style={tdStyle}>
@@ -1444,9 +1464,8 @@ function ClaimsTab({ companies: initial }: { companies: Company[] }) {
   };
 
   // Only companies that went through the claim/upload flow (have a doc) belong here.
-  const withDoc = companies.filter(c => c.dbd_certificate_url);
-  const pending = withDoc.filter(c => !c.verified);
-  const verified = withDoc.filter(c => c.verified);
+  const pending = companies.filter(isAwaitingVerification);
+  const verified = companies.filter(c => c.verified && !!c.user_id);
 
   return (
     <div>
@@ -1465,7 +1484,7 @@ function ClaimsTab({ companies: initial }: { companies: Company[] }) {
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '520px' }}>
             <thead>
               <tr style={{ background: '#F4F5F7' }}>
-                {['Company', 'Owner Email', 'Document', 'Joined', 'Actions'].map(col => <th key={col} style={thStyle}>{col}</th>)}
+                {['Company', 'Owner Email', 'DBD Number', 'Joined', 'Actions'].map(col => <th key={col} style={thStyle}>{col}</th>)}
               </tr>
             </thead>
             <tbody>
@@ -1479,9 +1498,7 @@ function ClaimsTab({ companies: initial }: { companies: Company[] }) {
                   </td>
                   <td style={{ ...tdStyle, fontSize: '13px', color: '#444B5A' }}>{c.user_email || '—'}</td>
                   <td style={tdStyle}>
-                    {c.dbd_certificate_url
-                      ? <button onClick={() => openAdminDoc(c.dbd_certificate_url)} style={{ fontSize: '12px', color: '#0F6F73', fontWeight: 600, textDecoration: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>View document →</button>
-                      : <span style={{ fontSize: '12px', color: '#9AA0AE' }}>No document</span>}
+                    <DbdRef company={c} />
                   </td>
                   <td style={{ ...tdStyle, fontSize: '12px', color: '#9AA0AE' }}>{fmt(c.created_at)}</td>
                   <td style={tdStyle}>
@@ -1506,7 +1523,7 @@ function ClaimsTab({ companies: initial }: { companies: Company[] }) {
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '520px' }}>
             <thead>
               <tr style={{ background: '#F4F5F7' }}>
-                {['Company', 'Owner Email', 'Document', 'Joined', 'Status'].map(col => <th key={col} style={thStyle}>{col}</th>)}
+                {['Company', 'Owner Email', 'DBD Number', 'Joined', 'Status'].map(col => <th key={col} style={thStyle}>{col}</th>)}
               </tr>
             </thead>
             <tbody>
@@ -1520,9 +1537,7 @@ function ClaimsTab({ companies: initial }: { companies: Company[] }) {
                   </td>
                   <td style={{ ...tdStyle, fontSize: '13px', color: '#444B5A' }}>{c.user_email || '—'}</td>
                   <td style={tdStyle}>
-                    {c.dbd_certificate_url
-                      ? <button onClick={() => openAdminDoc(c.dbd_certificate_url)} style={{ fontSize: '12px', color: '#0F6F73', fontWeight: 600, textDecoration: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>View document →</button>
-                      : <span style={{ fontSize: '12px', color: '#9AA0AE' }}>No document</span>}
+                    <DbdRef company={c} />
                   </td>
                   <td style={{ ...tdStyle, fontSize: '12px', color: '#9AA0AE' }}>{fmt(c.created_at)}</td>
                   <td style={tdStyle}>
@@ -1547,7 +1562,7 @@ function ClaimsTab({ companies: initial }: { companies: Company[] }) {
 
 function RequestsHub({ broadcasts, earlyBirdClaims, companies }: { broadcasts: Broadcast[]; earlyBirdClaims: EarlyBirdClaim[]; companies: Company[] }) {
   const [sub, setSub] = useState<'broadcast' | 'claim' | 'earlybird'>('broadcast');
-  const pendingClaims = companies.filter(c => !c.verified && c.dbd_certificate_url).length;
+  const pendingClaims = companies.filter(isAwaitingVerification).length;
   const pendingEB = earlyBirdClaims.filter(c => c.status === 'pending').length;
   const SUBS: { id: 'broadcast' | 'claim' | 'earlybird'; label: string; badge: number }[] = [
     { id: 'broadcast', label: 'Broadcast', badge: 0 },
@@ -1790,7 +1805,7 @@ const TABS = [
 export function AdminClient({ companies, users, broadcasts, earlyBirdClaims, lang: _lang }: Props) {
   const [activeTab, setActiveTab] = useState('companies');
   const pendingEarlyBird = earlyBirdClaims.filter(c => c.status === 'pending').length;
-  const pendingClaims = companies.filter(c => !c.verified && c.dbd_certificate_url).length;
+  const pendingClaims = companies.filter(isAwaitingVerification).length;
   const pendingRequests = pendingEarlyBird + pendingClaims;
 
   return (
