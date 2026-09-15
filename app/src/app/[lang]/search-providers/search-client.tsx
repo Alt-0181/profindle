@@ -891,7 +891,7 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
                 <Link
                   key={p.id}
                   href={`/${lang}/providers/${p.id}`}
-                  style={{ display: 'block', textDecoration: 'none', color: 'inherit', background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', padding: '20px', cursor: 'pointer', transition: 'transform 200ms, box-shadow 200ms' }}
+                  style={{ display: 'flex', flexDirection: 'column', textDecoration: 'none', color: 'inherit', background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', padding: '20px', cursor: 'pointer', transition: 'transform 200ms, box-shadow 200ms' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 24px rgba(15,111,115,0.12)'; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = ''; }}
                 >
@@ -925,7 +925,7 @@ export function SearchProvidersClient({ lang, dict, companies, provinces, initia
                     ))}
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #F4F5F7', paddingTop: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #F4F5F7', paddingTop: '12px', marginTop: 'auto' }}>
                     <span style={{ fontSize: '12px', color: '#9AA0AE' }}>{(p.views ?? 0).toLocaleString()} {isTh ? 'การเข้าชม' : 'profile views'}</span>
                     <span style={{ display: 'inline-block', padding: '7px 16px', background: p.premium ? 'linear-gradient(135deg, #0F6F73, #1A9DA3)' : 'transparent', color: p.premium ? 'white' : '#0F6F73', border: p.premium ? 'none' : '1.5px solid #0F6F73', borderRadius: '8px', fontSize: '12px', fontWeight: 600, fontFamily: 'inherit' }}>
                       {t.viewProfile}
