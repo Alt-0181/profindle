@@ -12,15 +12,17 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const { lang } = await params;
   const isTh = lang === 'th';
   return {
-    title: isTh ? 'แพลตฟอร์มรวมผู้ให้บริการธุรกิจของไทย' : "Thailand's B2B service-provider platform",
+    title: isTh ? 'แพลตฟอร์มรวมผู้ให้บริการธุรกิจ B2B ของไทย' : "Thailand's B2B service-provider platform",
     description: isTh
-      ? 'ค้นหาผู้ให้บริการ B2B ในไทยที่ผ่านการยืนยัน — ดิจิทัลมาร์เก็ตติ้ง, IT, กฎหมาย, อีเว้นท์ และอื่นๆ ฟรี ไม่ต้องใช้บัตรเครดิต'
-      : 'Find verified B2B service providers across Thailand — Digital Marketing, IT, Legal, Events and more. Free, no credit card required.',
+      ? 'รวมผู้ให้บริการธุรกิจ B2B ที่ยืนยันแล้วทั่วไทย ในที่เดียว — เริ่มใช้ฟรี'
+      : "All of Thailand's verified B2B service providers in one place — free to start.",
     openGraph: {
-      title: isTh ? 'แพลตฟอร์มรวมผู้ให้บริการธุรกิจของไทย' : "Thailand's B2B service-provider platform",
+      // Explicit brand suffix so link previews never double "Profindle"
+      // (the page-title template only applies to `title`, not `openGraph.title`).
+      title: isTh ? 'แพลตฟอร์มรวมผู้ให้บริการธุรกิจ B2B ของไทย | Profindle' : "Thailand's B2B service-provider platform | Profindle",
       description: isTh
-        ? 'ค้นหาผู้ให้บริการ B2B ในไทยที่ผ่านการยืนยัน — ฟรี ไม่ต้องใช้บัตรเครดิต'
-        : 'Find verified B2B service providers across Thailand — free, no credit card required.',
+        ? 'รวมผู้ให้บริการธุรกิจ B2B ที่ยืนยันแล้วทั่วไทย ในที่เดียว — เริ่มใช้ฟรี'
+        : "All of Thailand's verified B2B service providers in one place — free to start.",
     },
     alternates: {
       canonical: `${siteUrl}/${lang}`,
