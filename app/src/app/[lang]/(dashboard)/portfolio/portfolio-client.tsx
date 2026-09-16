@@ -560,8 +560,8 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
                 <p style={{ fontSize: '12px', color: '#9AA0AE', marginBottom: '8px' }}>{t.imagesSub}</p>
                 <p style={{ fontSize: '11.5px', color: '#0F6F73', background: '#F0F9F9', border: '1px solid rgba(15,111,115,0.15)', borderRadius: '8px', padding: '7px 11px', marginBottom: '12px', lineHeight: 1.5 }}>
                   💡 {lang === 'th'
-                    ? 'รูปจะถูกย่อขนาดให้อัตโนมัติเมื่ออัปโหลด — เลือกไฟล์ภาพทั่วไปได้เลย ระบบจัดการให้'
-                    : 'Images are automatically resized on upload — just pick a normal photo and we’ll handle the rest.'}
+                    ? 'รูปจะถูกย่อขนาดให้อัตโนมัติหากรูปมีขนาดใหญ่กว่า 4MB'
+                    : 'Images larger than 4MB are resized automatically.'}
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
                   {[0, 1, 2, 3, 4].map((i) => (
