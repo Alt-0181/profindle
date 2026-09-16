@@ -72,6 +72,21 @@ async function readUploadUrl(res: Response, slot: number): Promise<string> {
   return JSON.parse(body).url as string;
 }
 
+// Map a raw error to a clear, localized message for the provider.
+function friendlyError(err: unknown, lang: string): string {
+  const raw = String((err as { message?: string })?.message ?? err ?? '');
+  const th = lang === 'th';
+  if (/too large|entity too large|413|ใหญ่เกินไป/i.test(raw))
+    return th ? 'รูปภาพใหญ่เกินไป กรุณาใช้รูปที่เล็กลง (แนะนำต่ำกว่า 4 MB)' : 'One of your images is too large. Please use a smaller image (under ~4 MB).';
+  if (/failed to fetch|network\s?error|load failed/i.test(raw))
+    return th ? 'การเชื่อมต่อมีปัญหา กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่' : 'Connection problem. Please check your internet and try again.';
+  if (/timeout|timed out/i.test(raw))
+    return th ? 'หมดเวลาการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง' : 'The request timed out. Please try again.';
+  if (/row-level security|permission|not authorized|forbidden|no company/i.test(raw))
+    return th ? 'ไม่มีสิทธิ์บันทึก กรุณารีเฟรชหน้าแล้วลองใหม่' : 'You don’t have permission to save this. Please refresh and try again.';
+  return th ? 'บันทึกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง' : 'Couldn’t save. Please try again.';
+}
+
 const KNOWN_CLIENTS = ['Kasikorn Bank', 'SCB', 'PTT', 'CP Group', 'Siam Cement', 'True Corporation', 'AIS', 'Dtac', 'Central Group', 'The Mall Group', 'Big C', "Lotus's", 'Robinson', 'Bangkok Bank', 'Krungthai Bank'];
 
 interface Project {
@@ -314,7 +329,7 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
       setEditingId(null);
       resetModal();
     } catch (err: any) {
-      setSaveError(err.message ?? 'Save failed — please try again');
+      setSaveError(friendlyError(err, lang));
     } finally {
       setSaving(false);
     }
@@ -398,7 +413,7 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
       resetModal();
       router.refresh();
     } catch (err: any) {
-      setSaveError(err.message ?? 'Save failed — please try again');
+      setSaveError(friendlyError(err, lang));
     } finally {
       setSaving(false);
     }
@@ -542,7 +557,12 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
               {/* Image slots */}
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>{t.images}</label>
-                <p style={{ fontSize: '12px', color: '#9AA0AE', marginBottom: '10px' }}>{t.imagesSub}</p>
+                <p style={{ fontSize: '12px', color: '#9AA0AE', marginBottom: '8px' }}>{t.imagesSub}</p>
+                <p style={{ fontSize: '11.5px', color: '#0F6F73', background: '#F0F9F9', border: '1px solid rgba(15,111,115,0.15)', borderRadius: '8px', padding: '7px 11px', marginBottom: '12px', lineHeight: 1.5 }}>
+                  💡 {lang === 'th'
+                    ? 'รูปจะถูกย่อขนาดให้อัตโนมัติเมื่ออัปโหลด — เลือกไฟล์ภาพทั่วไปได้เลย ระบบจัดการให้'
+                    : 'Images are automatically resized on upload — just pick a normal photo and we’ll handle the rest.'}
+                </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
                   {[0, 1, 2, 3, 4].map((i) => (
                     <div
