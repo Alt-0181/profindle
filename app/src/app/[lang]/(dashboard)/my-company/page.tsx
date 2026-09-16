@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/server';
 import { MyCompanyForm } from './company-form';
+import { PortfolioClient } from '../portfolio/portfolio-client';
 
 export default async function MyCompanyPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
@@ -59,6 +60,35 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
     buyerOnly: (company as any).buyer_only ?? false,
   } : undefined;
 
+  // Portfolio is embedded on this page so providers add their work in the same
+  // flow as their company info (one page). Projects need a saved company first.
+  const companyId = company?.id ?? null;
+  const companyServices: string[] = (company as any)?.services ?? [];
+  const { data: projectRows } = companyId
+    ? await supabase
+        .from('portfolio_projects')
+        .select('id, title, client, confidential, year, budget, category, description, description_th, results, results_th, challenge, challenge_th, images, services')
+        .eq('company_id', companyId)
+        .order('sort_order', { ascending: true })
+    : { data: [] };
+  const initialProjects = (projectRows ?? []).map((p: any) => ({
+    id: p.id,
+    title: p.title,
+    client: p.client ?? '',
+    confidential: p.confidential ?? false,
+    year: p.year ? String(p.year) : '',
+    budget: p.budget ?? '',
+    category: p.category ?? '',
+    descEn: p.description ?? '',
+    descTh: p.description_th ?? '',
+    resultsEn: p.results ?? '',
+    resultsTh: p.results_th ?? '',
+    challengeEn: p.challenge ?? '',
+    challengeTh: p.challenge_th ?? '',
+    images: p.images ?? [],
+    services: p.services ?? [],
+  }));
+
   return (
     <div className="page-body">
       <div style={{ maxWidth: '840px' }}>
@@ -80,6 +110,21 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
           </div>
         )}
         <MyCompanyForm lang={lang} dict={dict} initialData={initialData} />
+
+        {/* Portfolio — same page as company info so providers add their work in one flow. */}
+        <div style={{ marginTop: '36px', paddingTop: '28px', borderTop: '1px solid #EEF1F2' }}>
+          {companyId ? (
+            <PortfolioClient lang={lang} dict={dict} companyId={companyId} companyServices={companyServices} initialProjects={initialProjects} />
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#F7F8FA', border: '1px solid #E4E7ED', borderRadius: '14px', padding: '16px 18px' }}>
+              <span style={{ fontSize: '20px' }}>📁</span>
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21', marginBottom: '2px' }}>{isTh ? 'ผลงาน (Portfolio)' : 'Portfolio'}</div>
+                <div style={{ fontSize: '13px', color: '#6B7385' }}>{isTh ? 'บันทึกข้อมูลบริษัทด้านบนก่อน แล้วเพิ่มผลงานได้ที่นี่ในหน้าเดียว' : 'Save your company info above first, then add your portfolio right here.'}</div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
