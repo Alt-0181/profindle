@@ -14,6 +14,64 @@ function toProxyUrl(url: string | null | undefined): string | null {
   return `/api/portfolio-image?path=${encodeURIComponent(match[1])}${vParam}`;
 }
 
+// Downscale/compress an image in the browser before upload so it stays under
+// the serverless request-body limit (~4.5 MB). Large photos otherwise get
+// rejected with a plain-text 413 ("Request Entity Too Large") that isn't valid
+// JSON. Also makes profiles load faster. Falls back to the original on any error.
+async function downscaleImage(file: File, maxDim = 1920, quality = 0.85): Promise<File> {
+  if (typeof document === 'undefined' || !file.type.startsWith('image/')) return file;
+  try {
+    const dataUrl: string = await new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(new Error('read failed'));
+      r.readAsDataURL(file);
+    });
+    const img: HTMLImageElement = await new Promise((resolve, reject) => {
+      const im = new Image();
+      im.onload = () => resolve(im);
+      im.onerror = () => reject(new Error('decode failed'));
+      im.src = dataUrl;
+    });
+    const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+    // Already modest in both dimensions and bytes — nothing to gain.
+    if (scale === 1 && file.size <= 3_500_000) return file;
+    const w = Math.max(1, Math.round(img.width * scale));
+    const h = Math.max(1, Math.round(img.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return file;
+    ctx.drawImage(img, 0, 0, w, h);
+    const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+    if (!blob || blob.size >= file.size) return file;
+    const name = file.name.replace(/\.(png|webp|heic|heif|gif|bmp|tiff?)$/i, '.jpg');
+    return new File([blob], name, { type: 'image/jpeg' });
+  } catch {
+    return file;
+  }
+}
+
+// Read an upload response safely. A platform 413 is plain text, not JSON, so
+// parse defensively and surface a clear message instead of a JSON-parse crash.
+async function readUploadUrl(res: Response, slot: number): Promise<string> {
+  const body = await res.text();
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try {
+      const j = JSON.parse(body);
+      if (j?.error) msg = j.error;
+    } catch {
+      if (res.status === 413 || /too large|entity too large/i.test(body)) {
+        msg = 'รูปภาพใหญ่เกินไป กรุณาใช้รูปที่เล็กลง (ต่ำกว่า ~4 MB) / Image too large — use one under ~4 MB';
+      }
+    }
+    throw new Error(`Slot ${slot}: ${msg}`);
+  }
+  return JSON.parse(body).url as string;
+}
+
 const KNOWN_CLIENTS = ['Kasikorn Bank', 'SCB', 'PTT', 'CP Group', 'Siam Cement', 'True Corporation', 'AIS', 'Dtac', 'Central Group', 'The Mall Group', 'Big C', "Lotus's", 'Robinson', 'Bangkok Bank', 'Krungthai Bank'];
 
 interface Project {
@@ -131,16 +189,13 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     const slot = activeSlotRef.current;
     if (!file || slot === null) return;
-    const newFiles = [...imageFiles];
-    newFiles[slot] = file;
-    setImageFiles(newFiles);
-    const newPreviews = [...imagePreviews];
-    newPreviews[slot] = URL.createObjectURL(file);
-    setImagePreviews(newPreviews);
+    const prepared = await downscaleImage(file);
+    setImageFiles(prev => { const n = [...prev]; n[slot] = prepared; return n; });
+    setImagePreviews(prev => { const n = [...prev]; n[slot] = URL.createObjectURL(prepared); return n; });
   };
 
   const resetModal = () => {
@@ -217,12 +272,7 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
         fd.append('projectId', editingId);
         fd.append('slotIndex', String(i));
         const res = await fetch('/api/portfolio-upload', { method: 'POST', body: fd });
-        if (!res.ok) {
-          const { error } = await res.json();
-          throw new Error(`Slot ${i} upload failed: ${error}`);
-        }
-        const { url } = await res.json();
-        imageUrls[i] = url;
+        imageUrls[i] = await readUploadUrl(res, i);
       }
 
       const { error } = await supabase.from('portfolio_projects').update({
@@ -315,12 +365,7 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
           fd.append('projectId', projectId);
           fd.append('slotIndex', String(i));
           const res = await fetch('/api/portfolio-upload', { method: 'POST', body: fd });
-          if (!res.ok) {
-            const { error } = await res.json();
-            throw new Error(`Slot ${i} upload failed: ${error}`);
-          }
-          const { url } = await res.json();
-          imageUrls[i] = url;
+          imageUrls[i] = await readUploadUrl(res, i);
         }
 
         if (imageUrls.some(Boolean)) {
