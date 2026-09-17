@@ -59,17 +59,20 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
   // those companies still show a "pending review" state.
   const docsUploaded = !!company?.dbd_certificate_url;
 
-  const completedSteps = [hasCompany, hasPortfolio, lineConnected, companyPremium /* early bird */].filter(Boolean).length;
+  // Step 1 now bundles the portfolio sub-task (portfolio was combined into the
+  // My Company page), so it is "done" only when all four sub-tasks are complete.
+  const step1Done = emailVerified && hasCompany && hasIndustry && hasPortfolio;
+  const completedSteps = [step1Done, companyPremium /* early bird */, lineConnected].filter(Boolean).length;
 
   const gettingStartedSteps = [
     {
       num: 1,
       title: isTh ? 'กรอกข้อมูลโปรไฟล์ให้ครบ' : 'Complete your profile',
-      desc: isTh ? 'เพิ่มบริการ คำอธิบาย และโลโก้ เพื่อปรากฏในการค้นหา' : 'Add services, description, and logo to appear in search.',
-      done: hasCompany && emailVerified,
-      status: `${[emailVerified, hasCompany, hasIndustry].filter(Boolean).length} / 3`,
+      desc: isTh ? 'เพิ่มบริการ คำอธิบาย ผลงาน เพื่อปรากฏในการค้นหา' : 'Add services, description, and portfolio to appear in search.',
+      done: step1Done,
+      status: `${[emailVerified, hasCompany, hasIndustry, hasPortfolio].filter(Boolean).length} / 4`,
       buyerShortcut: hasCompany ? {
-        text: isTh ? 'มองหาผู้ให้บริการ? เริ่มค้นหาได้เลย — ขั้นตอน 2-4 สำหรับผู้ให้บริการ' : 'Hiring only? You can start finding providers now — steps 2–4 are for service providers.',
+        text: isTh ? 'มองหาผู้ให้บริการ? เริ่มค้นหาได้เลย — ขั้นตอน 2-3 สำหรับผู้ให้บริการ' : 'Hiring only? You can start finding providers now — steps 2–3 are for service providers.',
         label: isTh ? 'ค้นหาผู้ให้บริการ →' : 'Find Providers →',
         href: `/${lang}/find-providers`,
       } : undefined,
@@ -77,35 +80,22 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
         { title: isTh ? 'ยืนยันอีเมล' : 'Verify your email', sub: isTh ? `ยืนยันแล้วผ่าน ${userEmail}` : `Confirmed via ${userEmail}`, done: emailVerified, href: `/${lang}/settings` },
         { title: isTh ? 'เพิ่มข้อมูลบริษัทพื้นฐาน' : 'Add company basic info', sub: isTh ? 'ชื่อบริษัท อุตสาหกรรม และข้อมูลติดต่อ' : 'Company name, industry, and contact info', done: hasCompany, href: `/${lang}/my-company` },
         { title: isTh ? 'เลือกอุตสาหกรรมและบริการ' : 'Select your industry & services', sub: isTh ? 'ช่วยให้ลูกค้าค้นหาคุณเจอ' : 'Helps clients find you in search', done: hasIndustry, href: `/${lang}/my-company` },
+        { title: isTh ? 'เพิ่มผลงาน' : 'Add portfolio', sub: isTh ? 'นำเสนอผลงานอย่างน้อย 1 ชิ้นเพื่อสร้างความเชื่อมั่น (อยู่ในหน้าบริษัทของฉัน)' : 'Showcase at least 1 project to build trust (on the My Company page)', done: hasPortfolio, href: `/${lang}/my-company` },
       ],
     },
     {
       num: 2,
-      title: isTh ? 'เพิ่มผลงาน' : 'Add portfolio',
-      desc: isTh ? 'สำหรับผู้ให้บริการ — นำเสนอผลงานจริงเพื่อสร้างความเชื่อมั่นกับลูกค้า' : 'For service providers — showcase real work to build trust with potential clients.',
-      done: hasPortfolio,
-      providerOnly: true,
-      status: hasPortfolio
-        ? (isTh ? `${portfolioCount} ผลงาน` : `${portfolioCount} project${portfolioCount === 1 ? '' : 's'}`)
-        : (isTh ? 'ยังไม่ได้เริ่ม' : 'Not started'),
-      bodyText: isTh ? 'เพิ่มอย่างน้อย 3 ผลงาน พร้อมรูปภาพ ผลลัพธ์ และบริการที่ส่งมอบ ผลงานที่ยืนยันแล้วจะปรากฏในการค้นหาสูงกว่า' : 'Add at least 3 projects with images, results, and the services delivered. Verified projects rank higher in client search.',
-      ctaLabel: isTh ? 'เพิ่มผลงาน →' : 'Add a project →',
-      ctaHref: `/${lang}/portfolio`,
-      ctaStyle: 'teal' as const,
-    },
-    {
-      num: 3,
       title: isTh ? 'รับสิทธิ์ Early Bird' : 'Claim Early Bird offer',
       desc: isTh ? `รับฟีเจอร์ Premium ทั้งหมดฟรี — เหลือ ${earlyBirdLeft} จาก ${earlyBirdTotal} สิทธิ์` : `Get all Premium features FREE — ${earlyBirdLeft} of ${earlyBirdTotal} spots left.`,
       done: companyPremium,
       status: companyPremium ? (isTh ? 'พรีเมียม' : 'Premium') : (isTh ? 'จำกัด' : 'Limited'),
-      bodyText: isTh ? '100 บริษัทแรกบน Profindle จะได้รับฟีเจอร์ Premium ทั้งหมดฟรีจนถึง 31 มี.ค. 2570 (รวมถึงการเชื่อม LINE ในขั้นตอนที่ 4)' : 'First 100 companies on Profindle get all Premium features free until Mar 31, 2027 — including LINE alerts in step 4.',
+      bodyText: isTh ? '100 บริษัทแรกบน Profindle จะได้รับฟีเจอร์ Premium ทั้งหมดฟรีจนถึง 31 มี.ค. 2570 (รวมถึงการเชื่อม LINE ในขั้นตอนที่ 3)' : 'First 100 companies on Profindle get all Premium features free until Mar 31, 2027 — including LINE alerts in step 3.',
       ctaLabel: companyPremium ? (isTh ? 'ดูแพ็กเกจ' : 'View plan') : (isTh ? 'รับสิทธิ์ →' : 'Claim now →'),
       ctaHref: `/${lang}/package`,
       ctaStyle: 'amber' as const,
     },
     {
-      num: 4,
+      num: 3,
       title: isTh ? 'เชื่อม LINE เพื่อรับการแจ้งเตือน' : 'Connect LINE for alerts',
       desc: isTh ? 'สำหรับผู้ให้บริการ — รับแจ้งเตือนทันทีเมื่อมีคำขอที่ตรงกับบริการของคุณ' : 'For service providers — get notified when buyers post requests matching your services.',
       done: lineConnected,
@@ -113,7 +103,7 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
       premium: !companyPremium,
       status: lineConnected ? (isTh ? 'เชื่อมแล้ว' : 'Connected') : companyPremium ? (isTh ? 'ยังไม่ได้เชื่อม' : 'Not connected') : (isTh ? 'ต้องใช้ Premium' : 'Premium only'),
       bodyText: (isTh ? 'ไม่พลาดทุกคำขอจากลูกค้า เชื่อมบัญชี LINE ครั้งเดียว เราจะแจ้งเตือนทุกคำขอที่ตรงกับบริการของคุณ หมายเหตุ: แนะนำให้ใช้บัญชี LINE ของบริษัท ไม่ใช่บัญชีส่วนตัว' : 'Never miss a client broadcast. Connect LINE once and we\'ll notify you on every matching request. Note: use a company LINE account, not a personal one — staff changes break personal connections.')
-        + (companyPremium ? '' : (isTh ? ' — ฟีเจอร์นี้สำหรับสมาชิก Premium: รับสิทธิ์ Early Bird ในขั้นตอนที่ 3 ก่อนเพื่อปลดล็อก' : ' — This is a Premium feature: claim the Early Bird offer in step 3 first to unlock it.')),
+        + (companyPremium ? '' : (isTh ? ' — ฟีเจอร์นี้สำหรับสมาชิก Premium: รับสิทธิ์ Early Bird ในขั้นตอนที่ 2 ก่อนเพื่อปลดล็อก' : ' — This is a Premium feature: claim the Early Bird offer in step 2 first to unlock it.')),
       ctaLabel: companyPremium ? (isTh ? 'เชื่อม LINE' : 'Connect LINE') : (isTh ? 'รับสิทธิ์ Early Bird ก่อน →' : 'Claim Early Bird first →'),
       ctaHref: companyPremium ? `/${lang}/settings` : `/${lang}/package`,
       ctaStyle: companyPremium ? ('line' as const) : ('amber' as const),
@@ -154,10 +144,10 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', maxWidth: '320px' }}>
             <div style={{ flex: 1, height: '5px', background: 'rgba(255,255,255,0.15)', borderRadius: '999px', overflow: 'hidden' }}>
-              <div style={{ height: '100%', background: 'linear-gradient(90deg,#2BBEC5,#F77F00)', borderRadius: '999px', width: `${(completedSteps / 4) * 100}%` }} />
+              <div style={{ height: '100%', background: 'linear-gradient(90deg,#2BBEC5,#F77F00)', borderRadius: '999px', width: `${(completedSteps / 3) * 100}%` }} />
             </div>
             <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap' }}>
-              {completedSteps} {isTh ? 'จาก 4 ขั้นตอน' : 'of 4 steps done'}
+              {completedSteps} {isTh ? 'จาก 3 ขั้นตอน' : 'of 3 steps done'}
             </span>
           </div>
         </div>
