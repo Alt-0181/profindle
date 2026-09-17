@@ -45,13 +45,6 @@ function GridIcon() {
     </svg>
   );
 }
-function LayoutIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" />
-    </svg>
-  );
-}
 function InboxIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -128,7 +121,6 @@ export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, lea
     { type: 'section', labelKey: 'forProvidersSec' },
     { type: 'item', id: 'overview', labelKey: 'overview', icon: <GridIcon />, href: `/${locale}/provider-overview`, locked: !hasCompany },
     { type: 'item', id: 'leads', labelKey: 'leads', icon: <InboxIcon />, href: `/${locale}/leads`, locked: !hasCompany, badge: leadsCount > 0 ? String(leadsCount) : undefined },
-    { type: 'item', id: 'portfolio', labelKey: 'portfolio', icon: <LayoutIcon />, href: `/${locale}/portfolio`, locked: !hasCompany },
     { type: 'item', id: 'package', labelKey: 'package', icon: <StarIcon />, href: `/${locale}/package`, locked: !hasCompany },
     { type: 'section', labelKey: 'forBuyersSec' },
     { type: 'item', id: 'find', labelKey: 'findProviders', icon: <SearchIcon />, href: `/${locale}/find-providers`, locked: !hasCompany },

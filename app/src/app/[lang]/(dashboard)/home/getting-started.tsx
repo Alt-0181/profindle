@@ -64,10 +64,10 @@ export function GettingStartedAccordion({ steps, lang, completedCount }: Props) 
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
           <div style={{ width: '120px', height: '5px', background: '#F0F9F9', borderRadius: '999px', overflow: 'hidden' }}>
-            <div style={{ height: '100%', background: 'linear-gradient(90deg,#0F6F73,#F77F00)', borderRadius: '999px', width: `${(completedCount / 4) * 100}%`, transition: 'width 600ms ease' }} />
+            <div style={{ height: '100%', background: 'linear-gradient(90deg,#0F6F73,#F77F00)', borderRadius: '999px', width: `${(completedCount / 3) * 100}%`, transition: 'width 600ms ease' }} />
           </div>
           <span style={{ fontSize: '12px', color: '#6B7385', fontWeight: 600, whiteSpace: 'nowrap' }}>
-            {completedCount} / 4
+            {completedCount} / 3
           </span>
         </div>
       </div>
