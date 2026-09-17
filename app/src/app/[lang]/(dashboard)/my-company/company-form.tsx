@@ -434,7 +434,7 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, company
 
 
   return (
-    <form onSubmit={handleSave}>
+    <form id="my-company-form" onSubmit={handleSave}>
       <style>{`
         .mc-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .mc-line { display: grid; grid-template-columns: 180px 1fr; gap: 8px; }

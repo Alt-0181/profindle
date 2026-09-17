@@ -178,6 +178,33 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
   const showAddNewClient = clientSearch.trim().length >= 2
     && !allClients.find((c) => c.toLowerCase() === clientSearch.trim().toLowerCase());
 
+  // Opening "Add project" before the company is saved: save the company form
+  // (it lives on the My Company page) first, then this modal auto-reopens after
+  // the page refreshes. On the standalone Portfolio page there's no form, so we
+  // send them to My Company. Removes the "save company first" dead-end.
+  const openAddModal = () => {
+    if (!companyId) {
+      try { sessionStorage.setItem('pf_open_after_company', '1'); } catch {}
+      const form = typeof document !== 'undefined'
+        ? (document.getElementById('my-company-form') as HTMLFormElement | null) : null;
+      if (form?.requestSubmit) form.requestSubmit();
+      else router.push(`/${lang}/my-company`);
+      return;
+    }
+    setShowModal(true);
+  };
+
+  // After the company gets created, reopen the add-project modal automatically.
+  useEffect(() => {
+    if (!companyId) return;
+    let flag = false;
+    try { flag = sessionStorage.getItem('pf_open_after_company') === '1'; } catch {}
+    if (flag) {
+      try { sessionStorage.removeItem('pf_open_after_company'); } catch {}
+      setShowModal(true);
+    }
+  }, [companyId]);
+
   // Close the client dropdown when clicking outside the input+dropdown box.
   useEffect(() => {
     const onMouseDown = (e: MouseEvent) => {
@@ -532,7 +559,7 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
         ))}
 
         {/* Add card */}
-        {canEdit && <div onClick={() => setShowModal(true)} style={{ aspectRatio: '4/3', border: '2px dashed #C8CDD7', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', transition: 'all 150ms', background: 'transparent' }}>
+        {canEdit && <div onClick={openAddModal} style={{ aspectRatio: '4/3', border: '2px dashed #C8CDD7', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', transition: 'all 150ms', background: 'transparent' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#F0F9F9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
