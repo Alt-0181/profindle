@@ -111,19 +111,11 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
         )}
         <MyCompanyForm lang={lang} dict={dict} initialData={initialData} companyExists={!!companyId} portfolioCount={initialProjects.length} />
 
-        {/* Portfolio — same page as company info so providers add their work in one flow. */}
+        {/* Portfolio — same page as company info so providers add their work in one flow.
+            Always shown; before the company is saved, adding a project first saves
+            the company (see PortfolioClient) so there's no dead-end placeholder. */}
         <div style={{ marginTop: '36px', paddingTop: '28px', borderTop: '1px solid #EEF1F2' }}>
-          {companyId ? (
-            <PortfolioClient lang={lang} dict={dict} companyId={companyId} companyServices={companyServices} initialProjects={initialProjects} />
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#F7F8FA', border: '1px solid #E4E7ED', borderRadius: '14px', padding: '16px 18px' }}>
-              <span style={{ fontSize: '20px' }}>📁</span>
-              <div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21', marginBottom: '2px' }}>{isTh ? 'ผลงาน (Portfolio)' : 'Portfolio'}</div>
-                <div style={{ fontSize: '13px', color: '#6B7385' }}>{isTh ? 'บันทึกข้อมูลบริษัทด้านบนก่อน แล้วเพิ่มผลงานได้ที่นี่ในหน้าเดียว' : 'Save your company info above first, then add your portfolio right here.'}</div>
-              </div>
-            </div>
-          )}
+          <PortfolioClient lang={lang} dict={dict} companyId={companyId} companyServices={companyServices} initialProjects={initialProjects} />
         </div>
       </div>
     </div>
