@@ -15,9 +15,19 @@ interface SettingsClientProps {
   lineOAuthResult: string | null;
   initialSection: string | null;
   isPremium: boolean;
+  isOwner?: boolean;
+  members?: TeamMember[];
 }
 
-export function SettingsClient({ lang, dict, initialLineUserId, initialLineDisplayName, userEmail, userName, lineOAuthResult, initialSection, isPremium }: SettingsClientProps) {
+export interface TeamMember {
+  id: string;
+  invited_email: string;
+  can_edit_company: boolean;
+  can_edit_portfolio: boolean;
+  status: string;
+}
+
+export function SettingsClient({ lang, dict, initialLineUserId, initialLineDisplayName, userEmail, userName, lineOAuthResult, initialSection, isPremium, isOwner = false, members = [] }: SettingsClientProps) {
   const t = dict.settings;
   const router = useRouter();
   const [activeSection, setActiveSection] = useState(initialSection ?? 'account');
@@ -42,6 +52,49 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
+  // ── Team / collaborators ──────────────────────────────────────────────────
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [invitePerms, setInvitePerms] = useState({ company: true, portfolio: true });
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteMsg, setInviteMsg] = useState('');
+  const [inviteErr, setInviteErr] = useState('');
+  const [removingId, setRemovingId] = useState<string | null>(null);
+
+  const sendInvite = async () => {
+    setInviteMsg(''); setInviteErr('');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail.trim())) { setInviteErr(lang === 'th' ? 'กรุณากรอกอีเมลให้ถูกต้อง' : 'Enter a valid email'); return; }
+    if (!invitePerms.company && !invitePerms.portfolio) { setInviteErr(lang === 'th' ? 'เลือกสิทธิ์อย่างน้อย 1 อย่าง' : 'Pick at least one permission'); return; }
+    setInviteBusy(true);
+    try {
+      const res = await fetch('/api/team/invite', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inviteEmail.trim(), canEditCompany: invitePerms.company, canEditPortfolio: invitePerms.portfolio, lang }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      setInviteEmail('');
+      setInviteMsg(data.emailSent
+        ? (lang === 'th' ? 'ส่งคำเชิญทางอีเมลแล้ว' : 'Invite email sent')
+        : (lang === 'th' ? 'เพิ่มคำเชิญแล้ว — แจ้งให้ผู้รับเข้าสู่ระบบด้วยอีเมลนี้เพื่อรับสิทธิ์' : 'Invite created — ask them to sign in with this email to accept'));
+      router.refresh();
+    } catch (e: any) {
+      setInviteErr(e?.message || (lang === 'th' ? 'ส่งคำเชิญไม่สำเร็จ' : 'Could not send invite'));
+    } finally { setInviteBusy(false); }
+  };
+
+  const removeMember = async (id: string) => {
+    setRemovingId(id); setInviteErr(''); setInviteMsg('');
+    try {
+      const res = await fetch('/api/team/remove', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ memberId: id }),
+      });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Failed'); }
+      router.refresh();
+    } catch (e: any) {
+      setInviteErr(e?.message || (lang === 'th' ? 'ลบไม่สำเร็จ' : 'Could not remove'));
+    } finally { setRemovingId(null); }
+  };
+
   async function handleDeleteAccount() {
     setDeleteLoading(true);
     setDeleteError('');
@@ -59,6 +112,7 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
 
   const navItems = [
     { id: 'account', label: t.account },
+    ...(isOwner ? [{ id: 'team', label: lang === 'th' ? 'ทีมงาน' : 'Team' }] : []),
     { id: 'notifications', label: t.notifications },
     { id: 'line', label: t.lineConnect },
     { id: 'danger', label: t.dangerZone },
@@ -265,6 +319,60 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
                 )}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Team / collaborators */}
+        {activeSection === 'team' && isOwner && (
+          <div style={sectionStyle}>
+            <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{lang === 'th' ? 'ทีมงาน / ผู้ร่วมจัดการ' : 'Team / Collaborators'}</h2>
+            <p style={{ fontSize: '13px', color: '#9AA0AE', marginBottom: '20px' }}>{lang === 'th' ? 'เชิญผู้อื่นมาช่วยจัดการข้อมูลบริษัทและผลงาน' : 'Invite others to help manage your company info and portfolio.'}</p>
+
+            {/* Invite form */}
+            <div style={{ background: '#F7F8FA', border: '1px solid #E4E7ED', borderRadius: '14px', padding: '16px', marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>{lang === 'th' ? 'เชิญด้วยอีเมล' : 'Invite by email'}</label>
+              <input
+                type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="name@company.com"
+                style={{ width: '100%', fontSize: '14px', padding: '10px 12px', border: '1.5px solid #E4E7ED', borderRadius: '10px', outline: 'none', fontFamily: 'inherit', marginBottom: '10px' }}
+              />
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', marginBottom: '12px' }}>
+                {([['company', lang === 'th' ? 'จัดการข้อมูลบริษัท' : 'Manage company info'], ['portfolio', lang === 'th' ? 'จัดการผลงาน' : 'Manage portfolio']] as const).map(([key, label]) => (
+                  <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '13px', color: '#444B5A', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={invitePerms[key]} onChange={(e) => setInvitePerms(p => ({ ...p, [key]: e.target.checked }))} />
+                    {label}
+                  </label>
+                ))}
+              </div>
+              <button onClick={sendInvite} disabled={inviteBusy} style={{ padding: '9px 18px', background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)', color: 'white', fontWeight: 600, fontSize: '13px', border: 'none', borderRadius: '10px', cursor: inviteBusy ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: inviteBusy ? 0.6 : 1 }}>
+                {inviteBusy ? (lang === 'th' ? 'กำลังส่ง…' : 'Sending…') : (lang === 'th' ? 'ส่งคำเชิญ' : 'Send invite')}
+              </button>
+              {inviteMsg && <p style={{ fontSize: '12.5px', color: '#0F6F73', marginTop: '10px' }}>✓ {inviteMsg}</p>}
+              {inviteErr && <p style={{ fontSize: '12.5px', color: '#D32F2F', marginTop: '10px' }}>⚠ {inviteErr}</p>}
+            </div>
+
+            {/* Member list */}
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#171A21', marginBottom: '10px' }}>{lang === 'th' ? 'สมาชิก' : 'Members'} ({members.length})</div>
+            {members.length === 0 ? (
+              <p style={{ fontSize: '13px', color: '#9AA0AE' }}>{lang === 'th' ? 'ยังไม่มีผู้ร่วมจัดการ' : 'No collaborators yet.'}</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {members.map(m => (
+                  <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', border: '1px solid #E4E7ED', borderRadius: '12px', padding: '12px 14px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#171A21', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.invited_email}</div>
+                      <div style={{ fontSize: '11.5px', color: '#9AA0AE', marginTop: '2px' }}>
+                        {m.status === 'pending' ? (lang === 'th' ? '⏳ รอตอบรับ' : '⏳ Pending') : (lang === 'th' ? '✓ ใช้งานอยู่' : '✓ Active')}
+                        {' · '}
+                        {[m.can_edit_company && (lang === 'th' ? 'บริษัท' : 'Company'), m.can_edit_portfolio && (lang === 'th' ? 'ผลงาน' : 'Portfolio')].filter(Boolean).join(' + ')}
+                      </div>
+                    </div>
+                    <button onClick={() => removeMember(m.id)} disabled={removingId === m.id} style={{ padding: '6px 12px', background: 'transparent', border: '1.5px solid #F1C7C7', color: '#D32F2F', fontWeight: 600, fontSize: '12px', borderRadius: '9px', cursor: removingId === m.id ? 'not-allowed' : 'pointer', fontFamily: 'inherit', flexShrink: 0, opacity: removingId === m.id ? 0.6 : 1 }}>
+                      {removingId === m.id ? '…' : (lang === 'th' ? 'ลบ' : 'Remove')}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

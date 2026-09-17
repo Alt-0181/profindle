@@ -113,9 +113,10 @@ interface PortfolioClientProps {
   companyId: string | null;
   companyServices: string[];
   initialProjects: Project[];
+  canEdit?: boolean;
 }
 
-export function PortfolioClient({ lang, dict, companyId, companyServices, initialProjects }: PortfolioClientProps) {
+export function PortfolioClient({ lang, dict, companyId, companyServices, initialProjects, canEdit = true }: PortfolioClientProps) {
   const t = dict.portfolio;
   const router = useRouter();
 
@@ -499,16 +500,16 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
       {/* Portfolio grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '20px' }}>
         {projects.map((proj) => (
-          <div key={proj.id} onClick={() => openEdit(proj.id)} style={{ position: 'relative', background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden', cursor: 'pointer', transition: 'all 200ms' }}>
+          <div key={proj.id} onClick={canEdit ? () => openEdit(proj.id) : undefined} style={{ position: 'relative', background: 'white', borderRadius: '16px', border: '1px solid rgba(15,111,115,0.10)', overflow: 'hidden', cursor: canEdit ? 'pointer' : 'default', transition: 'all 200ms' }}>
 
             {/* Delete button */}
-            <button
+            {canEdit && <button
               onClick={(e) => { e.stopPropagation(); setDeleteError(''); setConfirmDeleteId(proj.id); }}
               title={lang === 'th' ? 'ลบ' : 'Delete'}
               style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 3, width: '30px', height: '30px', borderRadius: '8px', border: 'none', background: 'rgba(23,26,33,0.55)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(4px)' }}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-            </button>
+            </button>}
 
             {/* Delete confirmation overlay */}
             {confirmDeleteId === proj.id && (
@@ -558,7 +559,7 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
         ))}
 
         {/* Add card */}
-        <div onClick={openAddModal} style={{ aspectRatio: '4/3', border: '2px dashed #C8CDD7', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', transition: 'all 150ms', background: 'transparent' }}>
+        {canEdit && <div onClick={openAddModal} style={{ aspectRatio: '4/3', border: '2px dashed #C8CDD7', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', transition: 'all 150ms', background: 'transparent' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#F0F9F9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -568,7 +569,7 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
             {projects.length === 0 ? t.noProjects : t.addProject}
           </span>
           {projects.length === 0 && <span style={{ fontSize: '12px', color: '#C8CDD7', textAlign: 'center', maxWidth: '160px' }}>{t.noProjectsSub}</span>}
-        </div>
+        </div>}
       </div>
 
       {/* Modal */}

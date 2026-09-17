@@ -21,9 +21,19 @@ export default async function SettingsPage({
 
   const { data: company } = await supabase
     .from('companies')
-    .select('line_user_id, line_display_name, premium, plan')
+    .select('id, line_user_id, line_display_name, premium, plan')
     .eq('user_id', user?.id ?? '')
     .maybeSingle();
+
+  // Team members — only the owner (a user who owns a company) manages these.
+  const isOwner = !!company;
+  const { data: memberRows } = isOwner
+    ? await supabase
+        .from('company_members')
+        .select('id, invited_email, can_edit_company, can_edit_portfolio, status')
+        .eq('company_id', (company as any).id)
+        .order('created_at', { ascending: true })
+    : { data: [] };
 
   const lineUserId = (company as any)?.line_user_id ?? null;
   const lineDisplayName = (company as any)?.line_display_name ?? null;
@@ -47,6 +57,8 @@ export default async function SettingsPage({
         lineOAuthResult={line ?? null}
         initialSection={section ?? null}
         isPremium={isPremium}
+        isOwner={isOwner}
+        members={(memberRows ?? []) as any}
       />
     </div>
   );

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/server';
 import { PortfolioClient } from './portfolio-client';
+import { resolveCompanyAccess } from '@/lib/company-access';
 
 export default async function PortfolioPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
@@ -11,14 +12,9 @@ export default async function PortfolioPage({ params }: { params: Promise<{ lang
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: company } = await supabase
-    .from('companies')
-    .select('id, services')
-    .eq('user_id', user?.id ?? '')
-    .maybeSingle();
-
-  const companyId = company?.id ?? null;
-  const companyServices: string[] = company?.services ?? [];
+  const access = await resolveCompanyAccess(supabase, user?.id, 'id, services');
+  const companyId = access.companyId;
+  const companyServices: string[] = (access.company?.services as string[]) ?? [];
 
   const { data: projectRows } = companyId
     ? await supabase
@@ -48,7 +44,7 @@ export default async function PortfolioPage({ params }: { params: Promise<{ lang
 
   return (
     <div className="page-body">
-      <PortfolioClient lang={lang} dict={dict} companyId={companyId} companyServices={companyServices} initialProjects={initialProjects} />
+      <PortfolioClient lang={lang} dict={dict} companyId={companyId} companyServices={companyServices} initialProjects={initialProjects} canEdit={access.canEditPortfolio || access.isOwner} />
     </div>
   );
 }
