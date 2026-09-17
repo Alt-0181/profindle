@@ -109,14 +109,17 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
             </div>
           </div>
         )}
-        <MyCompanyForm lang={lang} dict={dict} initialData={initialData} companyExists={!!companyId} portfolioCount={initialProjects.length} />
-
-        {/* Portfolio — same page as company info so providers add their work in one flow.
-            Always shown; before the company is saved, adding a project first saves
-            the company (see PortfolioClient) so there's no dead-end placeholder. */}
-        <div style={{ marginTop: '36px', paddingTop: '28px', borderTop: '1px solid #EEF1F2' }}>
-          <PortfolioClient lang={lang} dict={dict} companyId={companyId} companyServices={companyServices} initialProjects={initialProjects} />
-        </div>
+        {/* Portfolio is passed as a slot so it renders between the company
+            fields and the Save bar — Save comes after the portfolio. */}
+        <MyCompanyForm
+          lang={lang} dict={dict} initialData={initialData}
+          companyExists={!!companyId} portfolioCount={initialProjects.length}
+          portfolioSlot={
+            <div style={{ marginTop: '36px', paddingTop: '28px', borderTop: '1px solid #EEF1F2' }}>
+              <PortfolioClient lang={lang} dict={dict} companyId={companyId} companyServices={companyServices} initialProjects={initialProjects} />
+            </div>
+          }
+        />
       </div>
     </div>
   );

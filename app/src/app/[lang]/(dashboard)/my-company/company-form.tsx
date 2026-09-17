@@ -67,6 +67,7 @@ interface MyCompanyFormProps {
   };
   companyExists?: boolean;
   portfolioCount?: number;
+  portfolioSlot?: React.ReactNode;
 }
 
 const EMPTY = {
@@ -77,7 +78,7 @@ const EMPTY = {
   buyerOnly: false,
 };
 
-export function MyCompanyForm({ lang, dict, initialData, companyExists = false, portfolioCount = 0 }: MyCompanyFormProps) {
+export function MyCompanyForm({ lang, dict, initialData, companyExists = false, portfolioCount = 0, portfolioSlot }: MyCompanyFormProps) {
   // Once the company exists, a complete provider profile needs >= 1 portfolio
   // project. The first save is exempt (a project can't be added until the
   // company row exists); buyer-only accounts are exempt.
@@ -432,6 +433,7 @@ export function MyCompanyForm({ lang, dict, initialData, companyExists = false, 
 
 
   return (
+    <>
     <form id="my-company-form" onSubmit={handleSave}>
       <style>{`
         .mc-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -909,12 +911,18 @@ export function MyCompanyForm({ lang, dict, initialData, companyExists = false, 
         </div>
       </div>
 
-      {/* Sticky footer */}
+    </form>
+
+      {/* Portfolio renders here, then the Save bar — so Save comes AFTER the
+          portfolio and providers complete their work first. The button submits
+          the company form above via the form="my-company-form" attribute, so the
+          portfolio's own inputs/buttons are never inside the company form. */}
+      {portfolioSlot}
+
       <div style={{
-        position: 'sticky', bottom: 0, background: 'white',
-        borderTop: '1px solid #E4E7ED', padding: '16px 28px',
+        background: 'white', borderTop: '1px solid #E4E7ED', padding: '16px 28px',
         display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px',
-        marginTop: '20px',
+        marginTop: '28px', borderRadius: '14px', border: '1px solid rgba(15,111,115,0.10)',
       }}>
         {saved && (
           <span style={{ fontSize: '13px', color: '#0F6F73', fontWeight: 600 }}>✓ {t.savedSuccess}</span>
@@ -924,11 +932,12 @@ export function MyCompanyForm({ lang, dict, initialData, companyExists = false, 
         )}
         {needsPortfolio && !form.buyerOnly && (
           <span style={{ fontSize: '12.5px', color: '#E06B00', fontWeight: 600 }}>
-            {lang === 'th' ? '↓ เพิ่มผลงานอย่างน้อย 1 ชิ้นก่อนบันทึก' : '↓ Add at least one portfolio project first'}
+            {lang === 'th' ? 'เพิ่มผลงานอย่างน้อย 1 ชิ้นก่อนบันทึก' : 'Add at least one portfolio project first'}
           </span>
         )}
         <button
           type="submit"
+          form="my-company-form"
           disabled={saving || (needsPortfolio && !form.buyerOnly)}
           style={{
             padding: '10px 24px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)',
@@ -941,6 +950,6 @@ export function MyCompanyForm({ lang, dict, initialData, companyExists = false, 
           {saving ? t.saving : t.saveChanges}
         </button>
       </div>
-    </form>
+    </>
   );
 }
