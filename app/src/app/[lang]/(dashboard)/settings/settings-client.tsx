@@ -336,7 +336,7 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
                 style={{ width: '100%', fontSize: '14px', padding: '10px 12px', border: '1.5px solid #E4E7ED', borderRadius: '10px', outline: 'none', fontFamily: 'inherit', marginBottom: '10px' }}
               />
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', marginBottom: '12px' }}>
-                {([['company', lang === 'th' ? 'แก้ข้อมูลบริษัท' : 'Edit company info'], ['portfolio', lang === 'th' ? 'แก้ผลงาน' : 'Edit portfolio']] as const).map(([key, label]) => (
+                {([['company', lang === 'th' ? 'จัดการข้อมูลบริษัท' : 'Manage company info'], ['portfolio', lang === 'th' ? 'จัดการผลงาน' : 'Manage portfolio']] as const).map(([key, label]) => (
                   <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '13px', color: '#444B5A', cursor: 'pointer' }}>
                     <input type="checkbox" checked={invitePerms[key]} onChange={(e) => setInvitePerms(p => ({ ...p, [key]: e.target.checked }))} />
                     {label}
