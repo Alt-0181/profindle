@@ -65,6 +65,7 @@ interface MyCompanyFormProps {
     bannerFocusMobileX?: number; bannerFocusMobileY?: number;
     buyerOnly: boolean;
   };
+  canEdit?: boolean;
 }
 
 const EMPTY = {
@@ -75,7 +76,7 @@ const EMPTY = {
   buyerOnly: false,
 };
 
-export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
+export function MyCompanyForm({ lang, dict, initialData, canEdit = true }: MyCompanyFormProps) {
   const t = dict.myCompany;
   const router = useRouter();
   const [form, setForm] = useState(initialData ?? EMPTY);
@@ -300,6 +301,7 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canEdit) return; // collaborators without company-edit permission (RLS also blocks)
     // Required fields (marked * in the form). Provider-only requirements are
     // skipped for buyer-only accounts.
     if (!form.nameEn.trim()) {
@@ -910,18 +912,24 @@ export function MyCompanyForm({ lang, dict, initialData }: MyCompanyFormProps) {
         {saveError && (
           <span style={{ fontSize: '13px', color: '#FF5A5F', fontWeight: 600 }}>⚠ {saveError}</span>
         )}
-        <button
-          type="submit"
-          disabled={saving}
-          style={{
-            padding: '10px 24px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)',
-            color: 'white', fontWeight: 600, fontSize: '14px',
-            border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit',
-            opacity: saving ? 0.7 : 1,
-          }}
-        >
-          {saving ? t.saving : t.saveChanges}
-        </button>
+        {canEdit ? (
+          <button
+            type="submit"
+            disabled={saving}
+            style={{
+              padding: '10px 24px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)',
+              color: 'white', fontWeight: 600, fontSize: '14px',
+              border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit',
+              opacity: saving ? 0.7 : 1,
+            }}
+          >
+            {saving ? t.saving : t.saveChanges}
+          </button>
+        ) : (
+          <span style={{ fontSize: '13px', color: '#9AA0AE', fontWeight: 600 }}>
+            {lang === 'th' ? 'ดูข้อมูลบริษัทได้อย่างเดียว' : 'View-only access to company info'}
+          </span>
+        )}
       </div>
     </form>
   );

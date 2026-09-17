@@ -3,6 +3,7 @@ import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/server';
 import { MyCompanyForm } from './company-form';
 import { PortfolioClient } from '../portfolio/portfolio-client';
+import { resolveCompanyAccess } from '@/lib/company-access';
 
 export default async function MyCompanyPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
@@ -12,11 +13,10 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: company } = await supabase
-    .from('companies')
-    .select('*')
-    .eq('user_id', user?.id ?? '')
-    .maybeSingle();
+  // Resolve the company the user manages — their own, or one they collaborate
+  // on — plus what they're allowed to edit.
+  const access = await resolveCompanyAccess(supabase, user?.id, '*');
+  const company = access.company;
 
   function parseLineId(raw: string | null): { lineIdType: 'oa' | 'id' | 'phone'; lineIdValue: string } {
     if (!raw) return { lineIdType: 'id', lineIdValue: '' };
@@ -109,12 +109,21 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
             </div>
           </div>
         )}
-        <MyCompanyForm lang={lang} dict={dict} initialData={initialData} />
+        {access.isMember && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#F0F9F9', border: '1px solid rgba(15,111,115,0.18)', borderRadius: '14px', padding: '12px 16px', marginBottom: '20px' }}>
+            <span style={{ fontSize: '18px' }}>👥</span>
+            <div style={{ fontSize: '13px', color: '#0F6F73', fontWeight: 600 }}>
+              {isTh ? 'คุณเป็นผู้ร่วมจัดการบริษัทนี้' : 'You’re a collaborator on this company'}
+              {!access.canEditCompany && (isTh ? ' · ดูข้อมูลบริษัทได้อย่างเดียว' : ' · company info is view-only')}
+            </div>
+          </div>
+        )}
+        <MyCompanyForm lang={lang} dict={dict} initialData={initialData} canEdit={access.canEditCompany} />
 
         {/* Portfolio — same page as company info so providers add their work in one flow. */}
         <div style={{ marginTop: '36px', paddingTop: '28px', borderTop: '1px solid #EEF1F2' }}>
           {companyId ? (
-            <PortfolioClient lang={lang} dict={dict} companyId={companyId} companyServices={companyServices} initialProjects={initialProjects} />
+            <PortfolioClient lang={lang} dict={dict} companyId={companyId} companyServices={companyServices} initialProjects={initialProjects} canEdit={access.canEditPortfolio} />
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#F7F8FA', border: '1px solid #E4E7ED', borderRadius: '14px', padding: '16px 18px' }}>
               <span style={{ fontSize: '20px' }}>📁</span>
