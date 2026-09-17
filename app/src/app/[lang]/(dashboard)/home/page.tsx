@@ -224,6 +224,29 @@ export default async function DashboardHomePage({ params }: { params: Promise<{ 
         <GettingStartedAccordion steps={gettingStartedSteps} lang={lang} completedCount={completedSteps} />
       </div>
 
+      {/* Tip: invite a colleague to help manage (owners only — hasCompany means
+          this user owns the company; collaborators access via a member link) */}
+      {hasCompany && (
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', background: 'linear-gradient(135deg,#F0F9F9,#EAF6F6)', border: '1px solid rgba(15,111,115,0.15)', borderRadius: '14px', padding: '16px 20px', marginBottom: '24px' }}>
+          <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'white', border: '1px solid rgba(15,111,115,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21', marginBottom: '2px' }}>
+              {isTh ? 'เคล็ดลับ: เชิญเพื่อนร่วมงานมาช่วยจัดการ' : 'Tip: invite a colleague to help manage'}
+            </div>
+            <div style={{ fontSize: '12.5px', color: '#6B7385', lineHeight: 1.55 }}>
+              {isTh
+                ? 'คุณสามารถเชิญคนในบริษัทมาช่วยจัดการข้อมูลบริษัทและผลงานได้ โดยเลือกสิทธิ์ที่ต้องการให้ ที่ การตั้งค่า → ทีมงาน'
+                : 'You can invite someone from your company to help manage your company info and portfolio — choose exactly what they can edit in Settings → Team.'}
+            </div>
+          </div>
+          <Link href={`/${lang}/settings?section=team`} style={{ alignSelf: 'center', background: 'white', color: '#0F6F73', padding: '9px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', border: '1.5px solid rgba(15,111,115,0.2)', flexShrink: 0 }}>
+            {isTh ? 'เชิญเพื่อนร่วมงาน →' : 'Invite a colleague →'}
+          </Link>
+        </div>
+      )}
+
       {/* Row 2: Recent Activity (left) | Need Help (right) */}
       <div className="home-row2">
         {/* Recent Activity */}
