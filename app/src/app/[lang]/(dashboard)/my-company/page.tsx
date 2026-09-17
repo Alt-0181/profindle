@@ -118,7 +118,7 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
             </div>
           </div>
         )}
-        <MyCompanyForm lang={lang} dict={dict} initialData={initialData} canEdit={access.canEditCompany} />
+        <MyCompanyForm lang={lang} dict={dict} initialData={initialData} canEdit={access.canEditCompany} companyExists={!!companyId} portfolioCount={initialProjects.length} />
 
         {/* Portfolio — same page as company info so providers add their work in one flow. */}
         <div style={{ marginTop: '36px', paddingTop: '28px', borderTop: '1px solid #EEF1F2' }}>

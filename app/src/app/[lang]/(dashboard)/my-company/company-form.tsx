@@ -66,6 +66,8 @@ interface MyCompanyFormProps {
     buyerOnly: boolean;
   };
   canEdit?: boolean;
+  companyExists?: boolean;
+  portfolioCount?: number;
 }
 
 const EMPTY = {
@@ -76,7 +78,11 @@ const EMPTY = {
   buyerOnly: false,
 };
 
-export function MyCompanyForm({ lang, dict, initialData, canEdit = true }: MyCompanyFormProps) {
+export function MyCompanyForm({ lang, dict, initialData, canEdit = true, companyExists = false, portfolioCount = 0 }: MyCompanyFormProps) {
+  // Once the company exists, a complete profile needs at least one portfolio
+  // project. The very first save is exempt (a project can't be added until the
+  // company row exists) and buyer-only accounts don't need a portfolio.
+  const needsPortfolio = companyExists && portfolioCount === 0;
   const t = dict.myCompany;
   const router = useRouter();
   const [form, setForm] = useState(initialData ?? EMPTY);
@@ -320,6 +326,12 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true }: MyCom
     // the basis for verification. Buyer-only accounts are exempt.
     if (!form.buyerOnly && form.dbdNo.replace(/\D/g, '').length !== 13) {
       setSaveError(lang === 'th' ? 'กรุณากรอกเลขทะเบียนนิติบุคคล (DBD) 13 หลัก' : 'Please enter your 13-digit DBD registration number.');
+      return;
+    }
+    // Provider profiles need at least one portfolio project once the company
+    // exists (the first save creates the company so a project can be added).
+    if (needsPortfolio && !form.buyerOnly) {
+      setSaveError(lang === 'th' ? 'กรุณาเพิ่มผลงานอย่างน้อย 1 ชิ้น (ด้านล่าง) ก่อนบันทึก' : 'Please add at least one portfolio project (below) before saving.');
       return;
     }
     setSaving(true);
@@ -913,18 +925,26 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true }: MyCom
           <span style={{ fontSize: '13px', color: '#FF5A5F', fontWeight: 600 }}>⚠ {saveError}</span>
         )}
         {canEdit ? (
-          <button
-            type="submit"
-            disabled={saving}
-            style={{
-              padding: '10px 24px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)',
-              color: 'white', fontWeight: 600, fontSize: '14px',
-              border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit',
-              opacity: saving ? 0.7 : 1,
-            }}
-          >
-            {saving ? t.saving : t.saveChanges}
-          </button>
+          <>
+            {needsPortfolio && !form.buyerOnly && (
+              <span style={{ fontSize: '12.5px', color: '#E06B00', fontWeight: 600 }}>
+                {lang === 'th' ? '↓ เพิ่มผลงานอย่างน้อย 1 ชิ้นก่อนบันทึก' : '↓ Add at least one portfolio project first'}
+              </span>
+            )}
+            <button
+              type="submit"
+              disabled={saving || (needsPortfolio && !form.buyerOnly)}
+              style={{
+                padding: '10px 24px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)',
+                color: 'white', fontWeight: 600, fontSize: '14px',
+                border: 'none', borderRadius: '12px', fontFamily: 'inherit',
+                cursor: (saving || (needsPortfolio && !form.buyerOnly)) ? 'not-allowed' : 'pointer',
+                opacity: (saving || (needsPortfolio && !form.buyerOnly)) ? 0.55 : 1,
+              }}
+            >
+              {saving ? t.saving : t.saveChanges}
+            </button>
+          </>
         ) : (
           <span style={{ fontSize: '13px', color: '#9AA0AE', fontWeight: 600 }}>
             {lang === 'th' ? 'ดูข้อมูลบริษัทได้อย่างเดียว' : 'View-only access to company info'}
