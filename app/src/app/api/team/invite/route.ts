@@ -10,15 +10,18 @@ function getAdmin() {
   );
 }
 
-function inviteEmailHtml(lang: string, companyName: string, joinUrl: string): string {
+function inviteEmailHtml(lang: string, companyName: string, joinUrl: string, ownerEmail: string): string {
   const th = lang === 'th';
   const co = companyName || (th ? 'บริษัท' : 'a company');
+  const inviter = ownerEmail || (th ? 'เจ้าของบริษัท' : 'the company owner');
   const heading = th ? 'คุณได้รับคำเชิญให้ร่วมจัดการ' : 'You’ve been invited to help manage';
   const body = th
-    ? `คุณได้รับเชิญให้ช่วยจัดการข้อมูลบริษัทและผลงานของ <b>${co}</b> บน Profindle กดปุ่มด้านล่างเพื่อตั้งรหัสผ่านและเริ่มใช้งานได้เลย`
-    : `You’ve been invited to help manage <b>${co}</b>’s company info and portfolio on Profindle. Set a password below to get started.`;
+    ? `<b>${inviter}</b> ได้เชิญให้ช่วยจัดการข้อมูลบริษัทและผลงานของ <b>${co}</b> บน Profindle กดปุ่มด้านล่างเพื่อตั้งรหัสผ่านและเริ่มใช้งานได้ทันที`
+    : `<b>${inviter}</b> has invited you to help manage <b>${co}</b>’s company info and portfolio on Profindle. Click the button below to set a password and get started right away.`;
   const cta = th ? 'ตั้งรหัสผ่าน & เข้าร่วม' : 'Set password & join';
-  const ignore = th ? 'หากคุณไม่ได้คาดหวังอีเมลนี้ สามารถเพิกเฉยได้' : 'If you weren’t expecting this, you can safely ignore this email.';
+  const ignore = th
+    ? `หากคุณไม่ได้รับแจ้งจากทาง ${inviter} ให้เป็นผู้ที่มีสิทธิ์จัดการข้อมูลของ ${co} คุณสามารถเพิกเฉยอีเมลฉบับนี้ได้เลย`
+    : `If ${inviter} didn’t ask you to help manage ${co}’s information, you can safely ignore this email.`;
   return `<!doctype html><html><body style="margin:0;background:#F4F5F7;font-family:'Helvetica Neue',Arial,sans-serif;padding:32px 16px;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
     <table role="presentation" width="440" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;border:1px solid #E4E7ED;overflow:hidden;">
@@ -97,7 +100,7 @@ export async function POST(request: NextRequest) {
           subject: lang === 'th'
             ? `คุณได้รับเชิญให้ช่วยจัดการ${companyName ? ' ' + companyName : ''} บน Profindle`
             : `You're invited to help manage ${companyName || 'a company'} on Profindle`,
-          html: inviteEmailHtml(lang, companyName, joinUrl),
+          html: inviteEmailHtml(lang, companyName, joinUrl, (user.email ?? '').toLowerCase()),
         }),
       });
       if (res.ok) emailSent = true;
