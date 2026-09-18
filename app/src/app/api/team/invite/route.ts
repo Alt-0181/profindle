@@ -56,12 +56,19 @@ export async function POST(request: NextRequest) {
   // the "set a password on your locked email" step to finish their account.
   const redirectTo = `${origin}/${lang}/accept-invite?welcome=1`;
   let emailSent = false;
+  let emailError = '';
   try {
     const { error: inviteErr } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo });
     if (!inviteErr) emailSent = true;
     // If the person already has an account, inviteUserByEmail errors — the
     // membership still stands and they accept on their next login.
-  } catch { /* email delivery is best-effort */ }
+    else emailError = inviteErr.message || String((inviteErr as any).status ?? 'invite failed');
+  } catch (e) {
+    emailError = (e as Error)?.message ?? 'invite threw';
+  }
+  // Surface the real reason instead of hiding it — the send is best-effort, but
+  // when it fails the owner (and the logs) should see why.
+  console.error('[team/invite] result', { email, redirectTo, emailSent, emailError });
 
-  return NextResponse.json({ ok: true, emailSent });
+  return NextResponse.json({ ok: true, emailSent, emailError });
 }
