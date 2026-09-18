@@ -73,10 +73,11 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Failed');
       setInviteEmail('');
+      // Show the owner a clean message only. The technical reason for a failed
+      // send (e.g. a missing key) is logged server-side, never shown here.
       setInviteMsg(data.emailSent
         ? (lang === 'th' ? 'ส่งคำเชิญทางอีเมลแล้ว — ผู้รับกดลิงก์เพื่อตั้งรหัสผ่านและเข้าร่วม' : 'Invite email sent — they set a password from the link and join')
-        : (lang === 'th' ? 'เพิ่มคำเชิญแล้ว — เมื่อผู้รับเข้าสู่ระบบด้วยอีเมลนี้ ระบบจะเพิ่มเข้าทีมให้อัตโนมัติ' : 'Invite created — they’ll be added automatically when they sign in with this email')
-        + (data.emailError ? (lang === 'th' ? ` (อีเมลไม่ถูกส่ง: ${data.emailError})` : ` (email not sent: ${data.emailError})`) : ''));
+        : (lang === 'th' ? 'เพิ่มคำเชิญแล้ว — เมื่อผู้รับเข้าสู่ระบบด้วยอีเมลนี้ ระบบจะเพิ่มเข้าทีมให้อัตโนมัติ' : 'Invite created — they’ll be added automatically when they sign in with this email'));
       router.refresh();
     } catch (e: any) {
       setInviteErr(e?.message || (lang === 'th' ? 'ส่งคำเชิญไม่สำเร็จ' : 'Could not send invite'));
