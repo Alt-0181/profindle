@@ -73,7 +73,7 @@ export function JoinClient({
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '32px' }}>
               {[
                 isTh ? 'มากกว่า 400 บริการ' : '400+ services',
-                isTh ? 'บริษัทที่ยืนยันแล้ว' : 'Verified companies',
+                isTh ? 'ค้นหาจากผลงาน' : 'Search by portfolio',
                 isTh ? 'สมัครฟรี' : 'Free to join',
               ].map((b, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: 'rgba(255,255,255,0.75)' }}>

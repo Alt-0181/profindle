@@ -72,7 +72,7 @@ export default function ForgotPasswordPage() {
           <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.6 }}>{t.leftTagline}</p>
 
           <div style={{ marginTop: '48px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            {['400+ services', 'Verified companies', 'Free to join'].map((badge) => (
+            {['400+ services', 'Search by portfolio', 'Free to join'].map((badge) => (
               <div key={badge} style={{ padding: '6px 14px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '999px', fontSize: '12px', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>
                 {badge}
               </div>

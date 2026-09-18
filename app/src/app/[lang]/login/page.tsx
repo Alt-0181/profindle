@@ -16,7 +16,7 @@ const DICT = {
     noAccount: "Don't have an account?", signUpLink: 'Sign up',
     forgotPw: 'Forgot password?',
     leftTagline: 'Helping businesses find the right provider, fast.',
-    badge1: '400+ services', badge2: 'Verified companies', badge3: 'Free to join',
+    badge1: '400+ services', badge2: 'Search by portfolio', badge3: 'Free to join',
   },
   th: {
     welcomeBack: 'ยินดีต้อนรับกลับมา',
@@ -27,7 +27,7 @@ const DICT = {
     noAccount: 'ยังไม่มีบัญชี?', signUpLink: 'สมัครสมาชิก',
     forgotPw: 'ลืมรหัสผ่าน?',
     leftTagline: 'ช่วยให้ธุรกิจเจอผู้ให้บริการที่ใช่ ได้อย่างรวดเร็ว',
-    badge1: 'มากกว่า 400 บริการ', badge2: 'บริษัทที่ยืนยันแล้ว', badge3: 'สมัครฟรี',
+    badge1: 'มากกว่า 400 บริการ', badge2: 'ค้นหาจากผลงาน', badge3: 'สมัครฟรี',
   },
 };
 
