@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/layout/sidebar';
 import { Topbar } from '@/components/layout/topbar';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { acceptPendingInvites } from '@/lib/accept-invites';
 
 export default async function DashboardLayout({
   children,
@@ -34,6 +35,16 @@ export default async function DashboardLayout({
     company: null,
   };
 
+  const admin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false } }
+  );
+
+  // Auto-accept: if this user was invited as a collaborator, activate the
+  // pending invite the moment they sign in — no invite link needed.
+  await acceptPendingInvites(admin, user.id, user.email);
+
   const { data: myCompany } = await supabase
     .from('companies')
     .select('id')
@@ -46,11 +57,6 @@ export default async function DashboardLayout({
   // read policy, so count via the service role, scoped to this company only.
   let leadsCount = 0;
   if (myCompany) {
-    const admin = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { persistSession: false } }
-    );
     const { count } = await admin
       .from('broadcast_matches')
       .select('id', { count: 'exact', head: true })

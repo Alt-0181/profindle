@@ -52,7 +52,9 @@ export async function POST(request: NextRequest) {
   // Email a sign-up / accept link. redirectTo uses THIS deployment's origin so
   // UAT invites land back on UAT.
   const origin = new URL(request.url).origin;
-  const redirectTo = `${origin}/${lang}/accept-invite`;
+  // ?welcome=1 tells the accept page this is a brand-new invitee, so it shows
+  // the "set a password on your locked email" step to finish their account.
+  const redirectTo = `${origin}/${lang}/accept-invite?welcome=1`;
   let emailSent = false;
   try {
     const { error: inviteErr } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo });

@@ -74,8 +74,8 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
       if (!res.ok) throw new Error(data.error || 'Failed');
       setInviteEmail('');
       setInviteMsg(data.emailSent
-        ? (lang === 'th' ? 'ส่งคำเชิญทางอีเมลแล้ว' : 'Invite email sent')
-        : (lang === 'th' ? 'เพิ่มคำเชิญแล้ว — แจ้งให้ผู้รับเข้าสู่ระบบด้วยอีเมลนี้เพื่อรับสิทธิ์' : 'Invite created — ask them to sign in with this email to accept'));
+        ? (lang === 'th' ? 'ส่งคำเชิญทางอีเมลแล้ว — ผู้รับกดลิงก์เพื่อตั้งรหัสผ่านและเข้าร่วม' : 'Invite email sent — they set a password from the link and join')
+        : (lang === 'th' ? 'เพิ่มคำเชิญแล้ว — เมื่อผู้รับเข้าสู่ระบบด้วยอีเมลนี้ ระบบจะเพิ่มเข้าทีมให้อัตโนมัติ' : 'Invite created — they’ll be added automatically when they sign in with this email'));
       router.refresh();
     } catch (e: any) {
       setInviteErr(e?.message || (lang === 'th' ? 'ส่งคำเชิญไม่สำเร็จ' : 'Could not send invite'));
