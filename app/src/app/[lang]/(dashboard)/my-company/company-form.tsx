@@ -489,46 +489,6 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, company
         </label>
       </div>
 
-      {/* ✨ AI Auto-fill from website */}
-      <div style={{ ...sectionStyle, background: 'linear-gradient(135deg,#F0F9F9,#EAF6F6)', border: '1.5px solid rgba(15,111,115,0.25)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-          <span style={{ fontSize: '18px' }}>✨</span>
-          <div style={{ fontSize: '16px', fontWeight: 700, color: '#0F6F73' }}>
-            {lang === 'th' ? 'กรอกข้อมูลอัตโนมัติจากเว็บไซต์' : 'Auto-fill from your website'}
-          </div>
-        </div>
-        <div style={{ fontSize: '13px', color: '#6B7385', marginBottom: '14px' }}>
-          {lang === 'th'
-            ? 'วางลิงก์เว็บไซต์ทางการของคุณ แล้ว AI จะช่วยกรอกชื่อ คำอธิบาย และบริการให้อัตโนมัติ'
-            : 'Paste your official website and AI will fill in your name, description, and services automatically.'}
-        </div>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <input
-            type="text"
-            value={autofillUrl}
-            onChange={(e) => setAutofillUrl(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAutofill(); } }}
-            placeholder="https://yourcompany.com"
-            style={{ ...inputStyle, flex: '1 1 240px' }}
-          />
-          <button
-            type="button"
-            onClick={handleAutofill}
-            disabled={autofilling}
-            style={{ padding: '10px 20px', background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)', color: 'white', fontWeight: 700, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: autofilling ? 'default' : 'pointer', fontFamily: 'inherit', opacity: autofilling ? 0.7 : 1, whiteSpace: 'nowrap' }}
-          >
-            {autofilling
-              ? (lang === 'th' ? 'กำลังวิเคราะห์…' : 'Analyzing…')
-              : (lang === 'th' ? '✨ กรอกอัตโนมัติ' : '✨ Auto-fill')}
-          </button>
-        </div>
-        {autofillMsg && (
-          <div style={{ marginTop: '10px', fontSize: '13px', color: autofillMsg.type === 'ok' ? '#0F8A4C' : '#C0392B' }}>
-            {autofillMsg.text}
-          </div>
-        )}
-      </div>
-
       {/* Basic Information */}
       <div style={sectionStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
@@ -569,6 +529,47 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, company
             </span>
           </div>
         </div>
+
+        {/* ✨ AI Auto-fill from website — inside Basic Info, before the description.
+            Paste a URL and the system fills the fields below. */}
+        <div style={{ background: 'linear-gradient(135deg,#F0F9F9,#EAF6F6)', border: '1.5px solid rgba(15,111,115,0.25)', borderRadius: '12px', padding: '16px 18px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+          <span style={{ fontSize: '18px' }}>✨</span>
+          <div style={{ fontSize: '16px', fontWeight: 700, color: '#0F6F73' }}>
+            {lang === 'th' ? 'กรอกข้อมูลอัตโนมัติจากเว็บไซต์' : 'Auto-fill from your website'}
+          </div>
+        </div>
+        <div style={{ fontSize: '13px', color: '#6B7385', marginBottom: '14px' }}>
+          {lang === 'th'
+            ? 'วางลิงก์เว็บไซต์ทางการของคุณ แล้ว AI จะช่วยกรอกชื่อ คำอธิบาย และบริการให้อัตโนมัติ'
+            : 'Paste your official website and AI will fill in your name, description, and services automatically.'}
+        </div>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <input
+            type="text"
+            value={autofillUrl}
+            onChange={(e) => setAutofillUrl(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAutofill(); } }}
+            placeholder="https://yourcompany.com"
+            style={{ ...inputStyle, flex: '1 1 240px' }}
+          />
+          <button
+            type="button"
+            onClick={handleAutofill}
+            disabled={autofilling}
+            style={{ padding: '10px 20px', background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)', color: 'white', fontWeight: 700, fontSize: '14px', border: 'none', borderRadius: '12px', cursor: autofilling ? 'default' : 'pointer', fontFamily: 'inherit', opacity: autofilling ? 0.7 : 1, whiteSpace: 'nowrap' }}
+          >
+            {autofilling
+              ? (lang === 'th' ? 'กำลังวิเคราะห์…' : 'Analyzing…')
+              : (lang === 'th' ? '✨ กรอกอัตโนมัติ' : '✨ Auto-fill')}
+          </button>
+        </div>
+        {autofillMsg && (
+          <div style={{ marginTop: '10px', fontSize: '13px', color: autofillMsg.type === 'ok' ? '#0F8A4C' : '#C0392B' }}>
+            {autofillMsg.text}
+          </div>
+        )}
+      </div>
 
         {/* Bilingual description */}
         <div style={{ marginBottom: '20px' }}>
