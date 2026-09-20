@@ -10,6 +10,11 @@ export function inviteEmailHtml(lang: string, companyName: string, joinUrl: stri
     ? `<b>${inviter}</b> ได้เชิญให้ช่วยจัดการข้อมูลบริษัทและผลงานของ <b>${co}</b> บน Profindle กดปุ่มด้านล่างเพื่อตั้งรหัสผ่านและเริ่มใช้งานได้ทันที`
     : `<b>${inviter}</b> has invited you to help manage <b>${co}</b>’s company info and portfolio on Profindle. Click the button below to set a password and get started right away.`;
   const cta = th ? 'ตั้งรหัสผ่าน & เข้าร่วม' : 'Set password & join';
+  // Decline lands on a confirm page (…&decline=1), never a one-click action —
+  // email clients prefetch links, so a direct decline URL would auto-cancel
+  // invites nobody meant to decline.
+  const declineUrl = `${joinUrl}${joinUrl.includes('?') ? '&' : '?'}decline=1`;
+  const declineText = th ? 'ไม่ต้องการเข้าร่วม? ปฏิเสธคำเชิญ' : 'Don’t want to join? Decline this invitation';
   const ignore = th
     ? `หากคุณไม่ได้รับแจ้งจากทาง ${inviter} ให้เป็นผู้ที่มีสิทธิ์จัดการข้อมูลของ ${co} คุณสามารถเพิกเฉยอีเมลฉบับนี้ได้เลย`
     : `If ${inviter} didn’t ask you to help manage ${co}’s information, you can safely ignore this email.`;
@@ -23,7 +28,8 @@ export function inviteEmailHtml(lang: string, companyName: string, joinUrl: stri
         <div style="font-size:18px;font-weight:700;color:#171A21;margin-bottom:6px;">${heading} ${co}</div>
         <p style="font-size:14px;color:#4B5563;line-height:1.6;margin:0 0 22px;">${body}</p>
         <a href="${joinUrl}" style="display:inline-block;background:#0F6F73;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 22px;border-radius:10px;">${cta}</a>
-        <p style="font-size:12px;color:#9AA0AE;line-height:1.6;margin:22px 0 0;">${ignore}</p>
+        <p style="font-size:13px;margin:18px 0 0;"><a href="${declineUrl}" style="color:#6B7385;text-decoration:underline;">${declineText}</a></p>
+        <p style="font-size:12px;color:#9AA0AE;line-height:1.6;margin:16px 0 0;">${ignore}</p>
       </td></tr>
     </table>
   </td></tr></table></body></html>`;

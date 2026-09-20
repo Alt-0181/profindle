@@ -6,13 +6,14 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 export function JoinClient({
-  lang, token, email, companyName, state,
+  lang, token, email, companyName, state, declineIntent = false,
 }: {
   lang: string;
   token: string;
   email: string;
   companyName: string;
   state: 'valid' | 'accepted' | 'invalid';
+  declineIntent?: boolean;
 }) {
   const isTh = lang === 'th';
   const router = useRouter();
@@ -26,6 +27,10 @@ export function JoinClient({
   const [existsLogin, setExistsLogin] = useState(false);
   const [declining, setDeclining] = useState(false);
   const [declined, setDeclined] = useState(false);
+  // When the email's decline link is followed (?decline=1) we show a confirm
+  // screen — the actual decline only fires on the button click here, never from
+  // an email client prefetching the link.
+  const [confirmDecline, setConfirmDecline] = useState(declineIntent);
 
   const decline = async () => {
     if (declining) return;
@@ -148,6 +153,26 @@ export function JoinClient({
             : `You’ve declined the invitation${companyName ? ` to help manage ${companyName}` : ''}. You’re now free to create your own account and company.`}
         </p>
         <Link href={`/${lang}/signup`} style={primaryBtn}>{isTh ? 'สร้างบัญชีของคุณเอง' : 'Create your own account'}</Link>
+      </>,
+    );
+  }
+
+  if (confirmDecline) {
+    return shell(
+      <>
+        <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#171A21', letterSpacing: '-0.02em', marginBottom: '6px' }}>{isTh ? 'ปฏิเสธคำเชิญนี้ใช่ไหม?' : 'Decline this invitation?'}</h2>
+        <p style={{ fontSize: '14px', color: '#6B7385', marginBottom: '28px', lineHeight: 1.6 }}>
+          {isTh
+            ? <>คุณกำลังจะปฏิเสธคำเชิญให้ร่วมจัดการ{companyName ? <> <strong style={{ color: '#171A21' }}>{companyName}</strong></> : 'บริษัท'} หลังจากนี้คุณจะสร้างบัญชีของคุณเองได้</>
+            : <>You’re about to decline the invitation to help manage{companyName ? <> <strong style={{ color: '#171A21' }}>{companyName}</strong></> : ' a company'}. Afterwards you’re free to create your own account.</>}
+        </p>
+        {error && <p style={{ fontSize: '13px', color: '#FF5A5F', margin: '0 0 16px' }}>{error}</p>}
+        <button type="button" onClick={decline} disabled={declining} style={{ ...primaryBtn, background: '#FF5A5F', opacity: declining ? 0.7 : 1, cursor: declining ? 'not-allowed' : 'pointer', marginBottom: '12px' }}>
+          {declining ? '…' : (isTh ? 'ปฏิเสธคำเชิญ' : 'Decline invitation')}
+        </button>
+        <button type="button" onClick={() => { setConfirmDecline(false); setError(''); }} style={{ width: '100%', textAlign: 'center', padding: '12px 16px', background: 'white', color: '#0F6F73', fontWeight: 600, fontSize: '15px', border: '1.5px solid #E4E7ED', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+          {isTh ? 'ไม่ กลับไปเข้าร่วม' : 'No, join instead'}
+        </button>
       </>,
     );
   }

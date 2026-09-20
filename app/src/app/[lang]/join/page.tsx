@@ -11,10 +11,10 @@ export default async function JoinPage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ token?: string }>;
+  searchParams: Promise<{ token?: string; decline?: string }>;
 }) {
   const { lang } = await params;
-  const { token } = await searchParams;
+  const { token, decline } = await searchParams;
   if (!hasLocale(lang)) notFound();
 
   let email = '';
@@ -44,5 +44,5 @@ export default async function JoinPage({
     }
   }
 
-  return <JoinClient lang={lang} token={token ?? ''} email={email} companyName={companyName} state={state} />;
+  return <JoinClient lang={lang} token={token ?? ''} email={email} companyName={companyName} state={state} declineIntent={decline === '1'} />;
 }
