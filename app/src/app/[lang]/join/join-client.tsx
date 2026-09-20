@@ -24,6 +24,24 @@ export function JoinClient({
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [existsLogin, setExistsLogin] = useState(false);
+  const [declining, setDeclining] = useState(false);
+  const [declined, setDeclined] = useState(false);
+
+  const decline = async () => {
+    if (declining) return;
+    setDeclining(true); setError('');
+    try {
+      const res = await fetch('/api/team/decline', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { setError(data.error || (isTh ? 'ไม่สามารถปฏิเสธคำเชิญได้' : 'Could not decline the invite')); setDeclining(false); return; }
+      setDeclined(true);
+    } catch {
+      setError(isTh ? 'เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่' : 'Connection failed, please try again'); setDeclining(false);
+    }
+  };
 
   const inputStyle: React.CSSProperties = {
     width: '100%', fontSize: '14px', padding: '12px 16px', border: '1.5px solid #E4E7ED',
@@ -120,6 +138,20 @@ export function JoinClient({
     );
   }
 
+  if (declined) {
+    return shell(
+      <>
+        <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#171A21', letterSpacing: '-0.02em', marginBottom: '6px' }}>{isTh ? 'ปฏิเสธคำเชิญแล้ว' : 'Invitation declined'}</h2>
+        <p style={{ fontSize: '14px', color: '#6B7385', marginBottom: '28px', lineHeight: 1.6 }}>
+          {isTh
+            ? `คุณได้ปฏิเสธคำเชิญให้ร่วมจัดการ${companyName ? ` ${companyName}` : ''}แล้ว ตอนนี้คุณสามารถสร้างบัญชีและบริษัทของคุณเองได้`
+            : `You’ve declined the invitation${companyName ? ` to help manage ${companyName}` : ''}. You’re now free to create your own account and company.`}
+        </p>
+        <Link href={`/${lang}/signup`} style={primaryBtn}>{isTh ? 'สร้างบัญชีของคุณเอง' : 'Create your own account'}</Link>
+      </>,
+    );
+  }
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password.length < 8) { setError(isTh ? 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' : 'Password must be at least 8 characters'); return; }
@@ -180,6 +212,12 @@ export function JoinClient({
         <button type="submit" disabled={saving} style={{ ...primaryBtn, opacity: saving ? 0.7 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}>
           {saving ? '…' : (isTh ? 'สร้างบัญชี & เข้าร่วม' : 'Create account & join')}
         </button>
+
+        <div style={{ textAlign: 'center', marginTop: '4px' }}>
+          <button type="button" onClick={decline} disabled={declining} style={{ background: 'none', border: 'none', color: '#9AA0AE', fontSize: '13px', cursor: declining ? 'not-allowed' : 'pointer', fontFamily: 'inherit', textDecoration: 'underline', padding: '4px' }}>
+            {declining ? '…' : (isTh ? 'ไม่ใช่คุณ? ปฏิเสธคำเชิญนี้' : 'Not you? Decline this invitation')}
+          </button>
+        </div>
       </div>
     </form>,
   );

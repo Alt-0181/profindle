@@ -22,6 +22,9 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [captchaToken, setCaptchaToken] = useState('');
   const [claimId, setClaimId] = useState<string | null>(null);
+  // Set when the entered email already has a pending collaborator invite — we
+  // stop the regular signup and steer them to accept/decline it instead.
+  const [invitedTo, setInvitedTo] = useState<string | null>(null);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // When arriving from "Claim this business" (/signup?claim=<companyId>), remember
@@ -77,6 +80,15 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
     if (captchaEnabled && !captchaToken) { setError(isTh ? 'กรุณายืนยันว่าคุณไม่ใช่บอท' : 'Please complete the verification below'); return; }
     setLoading(true);
     setError('');
+    // If this email was already invited as a collaborator, don't let them create
+    // a separate company. Steer them to accept (or decline) the invite instead.
+    if (!claimId) {
+      try {
+        const r = await fetch(`/api/team/invite-status?email=${encodeURIComponent(form.email.trim().toLowerCase())}`);
+        const d = await r.json().catch(() => ({}));
+        if (d?.pending) { setInvitedTo(d.companyName || ''); setLoading(false); return; }
+      } catch { /* lookup failed — allow signup rather than trap the user */ }
+    }
     const { error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
@@ -181,7 +193,30 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
             <img src="/assets/logo.svg" alt="Profindle" style={{ height: '32px', width: 'auto' }} />
           </Link>
 
-          {step === 'register' ? (
+          {step === 'register' ? (invitedTo !== null ? (
+            <div>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#F0F9F9', border: '1px solid rgba(15,111,115,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F6F73" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              </div>
+              <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#171A21', letterSpacing: '-0.02em', marginBottom: '10px' }}>
+                {isTh ? 'คุณได้รับคำเชิญอยู่แล้ว' : 'You already have an invitation'}
+              </h2>
+              <p style={{ fontSize: '14px', color: '#6B7385', lineHeight: 1.6, marginBottom: '10px' }}>
+                {isTh
+                  ? <>อีเมล <strong style={{ color: '#171A21' }}>{form.email.trim()}</strong> ได้รับคำเชิญให้ร่วมจัดการ{invitedTo ? <> <strong style={{ color: '#171A21' }}>{invitedTo}</strong></> : 'บริษัท'}อยู่แล้ว</>
+                  : <>The email <strong style={{ color: '#171A21' }}>{form.email.trim()}</strong> has already been invited to help manage{invitedTo ? <> <strong style={{ color: '#171A21' }}>{invitedTo}</strong></> : ' a company'}.</>}
+              </p>
+              <p style={{ fontSize: '14px', color: '#6B7385', lineHeight: 1.6, marginBottom: '28px' }}>
+                {isTh
+                  ? 'กรุณาเปิดอีเมลคำเชิญ แล้วกดปุ่ม “ตั้งรหัสผ่าน & เข้าร่วม” เพื่อเข้าร่วมทีม หากคุณไม่ต้องการเข้าร่วม สามารถกด “ปฏิเสธคำเชิญ” ในหน้านั้น แล้วจึงกลับมาสร้างบัญชีของคุณเองได้'
+                  : 'Please open the invite email and click “Set password & join” to join the team. If you’d rather not join, you can “Decline” on that page and then come back to create your own account.'}
+              </p>
+              <button type="button" onClick={() => { setInvitedTo(null); }} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: '#0F6F73', fontSize: '14px', fontWeight: 600, cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+                {isTh ? 'ใช้อีเมลอื่น' : 'Use a different email'}
+              </button>
+            </div>
+          ) : (
             <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
               <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#171A21', letterSpacing: '-0.02em', marginBottom: '6px' }}>{t.title}</h2>
               <p style={{ fontSize: '14px', color: '#6B7385', marginBottom: claimId ? '16px' : '28px' }}>{t.sub}</p>
@@ -267,7 +302,7 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
                 <Link href={`/${lang}/login`} style={{ color: '#0F6F73', fontWeight: 600, textDecoration: 'none' }}>{t.signIn}</Link>
               </p>
             </form>
-          ) : (
+          )) : (
             <form onSubmit={handleVerify}>
               <button type="button" onClick={() => setStep('register')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: '#6B7385', fontSize: '13px', cursor: 'pointer', marginBottom: '16px', padding: 0, fontFamily: 'inherit' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
