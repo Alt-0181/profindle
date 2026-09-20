@@ -18,6 +18,9 @@ interface SettingsClientProps {
   isPremium: boolean;
   isOwner?: boolean;
   members?: TeamMember[];
+  companyId?: string | null;
+  requireApproval?: boolean;
+  pendingChanges?: PendingChange[];
 }
 
 export interface TeamMember {
@@ -28,7 +31,17 @@ export interface TeamMember {
   status: string;
 }
 
-export function SettingsClient({ lang, dict, initialLineUserId, initialLineDisplayName, userEmail, userName, lineOAuthResult, initialSection, justInvited = false, isPremium, isOwner = false, members = [] }: SettingsClientProps) {
+export interface PendingChange {
+  id: string;
+  author_email: string | null;
+  entity: string;
+  op: string;
+  entity_id: string | null;
+  payload: Record<string, any> | null;
+  created_at: string;
+}
+
+export function SettingsClient({ lang, dict, initialLineUserId, initialLineDisplayName, userEmail, userName, lineOAuthResult, initialSection, justInvited = false, isPremium, isOwner = false, members = [], companyId = null, requireApproval = false, pendingChanges = [] }: SettingsClientProps) {
   const t = dict.settings;
   const router = useRouter();
   const [activeSection, setActiveSection] = useState(initialSection ?? 'account');
@@ -87,6 +100,59 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
     } catch (e: any) {
       setInviteErr(e?.message || (lang === 'th' ? 'ส่งคำเชิญไม่สำเร็จ' : 'Could not send invite'));
     } finally { setInviteBusy(false); }
+  };
+
+  // ── Approval gate for collaborator changes ────────────────────────────────
+  const [approvalOn, setApprovalOn] = useState(requireApproval);
+  const [approvalBusy, setApprovalBusy] = useState(false);
+  const toggleApproval = async () => {
+    const next = !approvalOn;
+    setApprovalOn(next); setApprovalBusy(true);
+    try {
+      const res = await fetch('/api/collab/approval-setting', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companyId, requireApproval: next }),
+      });
+      if (!res.ok) setApprovalOn(!next); // revert on failure
+    } catch { setApprovalOn(!next); }
+    finally { setApprovalBusy(false); }
+  };
+
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
+  const review = async (id: string, decision: 'approve' | 'reject') => {
+    setReviewingId(id);
+    try {
+      const res = await fetch('/api/collab/review', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId: id, decision }),
+      });
+      if (res.ok) router.refresh();
+    } finally { setReviewingId(null); }
+  };
+
+  // Human-readable labels for the fields shown in a pending change preview.
+  const FIELD_LABELS: Record<string, { th: string; en: string }> = {
+    description: { th: 'คำอธิบาย (EN)', en: 'Description (EN)' },
+    description_th: { th: 'คำอธิบาย (TH)', en: 'Description (TH)' },
+    services: { th: 'บริการ', en: 'Services' },
+    province: { th: 'จังหวัด', en: 'Province' },
+    address: { th: 'ที่อยู่', en: 'Address' },
+    team_size: { th: 'ขนาดทีม', en: 'Team size' },
+    founded_year: { th: 'ปีที่ก่อตั้ง', en: 'Founded year' },
+    website: { th: 'เว็บไซต์', en: 'Website' },
+    phone: { th: 'เบอร์โทร', en: 'Phone' },
+    email: { th: 'อีเมล', en: 'Email' },
+    dbd_no: { th: 'เลขทะเบียน (DBD)', en: 'DBD no.' },
+    line_id: { th: 'LINE', en: 'LINE' },
+    buyer_only: { th: 'โหมดผู้ซื้อ', en: 'Buyer mode' },
+    logo_url: { th: 'โลโก้', en: 'Logo' },
+    banner_url: { th: 'แบนเนอร์', en: 'Banner' },
+  };
+  const previewFields = (payload: Record<string, any> | null): string[] => {
+    if (!payload) return [];
+    return Object.keys(payload)
+      .filter(k => !k.startsWith('banner_focus'))
+      .map(k => (FIELD_LABELS[k]?.[lang === 'th' ? 'th' : 'en']) || k);
   };
 
   const removeMember = async (id: string) => {
@@ -334,6 +400,60 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
           <div style={sectionStyle}>
             <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{lang === 'th' ? 'ทีมงาน / ผู้ร่วมจัดการ' : 'Team / Collaborators'}</h2>
             <p style={{ fontSize: '13px', color: '#9AA0AE', marginBottom: '20px' }}>{lang === 'th' ? 'เชิญผู้อื่นมาช่วยจัดการข้อมูลบริษัทและผลงาน' : 'Invite others to help manage your company info and portfolio.'}</p>
+
+            {/* Approval gate toggle */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', background: '#F7F8FA', border: '1px solid #E4E7ED', borderRadius: '14px', padding: '16px', marginBottom: '16px' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21', marginBottom: '3px' }}>{lang === 'th' ? 'ต้องอนุมัติก่อนเผยแพร่' : 'Require my approval'}</div>
+                <div style={{ fontSize: '12.5px', color: '#6B7385', lineHeight: 1.5 }}>
+                  {lang === 'th'
+                    ? 'เมื่อเปิด: การเปลี่ยนแปลงของผู้ร่วมจัดการจะถูกส่งมาให้คุณอนุมัติก่อน เมื่ออนุมัติแล้วข้อมูลจึงจะถูกอัปเดต หากปิด: การเปลี่ยนแปลงจะมีผลทันที'
+                    : 'When on, a collaborator’s changes are sent to you for approval before they’re applied. When off, their changes take effect immediately.'}
+                </div>
+              </div>
+              <button type="button" onClick={toggleApproval} disabled={approvalBusy} aria-pressed={approvalOn}
+                style={{ position: 'relative', width: '46px', height: '28px', flexShrink: 0, borderRadius: '999px', border: 'none', cursor: approvalBusy ? 'not-allowed' : 'pointer', background: approvalOn ? '#0F6F73' : '#CBD2DC', transition: 'background 0.15s', opacity: approvalBusy ? 0.6 : 1 }}>
+                <span style={{ position: 'absolute', top: '3px', left: approvalOn ? '21px' : '3px', width: '22px', height: '22px', borderRadius: '999px', background: 'white', transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+              </button>
+            </div>
+
+            {/* Pending changes awaiting approval */}
+            {pendingChanges.length > 0 && (
+              <div style={{ border: '1.5px solid #F3D9A4', background: '#FFFBF3', borderRadius: '14px', padding: '16px', marginBottom: '20px' }}>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#8A5A12', marginBottom: '12px' }}>
+                  {lang === 'th' ? `การเปลี่ยนแปลงรออนุมัติ (${pendingChanges.length})` : `Changes awaiting approval (${pendingChanges.length})`}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {pendingChanges.map(pc => {
+                    const fields = previewFields(pc.payload);
+                    const kind = pc.entity === 'company'
+                      ? (lang === 'th' ? 'ข้อมูลบริษัท' : 'Company info')
+                      : (lang === 'th' ? 'ผลงาน' : 'Portfolio');
+                    return (
+                      <div key={pc.id} style={{ background: 'white', border: '1px solid #EEE2C6', borderRadius: '10px', padding: '12px 14px' }}>
+                        <div style={{ fontSize: '13px', color: '#171A21', fontWeight: 600, marginBottom: '2px' }}>{kind}</div>
+                        <div style={{ fontSize: '12px', color: '#6B7385', marginBottom: fields.length ? '8px' : '10px' }}>
+                          {pc.author_email || (lang === 'th' ? 'ผู้ร่วมจัดการ' : 'A collaborator')}
+                        </div>
+                        {fields.length > 0 && (
+                          <div style={{ fontSize: '12px', color: '#444B5A', marginBottom: '10px' }}>
+                            {(lang === 'th' ? 'แก้ไข: ' : 'Edited: ')}{fields.join(', ')}
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button type="button" onClick={() => review(pc.id, 'approve')} disabled={reviewingId === pc.id} style={{ padding: '7px 16px', background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)', color: 'white', fontWeight: 600, fontSize: '12.5px', border: 'none', borderRadius: '8px', cursor: reviewingId === pc.id ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: reviewingId === pc.id ? 0.6 : 1 }}>
+                            {lang === 'th' ? 'อนุมัติ' : 'Approve'}
+                          </button>
+                          <button type="button" onClick={() => review(pc.id, 'reject')} disabled={reviewingId === pc.id} style={{ padding: '7px 16px', background: 'white', color: '#D32F2F', fontWeight: 600, fontSize: '12.5px', border: '1.5px solid #F2C2C2', borderRadius: '8px', cursor: reviewingId === pc.id ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}>
+                            {lang === 'th' ? 'ปฏิเสธ' : 'Reject'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Invite form */}
             <div style={{ background: '#F7F8FA', border: '1px solid #E4E7ED', borderRadius: '14px', padding: '16px', marginBottom: '20px' }}>

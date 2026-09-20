@@ -1,9 +1,11 @@
 import { notFound } from 'next/navigation';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/server';
+import Link from 'next/link';
 import { MyCompanyForm } from './company-form';
 import { PortfolioClient } from '../portfolio/portfolio-client';
 import { resolveCompanyAccess } from '@/lib/company-access';
+import { getAdmin } from '@/lib/collab-access';
 
 export default async function MyCompanyPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
@@ -78,6 +80,16 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
     : (isTh ? 'เจ้าของ' : 'Owner');
   const headerTitle = companyDisplayName || dict.myCompany.title;
   const headerSubtitle = userName ? `${userName} · ${roleLabel}` : dict.myCompany.subtitle;
+
+  // Owner: how many collaborator changes are waiting for approval (so they get
+  // nudged here, not only inside Settings).
+  const pendingCount = (!access.isMember && companyId)
+    ? ((await getAdmin()
+        .from('company_change_requests')
+        .select('id', { count: 'exact', head: true })
+        .eq('company_id', companyId)
+        .eq('status', 'pending')).count ?? 0)
+    : 0;
   const { data: projectRows } = companyId
     ? await supabase
         .from('portfolio_projects')
@@ -110,6 +122,17 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
           <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{headerTitle}</h1>
           <p style={{ fontSize: '14px', color: '#6B7385' }}>{headerSubtitle}</p>
         </div>
+        {pendingCount > 0 && (
+          <Link href={`/${lang}/settings?section=team`} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px', background: '#FFFBF3', border: '1.5px solid #F3D9A4', borderRadius: '14px', padding: '12px 16px', marginBottom: '20px' }}>
+            <span style={{ fontSize: '18px' }}>📝</span>
+            <div style={{ flex: 1, fontSize: '13px', color: '#8A5A12', fontWeight: 600 }}>
+              {isTh
+                ? `มีการเปลี่ยนแปลงจากผู้ร่วมจัดการ ${pendingCount} รายการรออนุมัติ — กดเพื่อตรวจสอบ`
+                : `${pendingCount} collaborator change${pendingCount > 1 ? 's' : ''} awaiting your approval — tap to review`}
+            </div>
+            <span style={{ fontSize: '16px', color: '#B4791E' }}>›</span>
+          </Link>
+        )}
         {access.isMember && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#F0F9F9', border: '1px solid rgba(15,111,115,0.18)', borderRadius: '14px', padding: '12px 16px', marginBottom: '20px' }}>
             <span style={{ fontSize: '18px' }}>👥</span>
@@ -124,6 +147,7 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
         <MyCompanyForm
           lang={lang} dict={dict} initialData={initialData} canEdit={canEditCompany}
           canEditName={!access.isMember}
+          isMember={access.isMember} companyId={companyId}
           companyExists={!!companyId} portfolioCount={initialProjects.length}
           showInvite={!access.isMember}
           portfolioSlot={

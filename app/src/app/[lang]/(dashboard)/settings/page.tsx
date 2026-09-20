@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/server';
+import { getAdmin } from '@/lib/collab-access';
 import { AutoRefresh } from '@/components/auto-refresh';
 import { SettingsClient } from './settings-client';
 
@@ -21,7 +22,7 @@ export default async function SettingsPage({
 
   const { data: company } = await supabase
     .from('companies')
-    .select('id, line_user_id, line_display_name, premium, plan')
+    .select('id, line_user_id, line_display_name, premium, plan, require_approval')
     .eq('user_id', user?.id ?? '')
     .maybeSingle();
 
@@ -34,6 +35,18 @@ export default async function SettingsPage({
         .eq('company_id', (company as any).id)
         .order('created_at', { ascending: true })
     : { data: [] };
+
+  // Pending collaborator changes awaiting this owner's approval (service-role
+  // read, guarded by verified ownership above).
+  const requireApproval = !!(company as any)?.require_approval;
+  const pendingChanges = isOwner
+    ? (await getAdmin()
+        .from('company_change_requests')
+        .select('id, author_email, entity, op, entity_id, payload, created_at')
+        .eq('company_id', (company as any).id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true })).data ?? []
+    : [];
 
   const lineUserId = (company as any)?.line_user_id ?? null;
   const lineDisplayName = (company as any)?.line_display_name ?? null;
@@ -60,6 +73,9 @@ export default async function SettingsPage({
         isPremium={isPremium}
         isOwner={isOwner}
         members={(memberRows ?? []) as any}
+        companyId={(company as any)?.id ?? null}
+        requireApproval={requireApproval}
+        pendingChanges={pendingChanges as any}
       />
     </div>
   );

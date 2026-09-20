@@ -70,6 +70,11 @@ interface MyCompanyFormProps {
   // Owner-only fields (the company name) stay locked for collaborators even when
   // they can edit everything else. Company identity is the owner's to set.
   canEditName?: boolean;
+  // A collaborator (not the owner) editing an existing company: their save is
+  // routed through the server so it targets the right company and, when the
+  // owner requires approval, is queued instead of applied live.
+  isMember?: boolean;
+  companyId?: string | null;
   companyExists?: boolean;
   portfolioCount?: number;
   portfolioSlot?: React.ReactNode;
@@ -84,7 +89,7 @@ const EMPTY = {
   buyerOnly: false,
 };
 
-export function MyCompanyForm({ lang, dict, initialData, canEdit = true, canEditName = true, companyExists = false, portfolioCount = 0, portfolioSlot, showInvite = false }: MyCompanyFormProps) {
+export function MyCompanyForm({ lang, dict, initialData, canEdit = true, canEditName = true, isMember = false, companyId = null, companyExists = false, portfolioCount = 0, portfolioSlot, showInvite = false }: MyCompanyFormProps) {
   // Once the company exists, a complete profile needs at least one portfolio
   // project. The very first save is exempt (a project can't be added until the
   // company row exists) and buyer-only accounts don't need a portfolio.
@@ -99,6 +104,7 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, canEdit
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [saveDone, setSaveDone] = useState(false);
+  const [queuedForApproval, setQueuedForApproval] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(initialData?.logoUrl ?? null);
   const [logoDisplayUrl, setLogoDisplayUrl] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
@@ -390,7 +396,26 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, canEdit
         banner_focus_mobile_x: bannerFocusMX, banner_focus_mobile_y: bannerFocusMY,
       };
 
-      // Check if company exists for this user
+      // A collaborator saves through the server: it targets the collaborated
+      // company by id (never the collaborator's own user_id) and, when the owner
+      // requires approval, is queued for review instead of applied live.
+      if (isMember && companyId) {
+        const res = await fetch('/api/collab/save-company', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ companyId, payload: { ...payload, ...bannerExtras } }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Save failed');
+        setSaved(true);
+        if (data.queued) { setQueuedForApproval(true); setSaveDone(true); }
+        else {
+          fetch('/api/revalidate-companies', { method: 'POST' }).catch(() => {});
+          setSaveDone(true);
+        }
+        return;
+      }
+
+      // Owner path — direct write keyed on their own company.
       const { data: existing } = await supabase
         .from('companies')
         .select('id')
@@ -452,11 +477,19 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, canEdit
           <div style={{ width: '52px', height: '52px', borderRadius: '999px', background: '#EAF7EF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0F8A4C" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
           </div>
-          <h2 style={{ fontSize: '19px', fontWeight: 800, color: '#171A21', marginBottom: '8px' }}>{lang === 'th' ? 'บันทึกสำเร็จ!' : 'Saved successfully!'}</h2>
+          <h2 style={{ fontSize: '19px', fontWeight: 800, color: '#171A21', marginBottom: '8px' }}>
+            {queuedForApproval
+              ? (lang === 'th' ? 'ส่งให้เจ้าของอนุมัติแล้ว' : 'Sent for approval')
+              : (lang === 'th' ? 'บันทึกสำเร็จ!' : 'Saved successfully!')}
+          </h2>
           <p style={{ fontSize: '14px', color: '#6B7385', lineHeight: 1.6, marginBottom: '22px' }}>
-            {lang === 'th'
-              ? 'โปรไฟล์ของคุณจะแสดงต่อสาธารณะหลังจากทีมงานตรวจสอบข้อมูลเรียบร้อยแล้ว'
-              : 'Your profile will go live once our team has reviewed and verified your information.'}
+            {queuedForApproval
+              ? (lang === 'th'
+                  ? 'การเปลี่ยนแปลงของคุณถูกส่งให้เจ้าของบริษัทตรวจสอบ เมื่อได้รับการอนุมัติแล้วข้อมูลจะถูกอัปเดต'
+                  : 'Your changes were sent to the company owner for review. They’ll be applied once approved.')
+              : (lang === 'th'
+                  ? 'โปรไฟล์ของคุณจะแสดงต่อสาธารณะหลังจากทีมงานตรวจสอบข้อมูลเรียบร้อยแล้ว'
+                  : 'Your profile will go live once our team has reviewed and verified your information.')}
           </p>
           <button type="button" onClick={() => router.refresh()} style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)', color: 'white', fontWeight: 600, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
             {lang === 'th' ? 'รับทราบ' : 'Got it'}
