@@ -94,7 +94,7 @@ export function QuickInvite({ lang, hasCompany }: { lang: string; hasCompany: bo
                   {!hasCompany && (
                     <div>
                       <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>{isTh ? 'ชื่อบริษัท' : 'Company name'}</label>
-                      <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder={isTh ? 'เช่น บริษัท ร็อคเก็ต จำกัด' : 'e.g. Rocket Co., Ltd.'} style={inputStyle} />
+                      <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder={isTh ? 'เช่น บริษัท แอคมี จำกัด' : 'e.g. Acme Co., Ltd.'} style={inputStyle} />
                     </div>
                   )}
                   <div>

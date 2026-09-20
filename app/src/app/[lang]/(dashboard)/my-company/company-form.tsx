@@ -504,6 +504,159 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, company
         </label>
       </div>
 
+      {/* Basic Information */}
+      <div style={sectionStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" />
+            </svg>
+          </div>
+          <div>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: '#171A21' }}>{t.basicInfo}</div>
+            <div style={{ fontSize: '13px', color: '#9AA0AE', marginTop: '1px' }}>{t.basicInfoSub}</div>
+          </div>
+        </div>
+
+        {/* Company name — bilingual (EN + TH). Thai visitors see the Thai name,
+            English visitors see the English name. */}
+        <div style={{ marginBottom: '20px' }}>
+          <div className="mc-row-2">
+            <div>
+              <label style={labelStyle}>{lang === 'th' ? 'ชื่อบริษัท' : 'Company name'} <span style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>EN</span><span style={{ color: '#F77F00', fontWeight: 700 }}> *</span></label>
+              <input type="text" value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} style={inputStyle} placeholder="e.g. Acme" />
+            </div>
+            <div>
+              <label style={labelStyle}>{lang === 'th' ? 'ชื่อบริษัท' : 'Company name'} <span style={{ background: '#FFF6EC', color: '#E06B00', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>TH</span></label>
+              <input type="text" value={form.nameTh} onChange={(e) => set('nameTh', e.target.value)} style={inputStyle} placeholder={lang === 'th' ? 'เช่น แอคมี' : 'e.g. Acme'} />
+            </div>
+          </div>
+          {/* Brand vs legal name hint */}
+          <div style={{ marginTop: '10px', display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '10px 14px', background: '#F0F9F9', borderRadius: '10px', border: '1px solid rgba(15,111,115,0.12)' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A9DA3" strokeWidth="2.2" strokeLinecap="round" style={{ flexShrink: 0, marginTop: '1px' }}>
+              <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span style={{ fontSize: '12px', color: '#6B7385', lineHeight: 1.55 }}>
+              {lang === 'th'
+                ? <>ใส่ <strong style={{ color: '#444B5A' }}>ชื่อทางการค้า</strong> ที่ลูกค้ารู้จัก (เช่น "Google") ไม่ใช่ชื่อนิติบุคคลจดทะเบียน (เช่น "Alphabet Inc.") — ชื่อนี้จะแสดงในผลการค้นหาและโปรไฟล์</>
+                : <>Use your <strong style={{ color: '#444B5A' }}>trading / brand name</strong> — what clients know you as (e.g. "Acme"), not your DBD-registered legal entity name (e.g. "Acme Holdings Co., Ltd."). This is what appears in search results and your public profile.</>
+              }
+            </span>
+          </div>
+        </div>
+
+        {/* Bilingual description */}
+        <div style={{ marginBottom: '20px' }}>
+          <div className="mc-row-2">
+            <div>
+              <label style={labelStyle}>{t.descriptionEn} <span style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>EN</span></label>
+              <textarea value={form.descEn} onChange={(e) => set('descEn', e.target.value)} rows={4} style={{ ...inputStyle, minHeight: '96px', resize: 'vertical' }} placeholder={t.descPh} />
+            </div>
+            <div>
+              <label style={labelStyle}>{t.descriptionTh} <span style={{ background: '#FFF6EC', color: '#E06B00', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>TH</span></label>
+              <textarea value={form.descTh} onChange={(e) => set('descTh', e.target.value)} rows={4} style={{ ...inputStyle, minHeight: '96px', resize: 'vertical' }} placeholder={t.descPh} />
+            </div>
+          </div>
+        </div>
+
+        {/* Services multi-select with fuzzy search */}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={labelStyle}>
+            {lang === 'th' ? 'บริการของคุณ' : 'Services'}<span style={{ color: '#F77F00', fontWeight: 700 }}> *</span>
+          </label>
+
+          {/* Selected service tags */}
+          {selectedServices.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+              {selectedServices.map(s => (
+                <span key={s} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#F0F9F9', color: '#0F6F73', fontSize: '12px', fontWeight: 600, padding: '4px 10px 4px 12px', borderRadius: '999px', border: '1px solid rgba(15,111,115,0.2)' }}>
+                  {s}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedServices(prev => prev.filter(x => x !== s))}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9AA0AE', padding: '0 0 0 2px', fontSize: '16px', lineHeight: 1, display: 'flex', alignItems: 'center' }}
+                  >×</button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Search input */}
+          <div style={{ position: 'relative' }}>
+            <input
+              type="text"
+              value={serviceSearch}
+              onChange={e => { setServiceSearch(e.target.value); setShowServiceSuggestions(true); }}
+              onFocus={() => setShowServiceSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowServiceSuggestions(false), 150)}
+              placeholder={lang === 'th' ? 'พิมพ์เพื่อค้นหาบริการ เช่น "กราฟิก", "Marketing"…' : 'Type to search, e.g. "Design", "Marketing", "IT"…'}
+              style={inputStyle}
+            />
+            {showServiceSuggestions && serviceSearch.length >= 1 && (
+              <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: '1px solid #E4E7ED', borderRadius: '12px', boxShadow: '0 8px 24px rgba(23,26,33,0.12)', zIndex: 50, maxHeight: '280px', overflowY: 'auto' }}>
+                {SERVICES.filter(s => !selectedServices.includes(s.label) && fuzzyMatch(serviceSearch, s.label)).slice(0, 8).map(s => (
+                  <div
+                    key={s.label}
+                    onMouseDown={() => { setSelectedServices(prev => [...prev, s.label]); setServiceSearch(''); setShowServiceSuggestions(false); setSaved(false); }}
+                    style={{ padding: '10px 14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #F4F5F7' }}
+                    onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = '#F8FFFE'}
+                    onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'white'}
+                  >
+                    <span style={{ fontSize: '13px', color: '#171A21' }}>{s.label}</span>
+                    <span style={{ fontSize: '11px', color: '#9AA0AE' }}>{s.industry.split(' / ')[0]}</span>
+                  </div>
+                ))}
+                {SERVICES.filter(s => !selectedServices.includes(s.label) && fuzzyMatch(serviceSearch, s.label)).length === 0 && (
+                  <div style={{ padding: '12px 14px', fontSize: '13px', color: '#9AA0AE' }}>No matching services</div>
+                )}
+              </div>
+            )}
+          </div>
+
+        </div>
+
+        {/* Province */}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={labelStyle}>{t.province}<span style={{ color: '#F77F00', fontWeight: 700 }}> *</span></label>
+          <select value={form.province} onChange={(e) => set('province', e.target.value)} style={inputStyle}>
+            <option value="">{t.selectProvince}</option>
+            {PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </div>
+
+        {/* Team size + Founded year */}
+        <div className="mc-row-2" style={{ marginBottom: '20px' }}>
+          <div>
+            <label style={labelStyle}>{t.teamSize}</label>
+            <select value={form.teamSize} onChange={(e) => set('teamSize', e.target.value)} style={inputStyle}>
+              <option value="">{t.selectTeamSize}</option>
+              {TEAM_SIZES.map((s) => <option key={s} value={s}>{s} {lang === 'th' ? 'คน' : 'employees'}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={labelStyle}>{t.foundedYear}</label>
+            <input type="number" value={form.foundedYear} onChange={(e) => set('foundedYear', e.target.value)} min={1900} max={2026} style={inputStyle} placeholder="2020" />
+          </div>
+        </div>
+
+        {/* Address + Website */}
+        <div className="mc-row-2">
+          <div>
+            <label style={labelStyle}>{lang === 'th' ? 'ลิงก์ Google Maps' : 'Google Maps link'}</label>
+            <input type="url" inputMode="url" value={form.address} onChange={(e) => set('address', e.target.value)} style={inputStyle} placeholder="https://maps.app.goo.gl/…" />
+            <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '6px', lineHeight: 1.6 }}>
+              {lang === 'th'
+                ? 'เปิด Google Maps → ค้นหาธุรกิจของคุณ → กด “แชร์” → คัดลอกลิงก์ แล้วนำมาวางที่นี่ เพื่อให้แผนที่แสดงบนหน้าโปรไฟล์'
+                : 'Open Google Maps → find your business → tap “Share” → copy the link and paste it here to show a map on your profile.'}
+            </div>
+          </div>
+          <div>
+            <label style={labelStyle}>{t.website}</label>
+            <input type="text" value={form.website} onChange={(e) => set('website', e.target.value)} style={inputStyle} placeholder={t.websitePh} />
+          </div>
+        </div>
+      </div>
+
       {/* Profile Branding */}
       <div style={sectionStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
@@ -669,159 +822,6 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, company
               }
             </div>
             {logoError && <div style={{ fontSize: '12px', color: '#FF5A5F', marginTop: '5px' }}>{logoError}</div>}
-          </div>
-        </div>
-      </div>
-
-      {/* Basic Information */}
-      <div style={sectionStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #0F6F73, #1A9DA3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" />
-            </svg>
-          </div>
-          <div>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#171A21' }}>{t.basicInfo}</div>
-            <div style={{ fontSize: '13px', color: '#9AA0AE', marginTop: '1px' }}>{t.basicInfoSub}</div>
-          </div>
-        </div>
-
-        {/* Company name — bilingual (EN + TH). Thai visitors see the Thai name,
-            English visitors see the English name. */}
-        <div style={{ marginBottom: '20px' }}>
-          <div className="mc-row-2">
-            <div>
-              <label style={labelStyle}>{lang === 'th' ? 'ชื่อบริษัท' : 'Company name'} <span style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>EN</span><span style={{ color: '#F77F00', fontWeight: 700 }}> *</span></label>
-              <input type="text" value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} style={inputStyle} placeholder="e.g. Acme" />
-            </div>
-            <div>
-              <label style={labelStyle}>{lang === 'th' ? 'ชื่อบริษัท' : 'Company name'} <span style={{ background: '#FFF6EC', color: '#E06B00', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>TH</span></label>
-              <input type="text" value={form.nameTh} onChange={(e) => set('nameTh', e.target.value)} style={inputStyle} placeholder={lang === 'th' ? 'เช่น แอคมี' : 'e.g. แอคมี'} />
-            </div>
-          </div>
-          {/* Brand vs legal name hint */}
-          <div style={{ marginTop: '10px', display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '10px 14px', background: '#F0F9F9', borderRadius: '10px', border: '1px solid rgba(15,111,115,0.12)' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A9DA3" strokeWidth="2.2" strokeLinecap="round" style={{ flexShrink: 0, marginTop: '1px' }}>
-              <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-            <span style={{ fontSize: '12px', color: '#6B7385', lineHeight: 1.55 }}>
-              {lang === 'th'
-                ? <>ใส่ <strong style={{ color: '#444B5A' }}>ชื่อทางการค้า</strong> ที่ลูกค้ารู้จัก (เช่น "Google") ไม่ใช่ชื่อนิติบุคคลจดทะเบียน (เช่น "Alphabet Inc.") — ชื่อนี้จะแสดงในผลการค้นหาและโปรไฟล์</>
-                : <>Use your <strong style={{ color: '#444B5A' }}>trading / brand name</strong> — what clients know you as (e.g. "Acme"), not your DBD-registered legal entity name (e.g. "Acme Holdings Co., Ltd."). This is what appears in search results and your public profile.</>
-              }
-            </span>
-          </div>
-        </div>
-
-        {/* Bilingual description */}
-        <div style={{ marginBottom: '20px' }}>
-          <div className="mc-row-2">
-            <div>
-              <label style={labelStyle}>{t.descriptionEn} <span style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>EN</span></label>
-              <textarea value={form.descEn} onChange={(e) => set('descEn', e.target.value)} rows={4} style={{ ...inputStyle, minHeight: '96px', resize: 'vertical' }} placeholder={t.descPh} />
-            </div>
-            <div>
-              <label style={labelStyle}>{t.descriptionTh} <span style={{ background: '#FFF6EC', color: '#E06B00', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>TH</span></label>
-              <textarea value={form.descTh} onChange={(e) => set('descTh', e.target.value)} rows={4} style={{ ...inputStyle, minHeight: '96px', resize: 'vertical' }} placeholder={t.descPh} />
-            </div>
-          </div>
-        </div>
-
-        {/* Services multi-select with fuzzy search */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={labelStyle}>
-            {lang === 'th' ? 'บริการของคุณ' : 'Services'}<span style={{ color: '#F77F00', fontWeight: 700 }}> *</span>
-          </label>
-
-          {/* Selected service tags */}
-          {selectedServices.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
-              {selectedServices.map(s => (
-                <span key={s} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#F0F9F9', color: '#0F6F73', fontSize: '12px', fontWeight: 600, padding: '4px 10px 4px 12px', borderRadius: '999px', border: '1px solid rgba(15,111,115,0.2)' }}>
-                  {s}
-                  <button
-                    type="button"
-                    onClick={() => setSelectedServices(prev => prev.filter(x => x !== s))}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9AA0AE', padding: '0 0 0 2px', fontSize: '16px', lineHeight: 1, display: 'flex', alignItems: 'center' }}
-                  >×</button>
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Search input */}
-          <div style={{ position: 'relative' }}>
-            <input
-              type="text"
-              value={serviceSearch}
-              onChange={e => { setServiceSearch(e.target.value); setShowServiceSuggestions(true); }}
-              onFocus={() => setShowServiceSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowServiceSuggestions(false), 150)}
-              placeholder={lang === 'th' ? 'พิมพ์เพื่อค้นหาบริการ เช่น "กราฟิก", "Marketing"…' : 'Type to search, e.g. "Design", "Marketing", "IT"…'}
-              style={inputStyle}
-            />
-            {showServiceSuggestions && serviceSearch.length >= 1 && (
-              <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: '1px solid #E4E7ED', borderRadius: '12px', boxShadow: '0 8px 24px rgba(23,26,33,0.12)', zIndex: 50, maxHeight: '280px', overflowY: 'auto' }}>
-                {SERVICES.filter(s => !selectedServices.includes(s.label) && fuzzyMatch(serviceSearch, s.label)).slice(0, 8).map(s => (
-                  <div
-                    key={s.label}
-                    onMouseDown={() => { setSelectedServices(prev => [...prev, s.label]); setServiceSearch(''); setShowServiceSuggestions(false); setSaved(false); }}
-                    style={{ padding: '10px 14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #F4F5F7' }}
-                    onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = '#F8FFFE'}
-                    onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'white'}
-                  >
-                    <span style={{ fontSize: '13px', color: '#171A21' }}>{s.label}</span>
-                    <span style={{ fontSize: '11px', color: '#9AA0AE' }}>{s.industry.split(' / ')[0]}</span>
-                  </div>
-                ))}
-                {SERVICES.filter(s => !selectedServices.includes(s.label) && fuzzyMatch(serviceSearch, s.label)).length === 0 && (
-                  <div style={{ padding: '12px 14px', fontSize: '13px', color: '#9AA0AE' }}>No matching services</div>
-                )}
-              </div>
-            )}
-          </div>
-
-        </div>
-
-        {/* Province */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={labelStyle}>{t.province}<span style={{ color: '#F77F00', fontWeight: 700 }}> *</span></label>
-          <select value={form.province} onChange={(e) => set('province', e.target.value)} style={inputStyle}>
-            <option value="">{t.selectProvince}</option>
-            {PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
-        </div>
-
-        {/* Team size + Founded year */}
-        <div className="mc-row-2" style={{ marginBottom: '20px' }}>
-          <div>
-            <label style={labelStyle}>{t.teamSize}</label>
-            <select value={form.teamSize} onChange={(e) => set('teamSize', e.target.value)} style={inputStyle}>
-              <option value="">{t.selectTeamSize}</option>
-              {TEAM_SIZES.map((s) => <option key={s} value={s}>{s} {lang === 'th' ? 'คน' : 'employees'}</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={labelStyle}>{t.foundedYear}</label>
-            <input type="number" value={form.foundedYear} onChange={(e) => set('foundedYear', e.target.value)} min={1900} max={2026} style={inputStyle} placeholder="2020" />
-          </div>
-        </div>
-
-        {/* Address + Website */}
-        <div className="mc-row-2">
-          <div>
-            <label style={labelStyle}>{lang === 'th' ? 'ลิงก์ Google Maps' : 'Google Maps link'}</label>
-            <input type="url" inputMode="url" value={form.address} onChange={(e) => set('address', e.target.value)} style={inputStyle} placeholder="https://maps.app.goo.gl/…" />
-            <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '6px', lineHeight: 1.6 }}>
-              {lang === 'th'
-                ? 'เปิด Google Maps → ค้นหาธุรกิจของคุณ → กด “แชร์” → คัดลอกลิงก์ แล้วนำมาวางที่นี่ เพื่อให้แผนที่แสดงบนหน้าโปรไฟล์'
-                : 'Open Google Maps → find your business → tap “Share” → copy the link and paste it here to show a map on your profile.'}
-            </div>
-          </div>
-          <div>
-            <label style={labelStyle}>{t.website}</label>
-            <input type="text" value={form.website} onChange={(e) => set('website', e.target.value)} style={inputStyle} placeholder={t.websitePh} />
           </div>
         </div>
       </div>
