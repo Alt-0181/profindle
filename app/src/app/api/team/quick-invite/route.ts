@@ -11,8 +11,11 @@ function getAdmin() {
   );
 }
 
-// POST /api/team/invite  { email, canEditCompany, canEditPortfolio, lang? }
-// Only a company OWNER may invite. Requires the owner to already have a company.
+// POST /api/team/quick-invite  { companyName?, email, canEditCompany, canEditPortfolio, lang? }
+// Onboarding "invite a teammate to set this up": if the owner has no company
+// yet, create a name-only draft they own, then invite the teammate to fill in
+// the rest. Company creation/ownership stays with the owner — the teammate only
+// edits (per the permissions granted here).
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -22,6 +25,7 @@ export async function POST(request: NextRequest) {
   try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid request' }, { status: 400 }); }
 
   const email = String(body.email ?? '').trim().toLowerCase();
+  const companyNameInput = String(body.companyName ?? '').trim();
   const canEditCompany = !!body.canEditCompany;
   const canEditPortfolio = !!body.canEditPortfolio;
   const lang = body.lang === 'en' ? 'en' : 'th';
@@ -32,9 +36,22 @@ export async function POST(request: NextRequest) {
 
   const admin = getAdmin();
 
-  const { data: company } = await admin
+  // Find the owner's company, or create a name-only draft they own.
+  let { data: company } = await admin
     .from('companies').select('id, name, name_th').eq('user_id', user.id).maybeSingle();
-  if (!company) return NextResponse.json({ error: 'Only a company owner can invite collaborators' }, { status: 403 });
+
+  let companyCreated = false;
+  if (!company) {
+    if (!companyNameInput) return NextResponse.json({ error: 'Company name is required' }, { status: 400 });
+    const { data: created, error: cErr } = await admin
+      .from('companies')
+      .insert({ name: companyNameInput, user_id: user.id })
+      .select('id, name, name_th')
+      .single();
+    if (cErr || !created) return NextResponse.json({ error: cErr?.message ?? 'Could not create company' }, { status: 500 });
+    company = created;
+    companyCreated = true;
+  }
 
   const result = await sendCollaboratorInvite(admin, {
     companyId: (company as any).id,
@@ -45,5 +62,6 @@ export async function POST(request: NextRequest) {
     inviterEmail: (user.email ?? '').toLowerCase(),
   });
   if (!result.ok) return NextResponse.json({ error: result.error }, { status: 500 });
-  return NextResponse.json({ ok: true, emailSent: result.emailSent, emailError: result.emailError });
+
+  return NextResponse.json({ ok: true, companyCreated, emailSent: result.emailSent, emailError: result.emailError });
 }
