@@ -70,6 +70,18 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
   // EXISTING company is gated by the permissions they were granted.
   const canEditCompany = !companyId || access.canEditCompany;
   const canEditPortfolio = !companyId || access.canEditPortfolio;
+
+  // Header shows WHICH company you're managing and your role, so collaborators
+  // (and owners with several hats) always know whose profile they're editing.
+  const userName: string = (user?.user_metadata?.full_name as string) || user?.email?.split('@')[0] || '';
+  const companyDisplayName = company
+    ? (isTh ? ((company as any).name_th || company.name) : (company.name || (company as any).name_th))
+    : '';
+  const roleLabel = access.isMember
+    ? (isTh ? 'ผู้ร่วมจัดการ' : 'Collaborator')
+    : (isTh ? 'เจ้าของ' : 'Owner');
+  const headerTitle = companyDisplayName || dict.myCompany.title;
+  const headerSubtitle = userName ? `${userName} · ${roleLabel}` : dict.myCompany.subtitle;
   const { data: projectRows } = companyId
     ? await supabase
         .from('portfolio_projects')
@@ -99,8 +111,8 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
     <div className="page-body">
       <div style={{ maxWidth: '840px' }}>
         <div style={{ marginBottom: '24px' }}>
-          <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{dict.myCompany.title}</h1>
-          <p style={{ fontSize: '14px', color: '#6B7385' }}>{dict.myCompany.subtitle}</p>
+          <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{headerTitle}</h1>
+          <p style={{ fontSize: '14px', color: '#6B7385' }}>{headerSubtitle}</p>
         </div>
         {/* Owners (and prospective owners with no company yet) can hand setup to
             a teammate. Collaborators can't invite — that stays owner-only. */}

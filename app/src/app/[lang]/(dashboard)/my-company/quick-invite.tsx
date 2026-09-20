@@ -54,10 +54,12 @@ export function QuickInvite({ lang, hasCompany }: { lang: string; hasCompany: bo
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: '14px', fontWeight: 700, color: '#171A21', marginBottom: '2px' }}>
-            {isTh ? 'อยากให้คนอื่นช่วยตั้งค่า?' : 'Want someone else to set this up?'}
+            {isTh ? 'ให้คนในทีมจัดการแทนคุณสิ' : 'Let your team handle it for you'}
           </div>
           <div style={{ fontSize: '12.5px', color: '#6B7385', lineHeight: 1.5 }}>
-            {isTh ? 'เชิญเพื่อนร่วมงานมากรอกข้อมูลบริษัทและผลงานแทนได้ตั้งแต่ตอนนี้' : 'Invite a teammate to fill in the company info and portfolio for you.'}
+            {isTh
+              ? 'เชิญเพื่อนร่วมงานมากรอกข้อมูลบริษัทและผลงานแทนได้ตั้งแต่ตอนนี้ โดยที่สิทธิ์ในการ เพิ่ม ลบ เพื่อนร่วมงาน จะยังถูกจำกัดไว้แค่เจ้าของบริษัทเท่านั้น'
+              : 'Invite a teammate to fill in the company info and portfolio for you — adding or removing teammates stays owner-only.'}
           </div>
         </div>
         <button onClick={() => { reset(); setOpen(true); }} style={{ background: 'white', color: '#0F6F73', padding: '9px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, border: '1.5px solid rgba(15,111,115,0.2)', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0 }}>
