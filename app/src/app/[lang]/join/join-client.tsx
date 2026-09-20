@@ -180,7 +180,9 @@ export function JoinClient({
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password.length < 8) { setError(isTh ? 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' : 'Password must be at least 8 characters'); return; }
-    if (password !== confirm) { setError(isTh ? 'รหัสผ่านไม่ตรงกัน' : 'Passwords do not match'); return; }
+    // Mismatch is already shown live under the confirm field — just block submit,
+    // don't set a second identical error above the button.
+    if (password !== confirm) return;
     setSaving(true); setError('');
     try {
       const res = await fetch('/api/team/join', {

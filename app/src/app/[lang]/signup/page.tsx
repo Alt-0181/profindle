@@ -95,7 +95,9 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
     // from the start (skipped when claiming an existing business).
     if (!claimId && !form.companyName.trim()) { setError(isTh ? 'กรุณากรอกชื่อบริษัท' : 'Enter your company name'); return; }
     if (form.password.length < 8) { setError(isTh ? 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' : 'Password must be at least 8 characters'); return; }
-    if (form.password !== form.confirmPassword) { setError(isTh ? 'รหัสผ่านไม่ตรงกัน' : 'Passwords do not match'); return; }
+    // Mismatch is already shown live under the confirm field — just block submit,
+    // don't set a second identical error.
+    if (form.password !== form.confirmPassword) return;
     if (captchaEnabled && !captchaToken) { setError(isTh ? 'กรุณายืนยันว่าคุณไม่ใช่บอท' : 'Please complete the verification below'); return; }
     setLoading(true);
     setError('');
