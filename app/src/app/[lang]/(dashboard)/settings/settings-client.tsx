@@ -81,7 +81,7 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
       // Show the owner a clean message only. The technical reason for a failed
       // send (e.g. a missing key) is logged server-side, never shown here.
       setInviteMsg(data.emailSent
-        ? (lang === 'th' ? 'ส่งคำเชิญทางอีเมลแล้ว — ผู้รับกดลิงก์เพื่อตั้งรหัสผ่านและเข้าร่วม' : 'Invite email sent — they set a password from the link and join')
+        ? (lang === 'th' ? 'ส่งคำเชิญทางอีเมลแล้ว — คุณสามารถแจ้งผู้รับให้กดลิงก์เพื่อตั้งรหัสผ่านและเข้าร่วมได้เลย' : 'Invite email sent — you can let them know to click the link to set a password and join')
         : (lang === 'th' ? 'เพิ่มคำเชิญแล้ว — เมื่อผู้รับเข้าสู่ระบบด้วยอีเมลนี้ ระบบจะเพิ่มเข้าทีมให้อัตโนมัติ' : 'Invite created — they’ll be added automatically when they sign in with this email'));
       router.refresh();
     } catch (e: any) {
