@@ -3,7 +3,6 @@ import { getDictionary, hasLocale, type Locale } from '@/dictionaries';
 import { createClient } from '@/lib/supabase/server';
 import { MyCompanyForm } from './company-form';
 import { PortfolioClient } from '../portfolio/portfolio-client';
-import { QuickInvite } from './quick-invite';
 import { resolveCompanyAccess } from '@/lib/company-access';
 
 export default async function MyCompanyPage({ params }: { params: Promise<{ lang: string }> }) {
@@ -114,9 +113,6 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
           <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{headerTitle}</h1>
           <p style={{ fontSize: '14px', color: '#6B7385' }}>{headerSubtitle}</p>
         </div>
-        {/* Owners (and prospective owners with no company yet) can hand setup to
-            a teammate. Collaborators can't invite — that stays owner-only. */}
-        {!access.isMember && <QuickInvite lang={lang} hasCompany={!!companyId} />}
         {pendingVerify && (
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', background: '#FFF6EC', border: '1px solid rgba(247,127,0,0.25)', borderRadius: '14px', padding: '16px 18px', marginBottom: '24px' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F77F00" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0, marginTop: '1px' }}><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
@@ -144,6 +140,7 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
         <MyCompanyForm
           lang={lang} dict={dict} initialData={initialData} canEdit={canEditCompany}
           companyExists={!!companyId} portfolioCount={initialProjects.length}
+          showInvite={!access.isMember}
           portfolioSlot={
             <div style={{ marginTop: '36px', paddingTop: '28px', borderTop: '1px solid #EEF1F2' }}>
               <PortfolioClient lang={lang} dict={dict} companyId={companyId} companyServices={companyServices} initialProjects={initialProjects} canEdit={canEditPortfolio} />

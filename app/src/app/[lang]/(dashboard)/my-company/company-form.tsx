@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { Dictionary } from '@/dictionaries';
 import { SERVICES } from '@/lib/services';
+import { QuickInvite } from './quick-invite';
 
 const PROVINCES = [
   'Bangkok', 'Amnat Charoen', 'Ang Thong', 'Bueng Kan', 'Buri Ram',
@@ -69,6 +70,7 @@ interface MyCompanyFormProps {
   companyExists?: boolean;
   portfolioCount?: number;
   portfolioSlot?: React.ReactNode;
+  showInvite?: boolean;
 }
 
 const EMPTY = {
@@ -79,7 +81,7 @@ const EMPTY = {
   buyerOnly: false,
 };
 
-export function MyCompanyForm({ lang, dict, initialData, canEdit = true, companyExists = false, portfolioCount = 0, portfolioSlot }: MyCompanyFormProps) {
+export function MyCompanyForm({ lang, dict, initialData, canEdit = true, companyExists = false, portfolioCount = 0, portfolioSlot, showInvite = false }: MyCompanyFormProps) {
   // Once the company exists, a complete profile needs at least one portfolio
   // project. The very first save is exempt (a project can't be added until the
   // company row exists) and buyer-only accounts don't need a portfolio.
@@ -656,6 +658,10 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, company
           </div>
         </div>
       </div>
+
+      {/* Delegate setup: invite a teammate to fill in the rest. Placed right
+          after the name so the invite reuses the name typed above. */}
+      {showInvite && <QuickInvite lang={lang} hasCompany={companyExists} companyName={form.nameEn} />}
 
       {/* Profile Branding */}
       <div style={sectionStyle}>

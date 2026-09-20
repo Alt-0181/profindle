@@ -6,23 +6,23 @@ import { useRouter } from 'next/navigation';
 // Onboarding shortcut shown to an owner (or a prospective owner with no company
 // yet): name the company and invite a teammate to do the full setup. Not shown
 // to collaborators — inviting stays owner-only.
-export function QuickInvite({ lang, hasCompany }: { lang: string; hasCompany: boolean }) {
+export function QuickInvite({ lang, hasCompany, companyName }: { lang: string; hasCompany: boolean; companyName: string }) {
   const isTh = lang === 'th';
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
-  const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
   const [perm, setPerm] = useState({ company: true, portfolio: true });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
 
-  const reset = () => { setCompanyName(''); setEmail(''); setPerm({ company: true, portfolio: true }); setError(''); setDone(false); };
+  const reset = () => { setEmail(''); setPerm({ company: true, portfolio: true }); setError(''); setDone(false); };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!hasCompany && !companyName.trim()) { setError(isTh ? 'กรุณาใส่ชื่อบริษัท' : 'Enter a company name'); return; }
+    // No company yet? Reuse the name typed in the form's Basic Info above.
+    if (!hasCompany && !companyName.trim()) { setError(isTh ? 'กรุณากรอก “ชื่อบริษัท” ในฟอร์มด้านบนก่อน แล้วจึงเชิญ' : 'Enter your company name in the form above first, then invite'); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setError(isTh ? 'อีเมลไม่ถูกต้อง' : 'Enter a valid email'); return; }
     if (!perm.company && !perm.portfolio) { setError(isTh ? 'เลือกสิทธิ์อย่างน้อยหนึ่งอย่าง' : 'Pick at least one permission'); return; }
     setBusy(true); setError('');
@@ -58,8 +58,8 @@ export function QuickInvite({ lang, hasCompany }: { lang: string; hasCompany: bo
           </div>
           <div style={{ fontSize: '12.5px', color: '#6B7385', lineHeight: 1.5 }}>
             {isTh
-              ? 'เชิญเพื่อนร่วมงานมากรอกข้อมูลบริษัทและผลงานแทนได้ตั้งแต่ตอนนี้ โดยที่สิทธิ์ในการ เพิ่ม ลบ เพื่อนร่วมงาน จะยังถูกจำกัดไว้แค่เจ้าของบริษัทเท่านั้น'
-              : 'Invite a teammate to fill in the company info and portfolio for you — adding or removing teammates stays owner-only.'}
+              ? 'เชิญเพื่อนร่วมงานมากรอกข้อมูลบริษัทและผลงานแทนได้ตั้งแต่ตอนนี้ โดยที่สิทธิ์ในการ เพิ่ม ลบ เพื่อนร่วมงาน จะยังถูกจำกัดไว้แค่เจ้าของบริษัทเท่านั้น หรือถ้าอยากกรอกเอง สามารถลุยต่อได้เลย'
+              : 'Invite a teammate to fill in the company info and portfolio for you — adding or removing teammates stays owner-only. Or if you’d rather do it yourself, just carry on below.'}
           </div>
         </div>
         <button onClick={() => { reset(); setOpen(true); }} style={{ background: 'white', color: '#0F6F73', padding: '9px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, border: '1.5px solid rgba(15,111,115,0.2)', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0 }}>
@@ -88,15 +88,11 @@ export function QuickInvite({ lang, hasCompany }: { lang: string; hasCompany: bo
               <form onSubmit={submit}>
                 <h2 style={{ fontSize: '19px', fontWeight: 800, color: '#171A21', marginBottom: '4px' }}>{isTh ? 'เชิญเพื่อนร่วมงานมาช่วยตั้งค่า' : 'Invite a teammate to set up'}</h2>
                 <p style={{ fontSize: '13px', color: '#6B7385', marginBottom: '20px', lineHeight: 1.55 }}>
-                  {isTh ? 'ตั้งชื่อบริษัทแล้วเชิญคนที่จะกรอกรายละเอียดให้ พวกเขาจะได้รับลิงก์เพื่อตั้งรหัสผ่านและเริ่มทำงาน' : 'Name your company and invite the person who’ll fill in the details. They’ll get a link to set a password and start.'}
+                  {companyName.trim()
+                    ? (isTh ? `เชิญคนมาช่วยจัดการ “${companyName.trim()}” พวกเขาจะได้รับลิงก์เพื่อตั้งรหัสผ่านและเริ่มทำงาน` : `Invite someone to help manage “${companyName.trim()}”. They’ll get a link to set a password and start.`)
+                    : (isTh ? 'เชิญคนที่จะกรอกรายละเอียดบริษัทและผลงานให้ พวกเขาจะได้รับลิงก์เพื่อตั้งรหัสผ่านและเริ่มทำงาน' : 'Invite the person who’ll fill in your company details and portfolio. They’ll get a link to set a password and start.')}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  {!hasCompany && (
-                    <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>{isTh ? 'ชื่อบริษัท' : 'Company name'}</label>
-                      <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder={isTh ? 'เช่น บริษัท แอคมี จำกัด' : 'e.g. Acme Co., Ltd.'} style={inputStyle} />
-                    </div>
-                  )}
                   <div>
                     <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#171A21', marginBottom: '6px' }}>{isTh ? 'อีเมลเพื่อนร่วมงาน' : 'Teammate’s email'}</label>
                     <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="name@company.com" style={inputStyle} />
