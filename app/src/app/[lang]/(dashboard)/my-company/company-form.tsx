@@ -665,7 +665,7 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, company
           <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer' }}>
             <input type="checkbox" checked={form.buyerOnly} onChange={(e) => { setForm((prev) => ({ ...prev, buyerOnly: e.target.checked })); setSaved(false); }} style={{ width: '18px', height: '18px', marginTop: '2px', accentColor: '#0F6F73', flexShrink: 0, cursor: 'pointer' }} />
             <div>
-              <div style={{ fontSize: '15px', fontWeight: 600, color: '#171A21' }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#171A21' }}>
                 {lang === 'th' ? 'ฉันต้องการค้นหาและจ้างผู้ให้บริการเท่านั้น' : "I'm only here to find and hire service providers"}
               </div>
               <div style={{ fontSize: '13px', color: '#6B7385', marginTop: '4px', lineHeight: 1.5 }}>
