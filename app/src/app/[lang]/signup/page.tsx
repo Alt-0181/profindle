@@ -25,7 +25,26 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
   // Set when the entered email already has a pending collaborator invite — we
   // stop the regular signup and steer them to accept/decline it instead.
   const [invitedTo, setInvitedTo] = useState<string | null>(null);
+  // Live inline warning: the company name (or '') when the email currently typed
+  // already has a pending invite — shown under the email field before submit.
+  const [emailInvited, setEmailInvited] = useState<string | null>(null);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Check the typed email against pending invites as they go, debounced, so we
+  // warn them before they fill in a password and hit create.
+  useEffect(() => {
+    const email = form.email.trim().toLowerCase();
+    if (claimId || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setEmailInvited(null); return; }
+    let cancelled = false;
+    const id = setTimeout(async () => {
+      try {
+        const r = await fetch(`/api/team/invite-status?email=${encodeURIComponent(email)}`);
+        const d = await r.json().catch(() => ({}));
+        if (!cancelled) setEmailInvited(d?.pending ? (d.companyName || '') : null);
+      } catch { if (!cancelled) setEmailInvited(null); }
+    }, 450);
+    return () => { cancelled = true; clearTimeout(id); };
+  }, [form.email, claimId]);
 
   // When arriving from "Claim this business" (/signup?claim=<companyId>), remember
   // which company to map to this new account after verification.
@@ -247,9 +266,19 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
                 )}
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#171A21', marginBottom: '8px' }}>{t.emailLabel}</label>
-                  <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder={t.emailPh} required style={inputStyle}
+                  <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder={t.emailPh} required style={{ ...inputStyle, borderColor: emailInvited !== null ? '#E8A33D' : '#E4E7ED' }}
                     onFocus={e => { e.target.style.borderColor = '#0F6F73'; e.target.style.boxShadow = '0 0 0 3px rgba(15,111,115,0.12)'; }}
-                    onBlur={e => { e.target.style.borderColor = '#E4E7ED'; e.target.style.boxShadow = 'none'; }} />
+                    onBlur={e => { e.target.style.borderColor = emailInvited !== null ? '#E8A33D' : '#E4E7ED'; e.target.style.boxShadow = 'none'; }} />
+                  {emailInvited !== null && (
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', background: '#FFF8EC', border: '1px solid #F3D9A4', borderRadius: '10px', padding: '10px 12px', marginTop: '8px' }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B4791E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '1px' }}><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                      <div style={{ fontSize: '12.5px', color: '#8A5A12', lineHeight: 1.5 }}>
+                        {isTh
+                          ? <>อีเมลนี้ได้รับคำเชิญให้ร่วมจัดการ{emailInvited ? <> <b>{emailInvited}</b></> : 'บริษัท'}อยู่แล้ว — กรุณาเปิดอีเมลคำเชิญเพื่อตั้งรหัสผ่านและเข้าร่วม หรือกดปฏิเสธคำเชิญก่อน หากต้องการสร้างบัญชีของคุณเอง</>
+                          : <>This email already has an invite to help manage{emailInvited ? <> <b>{emailInvited}</b></> : ' a company'} — open the invite email to set a password and join, or decline it first if you want to create your own account.</>}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#171A21', marginBottom: '8px' }}>{t.pwLabel}</label>
