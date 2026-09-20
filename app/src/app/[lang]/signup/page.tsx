@@ -36,6 +36,7 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
     sub: 'เข้าร่วม Profindle — ฟรี ไม่ต้องใช้บัตรเครดิต',
     nameLabel: 'ชื่อ-นามสกุล', namePh: 'ชื่อจริงของคุณ',
     companyLabel: 'ชื่อบริษัท', companyPh: 'เช่น แอคมี',
+    companyHint: 'ใช้ชื่อแบรนด์ที่อยากให้ลูกค้ารู้จัก (เช่น Google) ไม่ใช่ชื่อนิติบุคคลจดทะเบียน (เช่น Alphabet)',
     emailLabel: 'อีเมล', emailPh: 'you@company.com',
     pwLabel: 'รหัสผ่าน', pwPh: 'อย่างน้อย 8 ตัวอักษร',
     confirmPwLabel: 'ยืนยันรหัสผ่าน', confirmPwPh: 'พิมพ์รหัสผ่านอีกครั้ง',
@@ -52,6 +53,7 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
     sub: 'Join Profindle — free, no credit card required',
     nameLabel: 'Full name', namePh: 'Your full name',
     companyLabel: 'Company name', companyPh: 'e.g. Acme',
+    companyHint: 'Use the brand name you want customers to know you by (e.g. Google), not your registered legal name (e.g. Alphabet).',
     emailLabel: 'Email address', emailPh: 'you@company.com',
     pwLabel: 'Password', pwPh: 'At least 8 characters',
     confirmPwLabel: 'Confirm password', confirmPwPh: 'Re-enter your password',
@@ -205,6 +207,7 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
                     <input type="text" value={form.companyName} onChange={e => setForm({ ...form, companyName: e.target.value })} placeholder={t.companyPh} required style={inputStyle}
                       onFocus={e => { e.target.style.borderColor = '#0F6F73'; e.target.style.boxShadow = '0 0 0 3px rgba(15,111,115,0.12)'; }}
                       onBlur={e => { e.target.style.borderColor = '#E4E7ED'; e.target.style.boxShadow = 'none'; }} />
+                    <div style={{ fontSize: '12px', color: '#9AA0AE', marginTop: '6px', lineHeight: 1.5 }}>{t.companyHint}</div>
                   </div>
                 )}
                 <div>
