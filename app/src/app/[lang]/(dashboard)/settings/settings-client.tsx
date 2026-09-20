@@ -14,6 +14,7 @@ interface SettingsClientProps {
   userName: string;
   lineOAuthResult: string | null;
   initialSection: string | null;
+  justInvited?: boolean;
   isPremium: boolean;
   isOwner?: boolean;
   members?: TeamMember[];
@@ -27,7 +28,7 @@ export interface TeamMember {
   status: string;
 }
 
-export function SettingsClient({ lang, dict, initialLineUserId, initialLineDisplayName, userEmail, userName, lineOAuthResult, initialSection, isPremium, isOwner = false, members = [] }: SettingsClientProps) {
+export function SettingsClient({ lang, dict, initialLineUserId, initialLineDisplayName, userEmail, userName, lineOAuthResult, initialSection, justInvited = false, isPremium, isOwner = false, members = [] }: SettingsClientProps) {
   const t = dict.settings;
   const router = useRouter();
   const [activeSection, setActiveSection] = useState(initialSection ?? 'account');
@@ -56,7 +57,11 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
   const [inviteEmail, setInviteEmail] = useState('');
   const [invitePerms, setInvitePerms] = useState({ company: true, portfolio: true });
   const [inviteBusy, setInviteBusy] = useState(false);
-  const [inviteMsg, setInviteMsg] = useState('');
+  // When the owner arrives here right after sending an invite from My Company,
+  // greet them with a confirmation (they also see the new pending member below).
+  const [inviteMsg, setInviteMsg] = useState(justInvited
+    ? (lang === 'th' ? 'ส่งคำเชิญเรียบร้อยแล้ว — ดูรายชื่อผู้ร่วมจัดการด้านล่าง' : 'Invite sent — see your collaborators below')
+    : '');
   const [inviteErr, setInviteErr] = useState('');
   const [removingId, setRemovingId] = useState<string | null>(null);
 

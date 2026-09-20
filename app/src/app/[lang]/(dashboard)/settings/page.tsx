@@ -9,10 +9,10 @@ export default async function SettingsPage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ line?: string; section?: string }>;
+  searchParams: Promise<{ line?: string; section?: string; invited?: string }>;
 }) {
   const { lang } = await params;
-  const { line, section } = await searchParams;
+  const { line, section, invited } = await searchParams;
   if (!hasLocale(lang)) notFound();
   const dict = await getDictionary(lang as Locale);
 
@@ -56,6 +56,7 @@ export default async function SettingsPage({
         userName={userName}
         lineOAuthResult={line ?? null}
         initialSection={section ?? null}
+        justInvited={invited === '1'}
         isPremium={isPremium}
         isOwner={isOwner}
         members={(memberRows ?? []) as any}

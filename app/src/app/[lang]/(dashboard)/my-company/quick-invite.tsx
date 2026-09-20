@@ -33,8 +33,10 @@ export function QuickInvite({ lang, hasCompany, companyName }: { lang: string; h
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) { setError(data.error || (isTh ? 'ส่งคำเชิญไม่สำเร็จ' : 'Could not send invite')); setBusy(false); return; }
-      setDone(true); setBusy(false);
-      router.refresh();
+      setDone(true);
+      // Take the owner to the Team page: they see the confirmation + the member
+      // list (the home for managing collaborators) instead of a vanishing modal.
+      router.push(`/${lang}/settings?section=team&invited=1`);
     } catch {
       setError(isTh ? 'เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่' : 'Connection failed, please try again'); setBusy(false);
     }
