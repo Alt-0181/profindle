@@ -44,7 +44,7 @@ export default async function PortfolioPage({ params }: { params: Promise<{ lang
 
   return (
     <div className="page-body">
-      <PortfolioClient lang={lang} dict={dict} companyId={companyId} companyServices={companyServices} initialProjects={initialProjects} canEdit={access.canEditPortfolio || access.isOwner} />
+      <PortfolioClient lang={lang} dict={dict} companyId={companyId} companyServices={companyServices} initialProjects={initialProjects} canEdit={!companyId || access.canEditPortfolio || access.isOwner} />
     </div>
   );
 }
