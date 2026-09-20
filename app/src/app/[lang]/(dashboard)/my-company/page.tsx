@@ -64,6 +64,11 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
   // flow as their company info (one page). Projects need a saved company first.
   const companyId = company?.id ?? null;
   const companyServices: string[] = (company as any)?.services ?? [];
+  // A user with no company yet is a prospective owner creating their first one —
+  // they must be able to edit and add a portfolio. Only a collaborator on an
+  // EXISTING company is gated by the permissions they were granted.
+  const canEditCompany = !companyId || access.canEditCompany;
+  const canEditPortfolio = !companyId || access.canEditPortfolio;
   const { data: projectRows } = companyId
     ? await supabase
         .from('portfolio_projects')
@@ -121,11 +126,11 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
         {/* Portfolio is passed as a slot so it renders between the company
             fields and the Save bar — Save comes after the portfolio. */}
         <MyCompanyForm
-          lang={lang} dict={dict} initialData={initialData} canEdit={access.canEditCompany}
+          lang={lang} dict={dict} initialData={initialData} canEdit={canEditCompany}
           companyExists={!!companyId} portfolioCount={initialProjects.length}
           portfolioSlot={
             <div style={{ marginTop: '36px', paddingTop: '28px', borderTop: '1px solid #EEF1F2' }}>
-              <PortfolioClient lang={lang} dict={dict} companyId={companyId} companyServices={companyServices} initialProjects={initialProjects} canEdit={access.canEditPortfolio} />
+              <PortfolioClient lang={lang} dict={dict} companyId={companyId} companyServices={companyServices} initialProjects={initialProjects} canEdit={canEditPortfolio} />
             </div>
           }
         />
