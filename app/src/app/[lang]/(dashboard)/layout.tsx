@@ -56,6 +56,7 @@ export default async function DashboardLayout({
   // responded to) → sidebar badge. broadcast_matches has no provider-side RLS
   // read policy, so count via the service role, scoped to this company only.
   let leadsCount = 0;
+  let pendingApprovals = 0;
   if (myCompany) {
     const { count } = await admin
       .from('broadcast_matches')
@@ -63,6 +64,14 @@ export default async function DashboardLayout({
       .eq('provider_company_id', (myCompany as { id: string }).id)
       .eq('provider_response', 'no_reply');
     leadsCount = count ?? 0;
+
+    // Collaborator changes waiting for this owner's approval → My Company bubble.
+    const { count: pc } = await admin
+      .from('company_change_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('company_id', (myCompany as { id: string }).id)
+      .eq('status', 'pending');
+    pendingApprovals = pc ?? 0;
   }
 
   return (
@@ -72,6 +81,7 @@ export default async function DashboardLayout({
         dict={dict}
         hasCompany={hasCompany}
         leadsCount={leadsCount}
+        pendingApprovals={pendingApprovals}
         user={currentUser}
         isAdmin={isAdmin}
       />

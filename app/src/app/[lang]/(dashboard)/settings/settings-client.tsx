@@ -21,6 +21,7 @@ interface SettingsClientProps {
   companyId?: string | null;
   requireApproval?: boolean;
   pendingChanges?: PendingChange[];
+  companyCurrent?: Record<string, any> | null;
 }
 
 export interface TeamMember {
@@ -41,7 +42,7 @@ export interface PendingChange {
   created_at: string;
 }
 
-export function SettingsClient({ lang, dict, initialLineUserId, initialLineDisplayName, userEmail, userName, lineOAuthResult, initialSection, justInvited = false, isPremium, isOwner = false, members = [], companyId = null, requireApproval = false, pendingChanges = [] }: SettingsClientProps) {
+export function SettingsClient({ lang, dict, initialLineUserId, initialLineDisplayName, userEmail, userName, lineOAuthResult, initialSection, justInvited = false, isPremium, isOwner = false, members = [], companyId = null, requireApproval = false, pendingChanges = [], companyCurrent = null }: SettingsClientProps) {
   const t = dict.settings;
   const router = useRouter();
   const [activeSection, setActiveSection] = useState(initialSection ?? 'account');
@@ -119,6 +120,8 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
   };
 
   const [reviewingId, setReviewingId] = useState<string | null>(null);
+  const [reviewModal, setReviewModal] = useState<PendingChange | null>(null);
+  const [diffView, setDiffView] = useState<'before' | 'after'>('after');
   const review = async (id: string, decision: 'approve' | 'reject') => {
     setReviewingId(id);
     try {
@@ -126,7 +129,7 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requestId: id, decision }),
       });
-      if (res.ok) router.refresh();
+      if (res.ok) { setReviewModal(null); router.refresh(); }
     } finally { setReviewingId(null); }
   };
 
@@ -151,8 +154,38 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
   const previewFields = (payload: Record<string, any> | null): string[] => {
     if (!payload) return [];
     return Object.keys(payload)
-      .filter(k => !k.startsWith('banner_focus'))
-      .map(k => (FIELD_LABELS[k]?.[lang === 'th' ? 'th' : 'en']) || k);
+      .filter(k => !k.startsWith('banner_focus') && FIELD_LABELS[k])
+      .map(k => FIELD_LABELS[k][lang === 'th' ? 'th' : 'en']);
+  };
+
+  // Normalize a value for equality (treats null/''/undefined the same).
+  const norm = (v: any): string => {
+    if (v === null || v === undefined || v === '') return '';
+    return Array.isArray(v) ? JSON.stringify(v) : String(v);
+  };
+  // Human-readable rendering of a field value for the before/after view.
+  const fmtVal = (k: string, v: any): string => {
+    if (v === null || v === undefined || v === '') return '—';
+    if (Array.isArray(v)) return v.length ? v.join(', ') : '—';
+    if (typeof v === 'boolean') return v ? (lang === 'th' ? 'ใช่' : 'Yes') : (lang === 'th' ? 'ไม่ใช่' : 'No');
+    if (k === 'logo_url' || k === 'banner_url' || k === 'banner_url_mobile') return lang === 'th' ? 'มีรูปภาพใหม่' : 'New image';
+    if (k === 'line_id') return String(v).replace(/^(oa|id|phone):/, '');
+    return String(v);
+  };
+  // The labelled fields present in a change payload, each flagged if it differs
+  // from the live company value.
+  const diffRows = (pc: PendingChange | null): { key: string; label: string; before: any; after: any; changed: boolean }[] => {
+    if (!pc?.payload) return [];
+    const cur = companyCurrent ?? {};
+    return Object.keys(pc.payload)
+      .filter(k => !k.startsWith('banner_focus') && FIELD_LABELS[k])
+      .map(k => ({
+        key: k,
+        label: FIELD_LABELS[k][lang === 'th' ? 'th' : 'en'],
+        before: (cur as any)[k],
+        after: (pc.payload as any)[k],
+        changed: norm((cur as any)[k]) !== norm((pc.payload as any)[k]),
+      }));
   };
 
   const removeMember = async (id: string) => {
@@ -435,12 +468,15 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
                         <div style={{ fontSize: '12px', color: '#6B7385', marginBottom: fields.length ? '8px' : '10px' }}>
                           {pc.author_email || (lang === 'th' ? 'ผู้ร่วมจัดการ' : 'A collaborator')}
                         </div>
-                        {fields.length > 0 && (
-                          <div style={{ fontSize: '12px', color: '#444B5A', marginBottom: '10px' }}>
-                            {(lang === 'th' ? 'แก้ไข: ' : 'Edited: ')}{fields.join(', ')}
+                        {(() => { const ch = diffRows(pc).filter(r => r.changed).length; return ch > 0 ? (
+                          <div style={{ fontSize: '12px', color: '#8A5A12', fontWeight: 600, marginBottom: '10px' }}>
+                            {lang === 'th' ? `${ch} หัวข้อที่เปลี่ยนแปลง` : `${ch} field${ch > 1 ? 's' : ''} changed`}
                           </div>
-                        )}
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        ) : null; })()}
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <button type="button" onClick={() => { setDiffView('after'); setReviewModal(pc); }} style={{ padding: '7px 16px', background: 'white', color: '#0F6F73', fontWeight: 600, fontSize: '12.5px', border: '1.5px solid rgba(15,111,115,0.3)', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                            {lang === 'th' ? 'ดูก่อน–หลัง' : 'View before/after'}
+                          </button>
                           <button type="button" onClick={() => review(pc.id, 'approve')} disabled={reviewingId === pc.id} style={{ padding: '7px 16px', background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)', color: 'white', fontWeight: 600, fontSize: '12.5px', border: 'none', borderRadius: '8px', cursor: reviewingId === pc.id ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: reviewingId === pc.id ? 0.6 : 1 }}>
                             {lang === 'th' ? 'อนุมัติ' : 'Approve'}
                           </button>
@@ -451,6 +487,61 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
                       </div>
                     );
                   })}
+                </div>
+              </div>
+            )}
+
+            {/* Before / after review modal */}
+            {reviewModal && (
+              <div onClick={() => setReviewModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(23,26,33,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', zIndex: 1100, fontFamily: "'Inter','Noto Sans Thai',sans-serif" }}>
+                <div onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '18px', width: '100%', maxWidth: '560px', maxHeight: '86vh', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+                  {/* Header */}
+                  <div style={{ padding: '22px 24px 0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                      <div>
+                        <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#171A21', margin: 0 }}>{lang === 'th' ? 'ตรวจสอบการเปลี่ยนแปลง' : 'Review changes'}</h3>
+                        <p style={{ fontSize: '12.5px', color: '#6B7385', margin: '3px 0 0' }}>{reviewModal.author_email || (lang === 'th' ? 'ผู้ร่วมจัดการ' : 'A collaborator')}</p>
+                      </div>
+                      <button type="button" onClick={() => setReviewModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9AA0AE', fontSize: '22px', lineHeight: 1, padding: '2px 6px' }}>×</button>
+                    </div>
+                    {/* Before / after toggle */}
+                    <div style={{ display: 'inline-flex', background: '#F0F2F5', borderRadius: '10px', padding: '3px', marginTop: '16px' }}>
+                      {(['before', 'after'] as const).map(v => (
+                        <button key={v} type="button" onClick={() => setDiffView(v)} style={{ padding: '6px 16px', fontSize: '12.5px', fontWeight: 700, border: 'none', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit', background: diffView === v ? 'white' : 'transparent', color: diffView === v ? '#0F6F73' : '#6B7385', boxShadow: diffView === v ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}>
+                          {v === 'before' ? (lang === 'th' ? 'ปัจจุบัน (ก่อน)' : 'Current (before)') : (lang === 'th' ? 'ฉบับแก้ไข (หลัง)' : 'Modified (after)')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Field list */}
+                  <div style={{ padding: '16px 24px', overflowY: 'auto', flex: 1 }}>
+                    {diffRows(reviewModal).length === 0 ? (
+                      <p style={{ fontSize: '13px', color: '#9AA0AE' }}>{lang === 'th' ? 'ไม่มีรายละเอียด' : 'No details'}</p>
+                    ) : diffRows(reviewModal).map(r => (
+                      <div key={r.key} style={{ display: 'flex', gap: '12px', padding: '10px 12px', borderRadius: '10px', marginBottom: '6px', background: r.changed ? '#FFFBF3' : 'transparent', border: r.changed ? '1px solid #F3D9A4' : '1px solid transparent', borderLeft: r.changed ? '3px solid #E8A33D' : '3px solid transparent' }}>
+                        <div style={{ width: '120px', flexShrink: 0, fontSize: '12.5px', fontWeight: 600, color: r.changed ? '#8A5A12' : '#6B7385' }}>
+                          {r.label}{r.changed && <span style={{ marginLeft: '6px', fontSize: '10px', fontWeight: 800, color: '#B4791E' }}>●</span>}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0, fontSize: '13px', color: '#171A21', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                          <span style={{ color: (diffView === 'before' ? fmtVal(r.key, r.before) : fmtVal(r.key, r.after)) === '—' ? '#B7BDC8' : '#171A21' }}>
+                            {diffView === 'before' ? fmtVal(r.key, r.before) : fmtVal(r.key, r.after)}
+                          </span>
+                          {r.changed && diffView === 'after' && fmtVal(r.key, r.before) !== '—' && (
+                            <div style={{ fontSize: '11.5px', color: '#B7BDC8', textDecoration: 'line-through', marginTop: '2px' }}>{fmtVal(r.key, r.before)}</div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Actions */}
+                  <div style={{ padding: '14px 24px', borderTop: '1px solid #EEF1F2', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                    <button type="button" onClick={() => review(reviewModal.id, 'reject')} disabled={reviewingId === reviewModal.id} style={{ padding: '10px 20px', background: 'white', color: '#D32F2F', fontWeight: 600, fontSize: '13.5px', border: '1.5px solid #F2C2C2', borderRadius: '10px', cursor: reviewingId === reviewModal.id ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}>
+                      {lang === 'th' ? 'ปฏิเสธ' : 'Reject'}
+                    </button>
+                    <button type="button" onClick={() => review(reviewModal.id, 'approve')} disabled={reviewingId === reviewModal.id} style={{ padding: '10px 22px', background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)', color: 'white', fontWeight: 600, fontSize: '13.5px', border: 'none', borderRadius: '10px', cursor: reviewingId === reviewModal.id ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: reviewingId === reviewModal.id ? 0.6 : 1 }}>
+                      {reviewingId === reviewModal.id ? '…' : (lang === 'th' ? 'อนุมัติการเปลี่ยนแปลง' : 'Approve changes')}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

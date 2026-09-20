@@ -102,10 +102,11 @@ interface SidebarProps {
   hasCompany?: boolean;
   isAdmin?: boolean;
   leadsCount?: number;
+  pendingApprovals?: number;
   user?: { initial: string; fullName: string; plan: string };
 }
 
-export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, leadsCount = 0, user }: SidebarProps) {
+export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, leadsCount = 0, pendingApprovals = 0, user }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -182,6 +183,11 @@ export function Sidebar({ locale, dict, hasCompany = false, isAdmin = false, lea
               <span style={{ flexShrink: 0, display: 'flex' }}>{entry.icon}</span>
               <span style={{ flex: 1, minWidth: 0 }}>{dict.nav[entry.labelKey]}</span>
               {entry.locked && <LockIcon />}
+              {entry.id === 'company' && pendingApprovals > 0 && (
+                <span style={{ minWidth: '18px', height: '18px', padding: '0 5px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '10.5px', fontWeight: 800, borderRadius: '999px', background: '#F04438', color: 'white', boxShadow: '0 0 0 2px rgba(240,68,56,0.25)' }}>
+                  {pendingApprovals > 99 ? '99+' : pendingApprovals}
+                </span>
+              )}
               {entry.badge && !entry.locked && (
                 <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'rgba(247,127,0,0.2)', color: '#F77F00' }}>
                   {entry.badge}

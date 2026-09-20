@@ -22,7 +22,7 @@ export default async function SettingsPage({
 
   const { data: company } = await supabase
     .from('companies')
-    .select('id, line_user_id, line_display_name, premium, plan, require_approval')
+    .select('id, line_user_id, line_display_name, premium, plan, require_approval, description, description_th, services, industry, province, address, team_size, founded_year, website, phone, email, dbd_no, line_id, buyer_only, logo_url, banner_url, banner_url_mobile')
     .eq('user_id', user?.id ?? '')
     .maybeSingle();
 
@@ -76,6 +76,7 @@ export default async function SettingsPage({
         companyId={(company as any)?.id ?? null}
         requireApproval={requireApproval}
         pendingChanges={pendingChanges as any}
+        companyCurrent={(company ?? null) as any}
       />
     </div>
   );
