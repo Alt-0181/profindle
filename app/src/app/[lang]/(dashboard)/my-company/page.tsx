@@ -123,6 +123,7 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
             fields and the Save bar — Save comes after the portfolio. */}
         <MyCompanyForm
           lang={lang} dict={dict} initialData={initialData} canEdit={canEditCompany}
+          canEditName={!access.isMember}
           companyExists={!!companyId} portfolioCount={initialProjects.length}
           showInvite={!access.isMember}
           portfolioSlot={

@@ -67,6 +67,9 @@ interface MyCompanyFormProps {
     buyerOnly: boolean;
   };
   canEdit?: boolean;
+  // Owner-only fields (the company name) stay locked for collaborators even when
+  // they can edit everything else. Company identity is the owner's to set.
+  canEditName?: boolean;
   companyExists?: boolean;
   portfolioCount?: number;
   portfolioSlot?: React.ReactNode;
@@ -81,7 +84,7 @@ const EMPTY = {
   buyerOnly: false,
 };
 
-export function MyCompanyForm({ lang, dict, initialData, canEdit = true, companyExists = false, portfolioCount = 0, portfolioSlot, showInvite = false }: MyCompanyFormProps) {
+export function MyCompanyForm({ lang, dict, initialData, canEdit = true, canEditName = true, companyExists = false, portfolioCount = 0, portfolioSlot, showInvite = false }: MyCompanyFormProps) {
   // Once the company exists, a complete profile needs at least one portfolio
   // project. The very first save is exempt (a project can't be added until the
   // company row exists) and buyer-only accounts don't need a portfolio.
@@ -352,8 +355,13 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, company
       }
 
       const payload = {
-        name: form.nameEn || null,
-        name_th: form.nameTh || form.nameEn || null, // Thai name; fall back to the EN name if left blank
+        // Company name is owner-only. A collaborator's save omits it so the name
+        // can never be changed by anyone but the owner (belt-and-braces with the
+        // disabled inputs above).
+        ...(canEditName ? {
+          name: form.nameEn || null,
+          name_th: form.nameTh || form.nameEn || null, // Thai name; fall back to the EN name if left blank
+        } : {}),
         description: form.descEn || null,
         description_th: form.descTh || null,
         services: selectedServices.length > 0 ? selectedServices : null,
@@ -486,12 +494,12 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, company
         <div style={{ marginBottom: '20px' }}>
           <div className="mc-row-2">
             <div>
-              <label style={labelStyle}>{lang === 'th' ? 'ชื่อบริษัท' : 'Company name'} <span style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>EN</span><span style={{ color: '#F77F00', fontWeight: 700 }}> *</span></label>
-              <input type="text" value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} style={inputStyle} placeholder="e.g. Acme" />
+              <label style={labelStyle}>{lang === 'th' ? 'ชื่อบริษัท' : 'Company name'} <span style={{ background: '#F0F9F9', color: '#0F6F73', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>EN</span>{canEditName && <span style={{ color: '#F77F00', fontWeight: 700 }}> *</span>}{!canEditName && <span style={{ marginLeft: '6px', fontSize: '11px', color: '#9AA0AE', fontWeight: 600 }}>🔒 {lang === 'th' ? 'เฉพาะเจ้าของ' : 'Owner only'}</span>}</label>
+              <input type="text" value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} disabled={!canEditName} style={{ ...inputStyle, ...(canEditName ? {} : { background: '#F4F5F7', color: '#9AA0AE', cursor: 'not-allowed' }) }} placeholder="e.g. Acme" />
             </div>
             <div>
-              <label style={labelStyle}>{lang === 'th' ? 'ชื่อบริษัท' : 'Company name'} <span style={{ background: '#FFF6EC', color: '#E06B00', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>TH</span></label>
-              <input type="text" value={form.nameTh} onChange={(e) => set('nameTh', e.target.value)} style={inputStyle} placeholder={lang === 'th' ? 'เช่น แอคมี' : 'e.g. Acme'} />
+              <label style={labelStyle}>{lang === 'th' ? 'ชื่อบริษัท' : 'Company name'} <span style={{ background: '#FFF6EC', color: '#E06B00', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>TH</span>{!canEditName && <span style={{ marginLeft: '6px', fontSize: '11px', color: '#9AA0AE', fontWeight: 600 }}>🔒 {lang === 'th' ? 'เฉพาะเจ้าของ' : 'Owner only'}</span>}</label>
+              <input type="text" value={form.nameTh} onChange={(e) => set('nameTh', e.target.value)} disabled={!canEditName} style={{ ...inputStyle, ...(canEditName ? {} : { background: '#F4F5F7', color: '#9AA0AE', cursor: 'not-allowed' }) }} placeholder={lang === 'th' ? 'เช่น แอคมี' : 'e.g. Acme'} />
             </div>
           </div>
           {/* Brand vs legal name hint */}
