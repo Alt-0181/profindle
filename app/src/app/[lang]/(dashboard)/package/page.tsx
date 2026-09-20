@@ -177,7 +177,7 @@ export default async function PackagePage({ params }: { params: Promise<{ lang: 
           </h2>
           <p style={{ fontSize: '14px', color: '#6B7385', lineHeight: 1.6 }}>
             {isTh
-              ? 'เมื่อผู้ซื้อประกาศหาบริการที่ตรงกับคุณ ผู้ให้บริการ Premium จะได้รับแจ้งเตือนทันทีผ่าน LINE'
+              ? 'เมื่อผู้ที่กำลังมองหาบริการประกาศหาบริการที่ตรงกับคุณ ผู้ให้บริการ Premium จะได้รับแจ้งเตือนทันทีผ่าน LINE'
               : 'When a buyer broadcasts a request that matches your services, Premium providers get it pushed to LINE in real time.'}
           </p>
         </div>

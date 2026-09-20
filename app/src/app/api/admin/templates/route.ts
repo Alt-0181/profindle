@@ -26,7 +26,7 @@ const DEFAULT_TEMPLATES = [
   {
     id: 'verified',
     name: 'Verification Status Update',
-    content: "✅ ยินดีด้วย! บริษัท {{company_name}} ได้รับการยืนยันแล้ว\n\nโปรไฟล์ของคุณจะแสดงเครื่องหมายยืนยัน (Verified) ให้ผู้ซื้อเห็นความน่าเชื่อถือของคุณมากขึ้น\n\n—\n\n✅ Congratulations! {{company_name}} is now verified.\n\nYour profile now shows the Verified badge, so buyers can see you're a trusted provider.",
+    content: "✅ ยินดีด้วย! บริษัท {{company_name}} ได้รับการยืนยันแล้ว\n\nโปรไฟล์ของคุณจะแสดงเครื่องหมายยืนยัน (Verified) ให้ผู้ที่กำลังมองหาบริการเห็นความน่าเชื่อถือของคุณมากขึ้น\n\n—\n\n✅ Congratulations! {{company_name}} is now verified.\n\nYour profile now shows the Verified badge, so buyers can see you're a trusted provider.",
   },
 ];
 

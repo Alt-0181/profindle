@@ -497,7 +497,7 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, company
             </div>
             <div style={{ fontSize: '13px', color: '#6B7385', marginTop: '4px', lineHeight: 1.5 }}>
               {lang === 'th'
-                ? 'เลือกช่องนี้หากคุณเป็นผู้ซื้อ ไม่ใช่ผู้ให้บริการ — คุณจะไม่ได้รับการแจ้งเตือนผ่าน LINE เกี่ยวกับคำขอจากลูกค้า (การแจ้งเตือนนี้มีไว้สำหรับผู้ให้บริการที่ต้องการหาลูกค้า)'
+                ? 'เลือกช่องนี้หากคุณเป็นผู้ที่กำลังมองหาบริการ ไม่ใช่ผู้ให้บริการ — คุณจะไม่ได้รับการแจ้งเตือนผ่าน LINE เกี่ยวกับคำขอจากลูกค้า (การแจ้งเตือนนี้มีไว้สำหรับผู้ให้บริการที่ต้องการหาลูกค้า)'
                 : "Check this if you're a buyer, not a provider. You won't receive LINE notifications about new client requests — those are only for providers looking for leads."}
             </div>
           </div>

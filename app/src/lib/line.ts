@@ -160,7 +160,7 @@ export function makeVipStatusMessage(plan: string | null, planExpiresAt: string 
     const expiryLine = expiry ? `ใช้งานได้ถึง ${expiry} / Active until ${expiry}\n` : '';
     return {
       type: 'text',
-      text: `✨ สมาชิก Premium / Premium Member\n${expiryLine}\nคุณได้รับสิทธิ์แจ้งเตือนงานก่อนใคร เมื่อมีผู้ซื้อโพสต์ประกาศที่ตรงกับบริการของคุณ\nYou get priority job alerts the moment a buyer posts a matching request.`,
+      text: `✨ สมาชิก Premium / Premium Member\n${expiryLine}\nคุณได้รับสิทธิ์แจ้งเตือนงานก่อนใคร เมื่อมีผู้ที่กำลังมองหาบริการโพสต์ประกาศที่ตรงกับบริการของคุณ\nYou get priority job alerts the moment a buyer posts a matching request.`,
     };
   }
   return {

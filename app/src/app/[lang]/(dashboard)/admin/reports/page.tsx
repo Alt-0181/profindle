@@ -93,10 +93,10 @@ export default async function AdminReportsPage({ params }: { params: Promise<{ l
 
       {/* Search Insights — the demand radar */}
       <div style={{ marginTop: '32px' }}>
-        <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{isTh ? 'ข้อมูลการค้นหา (ความต้องการของผู้ซื้อ)' : 'Search Insights (buyer demand)'}</h2>
+        <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#171A21', marginBottom: '4px' }}>{isTh ? 'ข้อมูลการค้นหา (ความต้องการของผู้ที่กำลังมองหาบริการ)' : 'Search Insights (buyer demand)'}</h2>
         <p style={{ fontSize: '13px', color: '#6B7385', marginBottom: '16px', maxWidth: '640px' }}>
           {isTh
-            ? 'สิ่งที่ผู้ซื้อค้นหา โดยเฉพาะการค้นหาที่ไม่พบผลลัพธ์ — ใช้ตัดสินใจว่าจะเพิ่มผู้ให้บริการหมวดใดต่อไป'
+            ? 'สิ่งที่ผู้ที่กำลังมองหาบริการค้นหา โดยเฉพาะการค้นหาที่ไม่พบผลลัพธ์ — ใช้ตัดสินใจว่าจะเพิ่มผู้ให้บริการหมวดใดต่อไป'
             : 'What buyers search for — especially searches that found nothing. Use the “No results” list to decide which providers to add next.'}
         </p>
 

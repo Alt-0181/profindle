@@ -17,7 +17,7 @@ function getAdmin() {
 // is missing/empty. {{company_name}} is substituted before sending.
 const DEFAULT_VERIFIED =
   '✅ ยินดีด้วย! บริษัท {{company_name}} ได้รับการยืนยันแล้ว\n\n' +
-  'โปรไฟล์ของคุณจะแสดงเครื่องหมายยืนยัน (Verified) ให้ผู้ซื้อเห็นความน่าเชื่อถือของคุณมากขึ้น\n\n' +
+  'โปรไฟล์ของคุณจะแสดงเครื่องหมายยืนยัน (Verified) ให้ผู้ที่กำลังมองหาบริการเห็นความน่าเชื่อถือของคุณมากขึ้น\n\n' +
   '—\n\n' +
   '✅ Congratulations! {{company_name}} is now verified.\n\n' +
   "Your profile now shows the Verified badge, so buyers can see you're a trusted provider.";
