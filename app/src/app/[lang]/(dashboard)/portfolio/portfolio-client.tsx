@@ -114,11 +114,18 @@ interface PortfolioClientProps {
   companyServices: string[];
   initialProjects: Project[];
   canEdit?: boolean;
+  // A collaborator (not the owner). When true AND the owner requires approval,
+  // portfolio changes are queued for review instead of applied live.
+  isMember?: boolean;
+  requireApproval?: boolean;
 }
 
-export function PortfolioClient({ lang, dict, companyId, companyServices, initialProjects, canEdit = true }: PortfolioClientProps) {
+export function PortfolioClient({ lang, dict, companyId, companyServices, initialProjects, canEdit = true, isMember = false, requireApproval = false }: PortfolioClientProps) {
   const t = dict.portfolio;
   const router = useRouter();
+  // When a collaborator's changes must be approved, ops are queued (not live).
+  const queueMode = isMember && requireApproval;
+  const [queuedMsg, setQueuedMsg] = useState(false);
 
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [showModal, setShowModal] = useState(false);
@@ -318,7 +325,7 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
         imageUrls[i] = await readUploadUrl(res, i);
       }
 
-      const { error } = await supabase.from('portfolio_projects').update({
+      const projPayload = {
         title: form.title,
         client: form.confidential ? null : form.client || null,
         confidential: form.confidential,
@@ -332,7 +339,21 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
         challenge_th: form.challengeTh || null,
         images: imageUrls,
         services: selectedServices,
-      }).eq('id', editingId);
+      };
+
+      // Collaborator under approval → queue for the owner instead of editing live.
+      if (queueMode) {
+        const res = await fetch('/api/collab/portfolio', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ op: 'update', companyId, projectId: editingId, payload: projPayload }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Save failed');
+        setShowModal(false); setEditingId(null); resetModal(); setQueuedMsg(true);
+        return;
+      }
+
+      const { error } = await supabase.from('portfolio_projects').update(projPayload).eq('id', editingId);
       if (error) throw error;
 
       // Update card state using only DB URLs — no blobs, no previewUrls, no coverImage
@@ -374,6 +395,48 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
       if (!user || !companyId) throw new Error('No company profile yet');
 
       const projectId = crypto.randomUUID();
+
+      // Collaborator under approval → upload images to this project's id (no live
+      // row yet; the upload route authorizes via companyId), then queue a create
+      // request. The row is inserted only when the owner approves.
+      if (queueMode) {
+        const imageUrls: string[] = Array(5).fill('');
+        for (let i = 0; i < imageFiles.length; i++) {
+          const file = imageFiles[i];
+          if (!file) continue;
+          const fd = new FormData();
+          fd.append('file', file);
+          fd.append('projectId', projectId);
+          fd.append('slotIndex', String(i));
+          fd.append('companyId', companyId);
+          const res = await fetch('/api/portfolio-upload', { method: 'POST', body: fd });
+          imageUrls[i] = await readUploadUrl(res, i);
+        }
+        const projPayload = {
+          id: projectId,
+          title: form.title,
+          client: form.confidential ? null : form.client || null,
+          confidential: form.confidential,
+          year: form.year ? parseInt(form.year) : null,
+          budget: form.budget || null,
+          description: form.descEn || null,
+          description_th: form.descTh || null,
+          results: form.resultsEn || null,
+          results_th: form.resultsTh || null,
+          challenge: form.challengeEn || null,
+          challenge_th: form.challengeTh || null,
+          images: imageUrls,
+          services: selectedServices,
+        };
+        const res = await fetch('/api/collab/portfolio', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ op: 'create', companyId, projectId, payload: projPayload }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Save failed');
+        setShowModal(false); resetModal(); setQueuedMsg(true);
+        return;
+      }
 
       // Insert row first so upload route can verify ownership
       const { error: insertErr } = await supabase.from('portfolio_projects').insert({
@@ -452,6 +515,19 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
     setDeleting(true);
     setDeleteError('');
     try {
+      // Collaborator under approval → queue the deletion for the owner. Don't
+      // touch the live row or its images until approved.
+      if (queueMode && companyId) {
+        const res = await fetch('/api/collab/portfolio', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ op: 'delete', companyId, projectId: projId }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Delete failed');
+        setConfirmDeleteId(null); setQueuedMsg(true);
+        return;
+      }
+
       const supabase = createClient();
       const proj = projects.find(p => p.id === projId);
       // Best-effort: remove this project's image files from storage first.
@@ -476,6 +552,25 @@ export function PortfolioClient({ lang, dict, companyId, companyServices, initia
 
   return (
     <div>
+      {/* Sent-for-approval confirmation (collaborator under approval) */}
+      {queuedMsg && (
+        <div onClick={() => { setQueuedMsg(false); router.refresh(); }} style={{ position: 'fixed', inset: 0, background: 'rgba(23,26,33,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', zIndex: 1000, fontFamily: "'Inter','Noto Sans Thai',sans-serif" }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '18px', width: '100%', maxWidth: '420px', padding: '32px 28px', boxSizing: 'border-box', textAlign: 'center' }}>
+            <div style={{ width: '52px', height: '52px', borderRadius: '999px', background: '#EAF7EF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0F8A4C" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+            </div>
+            <h2 style={{ fontSize: '19px', fontWeight: 800, color: '#171A21', marginBottom: '8px' }}>{lang === 'th' ? 'ส่งให้เจ้าของอนุมัติแล้ว' : 'Sent for approval'}</h2>
+            <p style={{ fontSize: '14px', color: '#6B7385', lineHeight: 1.6, marginBottom: '22px' }}>
+              {lang === 'th'
+                ? 'การเปลี่ยนแปลงผลงานของคุณถูกส่งให้เจ้าของบริษัทตรวจสอบ เมื่อได้รับการอนุมัติแล้วจึงจะแสดงผล'
+                : 'Your portfolio change was sent to the company owner for review. It’ll appear once approved.'}
+            </p>
+            <button type="button" onClick={() => { setQueuedMsg(false); router.refresh(); }} style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)', color: 'white', fontWeight: 600, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+              {lang === 'th' ? 'รับทราบ' : 'Got it'}
+            </button>
+          </div>
+        </div>
+      )}
       <input
         ref={fileInputRef}
         type="file"

@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
-
-function getAdmin() {
-  return createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } }
-  );
-}
+import { getAdmin, resolveCollabRole } from '@/lib/collab-access';
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -19,23 +11,31 @@ export async function POST(request: NextRequest) {
   const file = formData.get('file') as File | null;
   const projectId = formData.get('projectId') as string | null;
   const slotIndex = formData.get('slotIndex') as string | null;
+  const bodyCompanyId = formData.get('companyId') as string | null;
 
   if (!file || !projectId || slotIndex === null) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
   }
 
-  // Verify the project belongs to this user
-  const { data: project } = await supabase
+  const admin = getAdmin();
+
+  // Authorize by portfolio-edit rights on the target company. The project may
+  // not exist yet (a collaborator adding a project under approval — the row is
+  // created only when the owner approves), so fall back to the companyId passed
+  // by the client and verify membership against that.
+  const { data: project } = await admin
     .from('portfolio_projects')
-    .select('id')
+    .select('id, company_id')
     .eq('id', projectId)
-    .single();
-  if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    .maybeSingle();
+  const companyId = (project as any)?.company_id ?? bodyCompanyId ?? null;
+  if (!companyId) return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+  const role = await resolveCollabRole(admin, user.id, companyId);
+  if (!role || !role.canEditPortfolio) return NextResponse.json({ error: 'Not allowed' }, { status: 403 });
 
   const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
   const path = `${user.id}/${projectId}/${slotIndex}.${ext}`;
 
-  const admin = getAdmin();
   const { error: uploadErr } = await admin.storage
     .from('portfolio-images')
     .upload(path, file, { upsert: true });

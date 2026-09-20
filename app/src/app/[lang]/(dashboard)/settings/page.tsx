@@ -48,6 +48,14 @@ export default async function SettingsPage({
         .order('created_at', { ascending: true })).data ?? []
     : [];
 
+  // Current portfolio projects (for before/after diffing of portfolio changes).
+  const portfolioCurrent = isOwner
+    ? (await getAdmin()
+        .from('portfolio_projects')
+        .select('id, title, client, confidential, year, budget, description, description_th, results, results_th, challenge, challenge_th, images, services')
+        .eq('company_id', (company as any).id)).data ?? []
+    : [];
+
   const lineUserId = (company as any)?.line_user_id ?? null;
   const lineDisplayName = (company as any)?.line_display_name ?? null;
   const isPremium = !!(
@@ -77,6 +85,7 @@ export default async function SettingsPage({
         requireApproval={requireApproval}
         pendingChanges={pendingChanges as any}
         companyCurrent={(company ?? null) as any}
+        portfolioCurrent={portfolioCurrent as any}
       />
     </div>
   );

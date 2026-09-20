@@ -152,7 +152,7 @@ export default async function MyCompanyPage({ params }: { params: Promise<{ lang
           showInvite={!access.isMember}
           portfolioSlot={
             <div style={{ marginTop: '36px', paddingTop: '28px', borderTop: '1px solid #EEF1F2' }}>
-              <PortfolioClient lang={lang} dict={dict} companyId={companyId} companyServices={companyServices} initialProjects={initialProjects} canEdit={canEditPortfolio} />
+              <PortfolioClient lang={lang} dict={dict} companyId={companyId} companyServices={companyServices} initialProjects={initialProjects} canEdit={canEditPortfolio} isMember={access.isMember} requireApproval={!!(company as any)?.require_approval} />
             </div>
           }
         />

@@ -22,6 +22,7 @@ interface SettingsClientProps {
   requireApproval?: boolean;
   pendingChanges?: PendingChange[];
   companyCurrent?: Record<string, any> | null;
+  portfolioCurrent?: Record<string, any>[];
 }
 
 export interface TeamMember {
@@ -42,7 +43,7 @@ export interface PendingChange {
   created_at: string;
 }
 
-export function SettingsClient({ lang, dict, initialLineUserId, initialLineDisplayName, userEmail, userName, lineOAuthResult, initialSection, justInvited = false, isPremium, isOwner = false, members = [], companyId = null, requireApproval = false, pendingChanges = [], companyCurrent = null }: SettingsClientProps) {
+export function SettingsClient({ lang, dict, initialLineUserId, initialLineDisplayName, userEmail, userName, lineOAuthResult, initialSection, justInvited = false, isPremium, isOwner = false, members = [], companyId = null, requireApproval = false, pendingChanges = [], companyCurrent = null, portfolioCurrent = [] }: SettingsClientProps) {
   const t = dict.settings;
   const router = useRouter();
   const [activeSection, setActiveSection] = useState(initialSection ?? 'account');
@@ -151,12 +152,6 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
     logo_url: { th: 'โลโก้', en: 'Logo' },
     banner_url: { th: 'แบนเนอร์', en: 'Banner' },
   };
-  const previewFields = (payload: Record<string, any> | null): string[] => {
-    if (!payload) return [];
-    return Object.keys(payload)
-      .filter(k => !k.startsWith('banner_focus') && FIELD_LABELS[k])
-      .map(k => FIELD_LABELS[k][lang === 'th' ? 'th' : 'en']);
-  };
 
   // Normalize a value for equality (treats null/''/undefined the same).
   const norm = (v: any): string => {
@@ -169,13 +164,46 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
     if (Array.isArray(v)) return v.length ? v.join(', ') : '—';
     if (typeof v === 'boolean') return v ? (lang === 'th' ? 'ใช่' : 'Yes') : (lang === 'th' ? 'ไม่ใช่' : 'No');
     if (k === 'logo_url' || k === 'banner_url' || k === 'banner_url_mobile') return lang === 'th' ? 'มีรูปภาพใหม่' : 'New image';
+    if (k === 'images') { const n = Array.isArray(v) ? v.filter(Boolean).length : 0; return n ? (lang === 'th' ? `${n} รูป` : `${n} image${n > 1 ? 's' : ''}`) : '—'; }
     if (k === 'line_id') return String(v).replace(/^(oa|id|phone):/, '');
     return String(v);
   };
+  const PORTFOLIO_LABELS: Record<string, { th: string; en: string }> = {
+    title: { th: 'ชื่อผลงาน', en: 'Title' },
+    client: { th: 'ลูกค้า', en: 'Client' },
+    year: { th: 'ปี', en: 'Year' },
+    budget: { th: 'งบประมาณ', en: 'Budget' },
+    services: { th: 'บริการ', en: 'Services' },
+    description: { th: 'รายละเอียด (EN)', en: 'Description (EN)' },
+    description_th: { th: 'รายละเอียด (TH)', en: 'Description (TH)' },
+    results: { th: 'ผลลัพธ์ (EN)', en: 'Results (EN)' },
+    results_th: { th: 'ผลลัพธ์ (TH)', en: 'Results (TH)' },
+    challenge: { th: 'ความท้าทาย (EN)', en: 'Challenge (EN)' },
+    challenge_th: { th: 'ความท้าทาย (TH)', en: 'Challenge (TH)' },
+    images: { th: 'รูปภาพ', en: 'Images' },
+  };
+
+  const portfolioById = (id: string | null): Record<string, any> =>
+    (portfolioCurrent.find(p => p.id === id) ?? {});
+
   // The labelled fields present in a change payload, each flagged if it differs
-  // from the live company value.
+  // from the current value. Handles company info and portfolio (update/create).
   const diffRows = (pc: PendingChange | null): { key: string; label: string; before: any; after: any; changed: boolean }[] => {
-    if (!pc?.payload) return [];
+    if (!pc) return [];
+    if (pc.entity === 'portfolio_project') {
+      const payload = pc.payload ?? {};
+      const cur = pc.op === 'create' ? {} : portfolioById(pc.entity_id);
+      return Object.keys(payload)
+        .filter(k => PORTFOLIO_LABELS[k])
+        .map(k => ({
+          key: k,
+          label: PORTFOLIO_LABELS[k][lang === 'th' ? 'th' : 'en'],
+          before: (cur as any)[k],
+          after: (payload as any)[k],
+          changed: pc.op === 'create' ? true : norm((cur as any)[k]) !== norm((payload as any)[k]),
+        }));
+    }
+    if (!pc.payload) return [];
     const cur = companyCurrent ?? {};
     return Object.keys(pc.payload)
       .filter(k => !k.startsWith('banner_focus') && FIELD_LABELS[k])
@@ -186,6 +214,18 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
         after: (pc.payload as any)[k],
         changed: norm((cur as any)[k]) !== norm((pc.payload as any)[k]),
       }));
+  };
+
+  // A short title for a pending change (project name / company info).
+  const changeTitle = (pc: PendingChange): string => {
+    if (pc.entity === 'portfolio_project') {
+      const name = (pc.payload as any)?.title || portfolioById(pc.entity_id)?.title || (lang === 'th' ? 'ผลงาน' : 'Project');
+      const opLabel = pc.op === 'create' ? (lang === 'th' ? 'เพิ่มผลงาน' : 'Add project')
+        : pc.op === 'delete' ? (lang === 'th' ? 'ลบผลงาน' : 'Delete project')
+        : (lang === 'th' ? 'แก้ไขผลงาน' : 'Edit project');
+      return `${opLabel}: ${name}`;
+    }
+    return lang === 'th' ? 'ข้อมูลบริษัท' : 'Company info';
   };
 
   const removeMember = async (id: string) => {
@@ -458,25 +498,28 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {pendingChanges.map(pc => {
-                    const fields = previewFields(pc.payload);
-                    const kind = pc.entity === 'company'
-                      ? (lang === 'th' ? 'ข้อมูลบริษัท' : 'Company info')
-                      : (lang === 'th' ? 'ผลงาน' : 'Portfolio');
+                    const isDelete = pc.entity === 'portfolio_project' && pc.op === 'delete';
                     return (
                       <div key={pc.id} style={{ background: 'white', border: '1px solid #EEE2C6', borderRadius: '10px', padding: '12px 14px' }}>
-                        <div style={{ fontSize: '13px', color: '#171A21', fontWeight: 600, marginBottom: '2px' }}>{kind}</div>
-                        <div style={{ fontSize: '12px', color: '#6B7385', marginBottom: fields.length ? '8px' : '10px' }}>
+                        <div style={{ fontSize: '13px', color: isDelete ? '#D32F2F' : '#171A21', fontWeight: 600, marginBottom: '2px' }}>{changeTitle(pc)}</div>
+                        <div style={{ fontSize: '12px', color: '#6B7385', marginBottom: '8px' }}>
                           {pc.author_email || (lang === 'th' ? 'ผู้ร่วมจัดการ' : 'A collaborator')}
                         </div>
-                        {(() => { const ch = diffRows(pc).filter(r => r.changed).length; return ch > 0 ? (
+                        {isDelete ? (
+                          <div style={{ fontSize: '12px', color: '#D32F2F', fontWeight: 600, marginBottom: '10px' }}>
+                            {lang === 'th' ? 'ขอลบผลงานนี้ออกจากโปรไฟล์' : 'Requests removing this project from the profile'}
+                          </div>
+                        ) : (() => { const ch = diffRows(pc).filter(r => r.changed).length; return ch > 0 ? (
                           <div style={{ fontSize: '12px', color: '#8A5A12', fontWeight: 600, marginBottom: '10px' }}>
                             {lang === 'th' ? `${ch} หัวข้อที่เปลี่ยนแปลง` : `${ch} field${ch > 1 ? 's' : ''} changed`}
                           </div>
                         ) : null; })()}
                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                          <button type="button" onClick={() => { setDiffView('after'); setReviewModal(pc); }} style={{ padding: '7px 16px', background: 'white', color: '#0F6F73', fontWeight: 600, fontSize: '12.5px', border: '1.5px solid rgba(15,111,115,0.3)', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit' }}>
-                            {lang === 'th' ? 'ดูก่อน–หลัง' : 'View before/after'}
-                          </button>
+                          {!isDelete && (
+                            <button type="button" onClick={() => { setDiffView('after'); setReviewModal(pc); }} style={{ padding: '7px 16px', background: 'white', color: '#0F6F73', fontWeight: 600, fontSize: '12.5px', border: '1.5px solid rgba(15,111,115,0.3)', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                              {lang === 'th' ? 'ดูก่อน–หลัง' : 'View before/after'}
+                            </button>
+                          )}
                           <button type="button" onClick={() => review(pc.id, 'approve')} disabled={reviewingId === pc.id} style={{ padding: '7px 16px', background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)', color: 'white', fontWeight: 600, fontSize: '12.5px', border: 'none', borderRadius: '8px', cursor: reviewingId === pc.id ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: reviewingId === pc.id ? 0.6 : 1 }}>
                             {lang === 'th' ? 'อนุมัติ' : 'Approve'}
                           </button>
@@ -499,7 +542,7 @@ export function SettingsClient({ lang, dict, initialLineUserId, initialLineDispl
                   <div style={{ padding: '22px 24px 0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
                       <div>
-                        <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#171A21', margin: 0 }}>{lang === 'th' ? 'ตรวจสอบการเปลี่ยนแปลง' : 'Review changes'}</h3>
+                        <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#171A21', margin: 0 }}>{changeTitle(reviewModal)}</h3>
                         <p style={{ fontSize: '12.5px', color: '#6B7385', margin: '3px 0 0' }}>{reviewModal.author_email || (lang === 'th' ? 'ผู้ร่วมจัดการ' : 'A collaborator')}</p>
                       </div>
                       <button type="button" onClick={() => setReviewModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9AA0AE', fontSize: '22px', lineHeight: 1, padding: '2px 6px' }}>×</button>
