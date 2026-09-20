@@ -472,7 +472,7 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, canEdit
   return (
     <>
     {saveDone && (
-      <div onClick={() => router.refresh()} style={{ position: 'fixed', inset: 0, background: 'rgba(23,26,33,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', zIndex: 1000, fontFamily: "'Inter','Noto Sans Thai',sans-serif" }}>
+      <div onClick={() => { setSaveDone(false); router.refresh(); }} style={{ position: 'fixed', inset: 0, background: 'rgba(23,26,33,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', zIndex: 1000, fontFamily: "'Inter','Noto Sans Thai',sans-serif" }}>
         <div onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '18px', width: '100%', maxWidth: '420px', padding: '32px 28px', boxSizing: 'border-box', textAlign: 'center' }}>
           <div style={{ width: '52px', height: '52px', borderRadius: '999px', background: '#EAF7EF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0F8A4C" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
@@ -491,7 +491,7 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, canEdit
                   ? 'โปรไฟล์ของคุณจะแสดงต่อสาธารณะหลังจากทีมงานตรวจสอบข้อมูลเรียบร้อยแล้ว'
                   : 'Your profile will go live once our team has reviewed and verified your information.')}
           </p>
-          <button type="button" onClick={() => router.refresh()} style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)', color: 'white', fontWeight: 600, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button type="button" onClick={() => { setSaveDone(false); router.refresh(); }} style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)', color: 'white', fontWeight: 600, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
             {lang === 'th' ? 'รับทราบ' : 'Got it'}
           </button>
         </div>
