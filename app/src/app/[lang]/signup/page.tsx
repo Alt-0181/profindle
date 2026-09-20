@@ -13,7 +13,7 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
   const supabase = createClient();
 
   const [step, setStep] = useState<'register' | 'verify'>('register');
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+  const [form, setForm] = useState({ name: '', companyName: '', email: '', password: '', confirmPassword: '' });
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -35,6 +35,7 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
     title: 'สร้างบัญชีของคุณ',
     sub: 'เข้าร่วม Profindle — ฟรี ไม่ต้องใช้บัตรเครดิต',
     nameLabel: 'ชื่อ-นามสกุล', namePh: 'ชื่อจริงของคุณ',
+    companyLabel: 'ชื่อบริษัท', companyPh: 'เช่น แอคมี',
     emailLabel: 'อีเมล', emailPh: 'you@company.com',
     pwLabel: 'รหัสผ่าน', pwPh: 'อย่างน้อย 8 ตัวอักษร',
     confirmPwLabel: 'ยืนยันรหัสผ่าน', confirmPwPh: 'พิมพ์รหัสผ่านอีกครั้ง',
@@ -50,6 +51,7 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
     title: 'Create your account',
     sub: 'Join Profindle — free, no credit card required',
     nameLabel: 'Full name', namePh: 'Your full name',
+    companyLabel: 'Company name', companyPh: 'e.g. Acme',
     emailLabel: 'Email address', emailPh: 'you@company.com',
     pwLabel: 'Password', pwPh: 'At least 8 characters',
     confirmPwLabel: 'Confirm password', confirmPwPh: 'Re-enter your password',
@@ -65,6 +67,9 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Company name is collected at signup so every new account owns a company
+    // from the start (skipped when claiming an existing business).
+    if (!claimId && !form.companyName.trim()) { setError(isTh ? 'กรุณากรอกชื่อบริษัท' : 'Enter your company name'); return; }
     if (form.password.length < 8) { setError(isTh ? 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' : 'Password must be at least 8 characters'); return; }
     if (form.password !== form.confirmPassword) { setError(isTh ? 'รหัสผ่านไม่ตรงกัน' : 'Passwords do not match'); return; }
     if (captchaEnabled && !captchaToken) { setError(isTh ? 'กรุณายืนยันว่าคุณไม่ใช่บอท' : 'Please complete the verification below'); return; }
@@ -73,7 +78,7 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
     const { error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
-      options: { data: { full_name: form.name }, ...(captchaToken ? { captchaToken } : {}) },
+      options: { data: { full_name: form.name, company_name: form.companyName.trim() }, ...(captchaToken ? { captchaToken } : {}) },
     });
     if (error) { setError(error.message); setLoading(false); return; }
     setStep('verify');
@@ -110,14 +115,22 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
       setShake(true); setTimeout(() => setShake(false), 500);
       setLoading(false); return;
     }
-    // If this signup came from "Claim this business", map the company to the new
-    // account, then send them to My Company to upload their registration doc.
+    // If this signup came from "Claim this business", map the existing company
+    // to the new account instead of creating one.
     if (claimId) {
       try { await fetch('/api/claim', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ companyId: claimId }) }); } catch { /* fall through to My Company either way */ }
       router.push(`/${lang}/my-company?claimed=1`);
       return;
     }
-    router.push(`/${lang}/home`);
+    // Otherwise create the account's company from the name given at signup, so
+    // every new owner has a company from the start (no "no company yet" states).
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && form.companyName.trim()) {
+        await supabase.from('companies').insert({ name: form.companyName.trim(), user_id: user.id });
+      }
+    } catch { /* if it fails they can still create it on My Company */ }
+    router.push(`/${lang}/my-company`);
   };
 
   const inputStyle: React.CSSProperties = {
@@ -186,6 +199,14 @@ export default function SignupPage({ params }: { params: Promise<{ lang: string 
                     onFocus={e => { e.target.style.borderColor = '#0F6F73'; e.target.style.boxShadow = '0 0 0 3px rgba(15,111,115,0.12)'; }}
                     onBlur={e => { e.target.style.borderColor = '#E4E7ED'; e.target.style.boxShadow = 'none'; }} />
                 </div>
+                {!claimId && (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#171A21', marginBottom: '8px' }}>{t.companyLabel}</label>
+                    <input type="text" value={form.companyName} onChange={e => setForm({ ...form, companyName: e.target.value })} placeholder={t.companyPh} required style={inputStyle}
+                      onFocus={e => { e.target.style.borderColor = '#0F6F73'; e.target.style.boxShadow = '0 0 0 3px rgba(15,111,115,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = '#E4E7ED'; e.target.style.boxShadow = 'none'; }} />
+                  </div>
+                )}
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#171A21', marginBottom: '8px' }}>{t.emailLabel}</label>
                   <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder={t.emailPh} required style={inputStyle}
