@@ -95,6 +95,7 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, company
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [saveDone, setSaveDone] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(initialData?.logoUrl ?? null);
   const [logoDisplayUrl, setLogoDisplayUrl] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
@@ -402,10 +403,9 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, company
       // Refresh the cached public search directory so profile edits appear
       // right away (fire-and-forget — never block the save on it).
       fetch('/api/revalidate-companies', { method: 'POST' }).catch(() => {});
-      // Show the success toast briefly, then refresh so the (now-saved)
-      // company unlocks the Portfolio section on this same page — providers
-      // add their work in one flow instead of being sent elsewhere.
-      setTimeout(() => router.refresh(), 900);
+      // Confirm with a popup — its OK button refreshes so the (now-saved)
+      // company unlocks the Portfolio section on this same page.
+      setSaveDone(true);
     } catch (err: any) {
       console.error('Save failed:', err.message);
       setSaveError(err?.message ?? (lang === 'th' ? 'บันทึกไม่สำเร็จ กรุณาลองใหม่' : 'Save failed. Please try again.'));
@@ -438,12 +438,57 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, company
 
   return (
     <>
+    {saveDone && (
+      <div onClick={() => router.refresh()} style={{ position: 'fixed', inset: 0, background: 'rgba(23,26,33,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', zIndex: 1000, fontFamily: "'Inter','Noto Sans Thai',sans-serif" }}>
+        <div onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '18px', width: '100%', maxWidth: '420px', padding: '32px 28px', boxSizing: 'border-box', textAlign: 'center' }}>
+          <div style={{ width: '52px', height: '52px', borderRadius: '999px', background: '#EAF7EF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0F8A4C" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+          </div>
+          <h2 style={{ fontSize: '19px', fontWeight: 800, color: '#171A21', marginBottom: '8px' }}>{lang === 'th' ? 'บันทึกสำเร็จ!' : 'Saved successfully!'}</h2>
+          <p style={{ fontSize: '14px', color: '#6B7385', lineHeight: 1.6, marginBottom: '22px' }}>
+            {lang === 'th'
+              ? 'โปรไฟล์ของคุณจะแสดงต่อสาธารณะหลังจากทีมงานตรวจสอบข้อมูลเรียบร้อยแล้ว'
+              : 'Your profile will go live once our team has reviewed and verified your information.'}
+          </p>
+          <button type="button" onClick={() => router.refresh()} style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg,#0F6F73,#1A9DA3)', color: 'white', fontWeight: 600, fontSize: '15px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+            {lang === 'th' ? 'รับทราบ' : 'Got it'}
+          </button>
+        </div>
+      </div>
+    )}
     <form id="my-company-form" onSubmit={handleSave}>
       <style>{`
         .mc-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .mc-line { display: grid; grid-template-columns: 180px 1fr; gap: 8px; }
         @media (max-width: 640px) { .mc-row-2 { grid-template-columns: 1fr; } .mc-line { grid-template-columns: 1fr; } }
       `}</style>
+
+      {/* Delegate setup at the top: once the company exists (created at signup),
+          the owner sees the name in the header and can hand off right away. */}
+      {showInvite && <QuickInvite lang={lang} hasCompany={companyExists} companyName={form.nameEn} />}
+
+      {/* Buyer-only toggle */}
+      <div style={sectionStyle}>
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={form.buyerOnly}
+            onChange={(e) => { setForm((prev) => ({ ...prev, buyerOnly: e.target.checked })); setSaved(false); }}
+            style={{ width: '18px', height: '18px', marginTop: '2px', accentColor: '#0F6F73', flexShrink: 0, cursor: 'pointer' }}
+          />
+          <div>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: '#171A21' }}>
+              {lang === 'th' ? 'ฉันต้องการค้นหาและจ้างผู้ให้บริการเท่านั้น' : "I'm only here to find and hire service providers"}
+            </div>
+            <div style={{ fontSize: '13px', color: '#6B7385', marginTop: '4px', lineHeight: 1.5 }}>
+              {lang === 'th'
+                ? 'เลือกช่องนี้หากคุณเป็นผู้ที่กำลังมองหาบริการ ไม่ใช่ผู้ให้บริการ — คุณจะไม่ได้รับการแจ้งเตือนผ่าน LINE เกี่ยวกับคำขอจากลูกค้า (การแจ้งเตือนนี้มีไว้สำหรับผู้ให้บริการที่ต้องการหาลูกค้า)'
+                : "Check this if you're a buyer, not a provider. You won't receive LINE notifications about new client requests — those are only for providers looking for leads."}
+            </div>
+          </div>
+        </label>
+      </div>
+
       {/* ✨ AI Auto-fill from website */}
       <div style={{ ...sectionStyle, background: 'linear-gradient(135deg,#F0F9F9,#EAF6F6)', border: '1.5px solid rgba(15,111,115,0.25)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
@@ -482,28 +527,6 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, company
             {autofillMsg.text}
           </div>
         )}
-      </div>
-
-      {/* Buyer-only toggle */}
-      <div style={sectionStyle}>
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer' }}>
-          <input
-            type="checkbox"
-            checked={form.buyerOnly}
-            onChange={(e) => { setForm((prev) => ({ ...prev, buyerOnly: e.target.checked })); setSaved(false); }}
-            style={{ width: '18px', height: '18px', marginTop: '2px', accentColor: '#0F6F73', flexShrink: 0, cursor: 'pointer' }}
-          />
-          <div>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: '#171A21' }}>
-              {lang === 'th' ? 'ฉันต้องการค้นหาและจ้างผู้ให้บริการเท่านั้น' : "I'm only here to find and hire service providers"}
-            </div>
-            <div style={{ fontSize: '13px', color: '#6B7385', marginTop: '4px', lineHeight: 1.5 }}>
-              {lang === 'th'
-                ? 'เลือกช่องนี้หากคุณเป็นผู้ที่กำลังมองหาบริการ ไม่ใช่ผู้ให้บริการ — คุณจะไม่ได้รับการแจ้งเตือนผ่าน LINE เกี่ยวกับคำขอจากลูกค้า (การแจ้งเตือนนี้มีไว้สำหรับผู้ให้บริการที่ต้องการหาลูกค้า)'
-                : "Check this if you're a buyer, not a provider. You won't receive LINE notifications about new client requests — those are only for providers looking for leads."}
-            </div>
-          </div>
-        </label>
       </div>
 
       {/* Basic Information */}
@@ -659,9 +682,6 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, company
         </div>
       </div>
 
-      {/* Delegate setup: invite a teammate to fill in the rest. Placed right
-          after the name so the invite reuses the name typed above. */}
-      {showInvite && <QuickInvite lang={lang} hasCompany={companyExists} companyName={form.nameEn} />}
 
       {/* Profile Branding */}
       <div style={sectionStyle}>
