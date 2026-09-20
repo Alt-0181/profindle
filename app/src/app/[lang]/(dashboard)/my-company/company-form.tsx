@@ -276,9 +276,12 @@ export function MyCompanyForm({ lang, dict, initialData, canEdit = true, canEdit
       // (i.e. the user hasn't edited it) — this lets a fresh URL replace stale data,
       // including clearing a value the new site doesn't have, while preserving manual edits.
       const snap = lastAutofillRef.current.fields;
+      // NOTE: `address` is deliberately NOT auto-filled. That field holds a
+      // Google Maps link, but the AI extracts a plain street address from the
+      // site — the wrong thing. Leave it for the user to paste the Maps link.
       const incoming: Record<string, string> = {
         nameEn: d.nameEn || d.nameTh || '', nameTh: d.nameTh ?? '', descEn: d.descEn ?? '', descTh: d.descTh ?? '',
-        province: d.province ?? '', address: d.address ?? '', teamSize: d.teamSize ?? '',
+        province: d.province ?? '', teamSize: d.teamSize ?? '',
         foundedYear: d.foundedYear ?? '', phone: d.phone ?? '', emailPublic: d.emailPublic ?? '',
         website: url,
       };
