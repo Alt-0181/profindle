@@ -192,6 +192,13 @@ export function JoinClient({
       const data = await res.json().catch(() => ({}));
       if (data.exists) { setExistsLogin(true); setSaving(false); return; }
       if (!res.ok) { setError(data.error || (isTh ? 'เกิดข้อผิดพลาด' : 'Something went wrong')); setSaving(false); return; }
+      // Preferred: establish the session with the one-time token from the server
+      // (works even when the project enforces captcha on password sign-in).
+      if (data.tokenHash) {
+        const { error: vErr } = await supabase.auth.verifyOtp({ token_hash: data.tokenHash, type: 'magiclink' });
+        if (!vErr) { router.push(`/${lang}/my-company`); return; }
+      }
+      // Fallback: password sign-in (works when captcha isn't enforced).
       const { error: signErr } = await supabase.auth.signInWithPassword({ email, password });
       if (signErr) { router.push(`/${lang}/login`); return; }
       router.push(`/${lang}/my-company`);

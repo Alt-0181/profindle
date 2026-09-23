@@ -63,5 +63,17 @@ export async function POST(request: NextRequest) {
     .eq('invited_email', email)
     .eq('status', 'pending');
 
-  return NextResponse.json({ ok: true, email });
+  // Hand the client a one-time verification token so it can establish the
+  // session directly (verifyOtp) instead of a password sign-in. Password
+  // sign-in from the browser is rejected when the project enforces captcha
+  // (the join form has no captcha), which was bouncing new collaborators to
+  // the login page instead of the dashboard. generateLink uses the admin API,
+  // so it isn't captcha-gated. Falls back to password sign-in if unavailable.
+  let tokenHash: string | null = null;
+  try {
+    const { data: link } = await admin.auth.admin.generateLink({ type: 'magiclink', email });
+    tokenHash = (link as any)?.properties?.hashed_token ?? null;
+  } catch { /* client will fall back to password sign-in */ }
+
+  return NextResponse.json({ ok: true, email, tokenHash });
 }
