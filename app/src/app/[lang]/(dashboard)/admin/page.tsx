@@ -75,17 +75,48 @@ export default async function AdminPage({ params }: { params: Promise<{ lang: st
     .order('created_at', { ascending: false })
     .limit(200);
 
+  // Map each user to their company relationship (owner / collaborator) so the
+  // Users tab shows a meaningful role + which company they belong to, instead of
+  // a bare "User".
+  const companyNameById: Record<string, string> = Object.fromEntries(
+    (companies ?? []).map(c => [c.id, ((c as any).name_th || c.name || '—')])
+  );
+  const ownedByUser: Record<string, string> = {};
+  for (const c of companies ?? []) {
+    if (c.user_id && !(c.user_id in ownedByUser)) ownedByUser[c.user_id] = (c as any).name_th || c.name || '—';
+  }
+  const { data: memberRows } = await admin
+    .from('company_members')
+    .select('user_id, company_id, status')
+    .eq('status', 'active');
+  const memberByUser: Record<string, string> = {};
+  for (const m of memberRows ?? []) {
+    const uid = (m as any).user_id;
+    if (uid && !(uid in memberByUser)) memberByUser[uid] = companyNameById[(m as any).company_id] ?? '—';
+  }
+
   // Sanitise auth users for client (only pass needed fields)
-  const clientUsers = (users ?? []).map(u => ({
-    id: u.id,
-    email: u.email,
-    created_at: u.created_at,
-    user_metadata: {
-      role: u.user_metadata?.role,
-      display_name: u.user_metadata?.display_name,
-      full_name: u.user_metadata?.full_name,
-    },
-  }));
+  const clientUsers = (users ?? []).map(u => {
+    const owned = ownedByUser[u.id];
+    const member = memberByUser[u.id];
+    const relation: 'super_admin' | 'owner' | 'collaborator' | 'none' =
+      u.user_metadata?.role === 'super_admin' ? 'super_admin'
+        : owned ? 'owner'
+          : member ? 'collaborator'
+            : 'none';
+    return {
+      id: u.id,
+      email: u.email,
+      created_at: u.created_at,
+      user_metadata: {
+        role: u.user_metadata?.role,
+        display_name: u.user_metadata?.display_name,
+        full_name: u.user_metadata?.full_name,
+      },
+      relation,
+      company: owned ?? member ?? null,
+    };
+  });
 
   return (
     <AdminClient

@@ -72,6 +72,10 @@ export interface AuthUser {
   email?: string;
   created_at: string;
   user_metadata?: { role?: string; display_name?: string; full_name?: string };
+  // Relationship to a company (for the Users tab): super admin, company owner,
+  // collaborator, or none (signed up but no company).
+  relation?: 'super_admin' | 'owner' | 'collaborator' | 'none';
+  company?: string | null;
 }
 
 export interface Broadcast {
@@ -693,10 +697,15 @@ function UsersTab({ users: initial }: { users: AuthUser[] }) {
   const [users, setUsers] = useState(initial);
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  const roleBadge = (role?: string) => {
-    if (role === 'super_admin') return { bg: '#F0F0FF', color: '#5B4EBB', label: 'Super Admin' };
-    if (role === 'admin') return { bg: '#E8F5E9', color: '#2E7D32', label: 'Admin' };
-    return { bg: '#F4F5F7', color: '#9AA0AE', label: 'User' };
+  // Role by company relationship — no meaningless "User". Owner/Collaborator tell
+  // you what the account actually is; "no company" is a signed-up account with
+  // neither yet.
+  const relationBadge = (u: AuthUser) => {
+    const rel = u.relation ?? (u.user_metadata?.role === 'super_admin' ? 'super_admin' : 'none');
+    if (rel === 'super_admin') return { bg: '#F0F0FF', color: '#5B4EBB', label: 'Super Admin' };
+    if (rel === 'owner') return { bg: '#E6F5F5', color: '#0F6F73', label: 'Owner' };
+    if (rel === 'collaborator') return { bg: '#EAF1FF', color: '#3358CC', label: 'Collaborator' };
+    return { bg: '#F4F5F7', color: '#9AA0AE', label: 'No company' };
   };
 
   const deleteUser = async (userId: string, email?: string) => {
@@ -725,8 +734,9 @@ function UsersTab({ users: initial }: { users: AuthUser[] }) {
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '14px', marginBottom: '24px' }}>
         <KpiCard label="Total Users" value={users.length} />
-        <KpiCard label="Super Admins" value={users.filter(u => u.user_metadata?.role === 'super_admin').length} />
-        <KpiCard label="Regular Users" value={users.filter(u => !u.user_metadata?.role || u.user_metadata.role === 'user').length} />
+        <KpiCard label="Super Admins" value={users.filter(u => (u.relation ?? (u.user_metadata?.role === 'super_admin' ? 'super_admin' : 'none')) === 'super_admin').length} />
+        <KpiCard label="Owners" value={users.filter(u => u.relation === 'owner').length} />
+        <KpiCard label="Collaborators" value={users.filter(u => u.relation === 'collaborator').length} />
       </div>
 
       <div style={card}>
@@ -737,18 +747,18 @@ function UsersTab({ users: initial }: { users: AuthUser[] }) {
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '480px' }}>
           <thead>
             <tr style={{ background: '#F4F5F7' }}>
-              {['Email', 'Display Name', 'Role', 'Joined', 'Actions'].map(col => (
+              {['Email', 'Display Name', 'Role', 'Company', 'Joined', 'Actions'].map(col => (
                 <th key={col} style={thStyle}>{col}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {users.length === 0 ? (
-              <tr><td colSpan={5} style={{ padding: '48px', textAlign: 'center', color: '#9AA0AE', fontSize: '14px' }}>No users yet</td></tr>
+              <tr><td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: '#9AA0AE', fontSize: '14px' }}>No users yet</td></tr>
             ) : users.map((u, i) => {
-              const badge = roleBadge(u.user_metadata?.role);
+              const badge = relationBadge(u);
               const displayName = u.user_metadata?.display_name || u.user_metadata?.full_name || '—';
-              const isSuperAdmin = u.user_metadata?.role === 'super_admin';
+              const isSuperAdmin = (u.relation ?? u.user_metadata?.role) === 'super_admin';
               return (
                 <tr key={u.id} style={{ borderTop: i > 0 ? '1px solid #F4F5F7' : undefined }}>
                   <td style={tdStyle}>
@@ -759,6 +769,7 @@ function UsersTab({ users: initial }: { users: AuthUser[] }) {
                   <td style={tdStyle}>
                     <span style={{ background: badge.bg, color: badge.color, fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '6px' }}>{badge.label}</span>
                   </td>
+                  <td style={{ ...tdStyle, fontSize: '13px', color: u.company ? '#444B5A' : '#C8CDD7' }}>{u.company || '—'}</td>
                   <td style={{ ...tdStyle, fontSize: '12px', color: '#9AA0AE' }}>{fmt(u.created_at)}</td>
                   <td style={tdStyle}>
                     {isSuperAdmin ? (
